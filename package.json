@@ -9,9 +9,9 @@
     "lint": "next lint",
     "prepare": "husky install",
     "test": "vitest"
-    
   },
   "dependencies": {
+    "jsdom": "^26.0.0",
     "next": "15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -35,11 +35,10 @@
     "vitest": "^3.0.7"
   },
   "lint-staged": {
-  "*.ts": "eslint --fix",
-  "*.tsx": "eslint --fix",
-  "*.js": "eslint --fix",
-  "*.jsx": "eslint --fix",
-  "*.{js,ts,jsx,tsx}": "prettier --write"
-}
-  
+    "*.ts": "eslint --fix",
+    "*.tsx": "eslint --fix",
+    "*.js": "eslint --fix",
+    "*.jsx": "eslint --fix",
+    "*.{js,ts,jsx,tsx}": "prettier --write"
+  }
 }
