@@ -1,12 +1,12 @@
 <table align="center">
   <tr>
     <td align="center">
-      <img src="image.png" alt="PharmaTech Logo" width="200">
+      <img src="public/image.png" alt="PharmaTech Logo" width="200">
     </td>
   </tr>
   <tr>
     <td align="center">
-      <h2>PharmaTech - Web Healthcare Ecommerce</h2>
+      <h2>PharmaTech Administrative Dashboard</h2>
     </td>
   </tr>
   <tr>
@@ -22,17 +22,7 @@
 
 This is a **Next.js** project created with [create-next-app](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 **PharmaTech** is a sales management platform for a network of pharmacy branches.  
-This system enables the administration and optimization of healthcare product sales and delivery,  
-offering an efficient experience for customers, employees, and pharmacy administrators.
-
-### Efficient Order Delivery
-
-PharmaTech optimizes order deliveries by:
-
-- Implementing **real-time order tracking**.
-- Utilizing **automated route optimization** for faster deliveries.
-- Enabling **quick order processing** with an intuitive interface for employees.
-- Offering **customer notifications** for order status updates.
+This system enables the administration of ecommerce orders, users, and products.
 
 ## 📦 Pre-requisites
 
