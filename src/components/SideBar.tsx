@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import {
   Bars3Icon,
@@ -8,7 +9,7 @@ import {
   ChartBarIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
-import Image from 'next/image'; // Importar Image
+import Image from 'next/image';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -43,7 +44,7 @@ const Sidebar = () => {
       <div className="mb-6 flex items-center justify-between">
         {isOpen && (
           <Image
-            src="/images/logo-horizontal.svg"
+            src="/logo.png"
             alt="PharmaTech Logo"
             width={128} // Ajusta el ancho según tus necesidades
             height={32} // Ajusta el alto según tus necesidades
