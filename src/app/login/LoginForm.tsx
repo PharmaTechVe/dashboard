@@ -39,12 +39,8 @@ export default function LoginForm() {
 
       try {
         loginSchema.parse({ email, password });
-
         const response = await api.auth.login({ email, password });
-
-        console.log('Access token:', response.accessToken);
         sessionStorage.setItem('pharmatechToken', response.accessToken);
-
         if (remember) {
           localStorage.setItem('pharmatechToken', response.accessToken);
         }

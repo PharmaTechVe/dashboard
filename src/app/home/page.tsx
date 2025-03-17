@@ -1,7 +1,20 @@
+'use client';
 import Sidebar from '@/components/SideBar';
-import React from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
+  const router = useRouter();
+  useEffect(() => {
+    const token =
+      typeof window !== 'undefined' &&
+      (localStorage.getItem('pharmatechToken') ||
+        sessionStorage.getItem('pharmatechToken'));
+
+    if (!token) {
+      router.push('/login');
+    }
+  }, []);
   return (
     <div className="flex h-screen">
       <Sidebar />
