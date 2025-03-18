@@ -14,7 +14,7 @@ const HomePage = () => {
     if (!token) {
       router.push('/login');
     }
-  }, []);
+  }, [router]);
   return (
     <div className="flex h-screen">
       <Sidebar />
