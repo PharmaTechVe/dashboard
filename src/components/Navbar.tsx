@@ -22,7 +22,6 @@ export default function AdminNavBar() {
           backgroundColor="#FFFFFF"
           textColorDrop={Colors.textMain}
           textplaceholderColor={Colors.placeholder}
-          categoryColor={Colors.primary}
           inputPlaceholder="Search"
           disableDropdown
         />
