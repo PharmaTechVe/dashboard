@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
+import AdminProductsTable from '@/components/Table';
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function HomePage() {
         <Navbar />
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
           <h1 className="mb-4 text-2xl font-bold">Bienvenido a PharmaTech</h1>
-          <p>Este es el admin panel</p>
+          <AdminProductsTable />
         </main>
       </div>
     </div>
