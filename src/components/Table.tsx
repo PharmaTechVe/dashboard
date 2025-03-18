@@ -31,19 +31,6 @@ const AdminProductsTable: React.FC<AdminProductsTableProps> = ({
         <h2 className="text-xl font-semibold text-gray-800">Productos</h2>
         <div className="flex items-center gap-4">
           <div className="flex flex-col">
-            <label htmlFor="categorias" className="text-sm text-gray-600">
-              Categorías
-            </label>
-            <select
-              id="categorias"
-              className="w-40 rounded-md border border-gray-300 p-2 text-sm text-gray-700 focus:outline-none"
-            >
-              <option value="Medicamentos">Medicamentos</option>
-              <option value="Vitaminas">Vitaminas</option>
-              <option value="Otros">Otros</option>
-            </select>
-          </div>
-          <div className="flex flex-col">
             <label htmlFor="buscar" className="text-sm text-gray-600">
               Buscar
             </label>
