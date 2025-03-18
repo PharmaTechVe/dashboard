@@ -7,8 +7,10 @@ import Button from '@/components/Button';
 import Input from '@/components/Input/Input';
 import CheckButton from '@/components/CheckButton';
 import theme from '@/styles/styles';
+import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -37,20 +39,15 @@ export default function LoginForm() {
 
       try {
         loginSchema.parse({ email, password });
-
         const response = await api.auth.login({ email, password });
-
-        console.log('Access token:', response.accessToken);
         sessionStorage.setItem('pharmatechToken', response.accessToken);
-
         if (remember) {
           localStorage.setItem('pharmatechToken', response.accessToken);
         }
-
         toast.success('Inicio de sesión exitoso');
-
         setEmail('');
         setPassword('');
+        router.push('/home');
       } catch (err) {
         console.error('Error en el login:', err);
         setGeneralError('Error al iniciar sesión. Verifica tus credenciales.');
@@ -58,7 +55,7 @@ export default function LoginForm() {
         setLoading(false);
       }
     },
-    [email, password, remember],
+    [email, password, remember, router],
   );
 
   return (
