@@ -40,7 +40,15 @@ export default function AdminNavBar() {
         </div>
 
         {/* Avatar */}
-        <Avatar name="John Doe" size={40} />
+        <Avatar
+          name="John Doe"
+          size={40}
+          withDropdown={true}
+          dropdownOptions={[
+            { label: 'Perfil', route: '/profile' },
+            { label: 'Salir', route: '/login' },
+          ]}
+        />
       </div>
     </nav>
   );

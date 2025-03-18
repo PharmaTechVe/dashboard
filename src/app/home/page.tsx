@@ -23,11 +23,9 @@ export default function HomePage() {
       <Sidebar />
       <div className="flex flex-1 flex-col">
         <Navbar />
-        <main className="flex-1 bg-[#F1F5FD] p-6">
-          <h1 className="mb-4 text-2xl font-bold">Welcome to PharmaTech</h1>
-          <p className="text-gray-700">
-            This is the main content area. Customize it as needed.
-          </p>
+        <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
+          <h1 className="mb-4 text-2xl font-bold">Bienvenido a PharmaTech</h1>
+          <p>Este es el admin panel</p>
         </main>
       </div>
     </div>
