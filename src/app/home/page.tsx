@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Table, { Column } from '@/components/Table';
+import { Colors } from '@/styles/styles'; // Asegúrate de importar tu objeto de colores
 
 interface ProductItem {
   id: string;
@@ -20,6 +21,8 @@ interface ProductItem {
 
 export default function HomePage() {
   const router = useRouter();
+
+  // Simulamos más datos para ver la paginación
   const [productsData] = useState<ProductItem[]>([
     {
       id: '001',
@@ -45,7 +48,57 @@ export default function HomePage() {
       presentation: { name: 'Cápsulas', quantity: 20 },
       price: 10.99,
     },
+    {
+      id: '004',
+      product: {
+        name: 'Loratadina',
+        categories: [{ name: 'Antihistamínico' }],
+      },
+      presentation: { name: 'Tabletas', quantity: 10 },
+      price: 3.5,
+    },
+    {
+      id: '005',
+      product: {
+        name: 'Amoxicilina',
+        categories: [{ name: 'Antibiótico' }],
+      },
+      presentation: { name: 'Cápsulas', quantity: 0 },
+      price: 15.99,
+    },
+    {
+      id: '006',
+      product: {
+        name: 'Metformina',
+        categories: [{ name: 'Antidiabético' }],
+      },
+      presentation: { name: 'Tabletas', quantity: 45 },
+      price: 12.75,
+    },
+    {
+      id: '007',
+      product: {
+        name: 'Salbutamol',
+        categories: [{ name: 'Broncodilatador' }],
+      },
+      presentation: { name: 'Inhalador', quantity: 5 },
+      price: 25.0,
+    },
+    {
+      id: '008',
+      product: {
+        name: 'Ranitidina',
+        categories: [{ name: 'Gastrointestinal' }],
+      },
+      presentation: { name: 'Tabletas', quantity: 12 },
+      price: 9.99,
+    },
   ]);
+
+  // Estados de paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+  const totalPages = Math.ceil(productsData.length / itemsPerPage);
 
   const columns: Column<ProductItem>[] = [
     {
@@ -76,16 +129,20 @@ export default function HomePage() {
     {
       key: 'presentation',
       label: 'Status',
-      render: (item) =>
-        item.presentation.quantity > 0 ? (
-          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-            Disponible
+      render: (item) => {
+        const isAvailable = item.presentation.quantity > 0;
+        return (
+          <span
+            className="items-center justify-center rounded-md px-3 py-1 text-xs font-semibold"
+            style={{
+              backgroundColor: Colors.secondaryLight,
+              color: Colors.textMain,
+            }}
+          >
+            {isAvailable ? 'Disponible' : 'Agotado'}
           </span>
-        ) : (
-          <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-            Agotado
-          </span>
-        ),
+        );
+      },
     },
   ];
 
@@ -127,6 +184,18 @@ export default function HomePage() {
             }}
             onEdit={handleEdit}
             onView={handleView}
+            pagination={{
+              currentPage,
+              totalPages,
+              itemsPerPage,
+              onPageChange: (page) => {
+                setCurrentPage(page);
+              },
+              onItemsPerPageChange: (newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              },
+            }}
           />
         </main>
       </div>
