@@ -67,7 +67,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex h-screen flex-col overflow-hidden transition-all duration-500 ease-out ${isOpen ? 'w-[300px]' : 'w-[85px]'} `}
+      className={`flex h-auto flex-col overflow-hidden transition-all duration-500 ease-out ${isOpen ? 'w-[300px]' : 'w-[85px]'} `}
       style={{ backgroundColor: theme.Colors.primary }}
     >
       {/* Encabezado: Logo centrado y botón toggle en la esquina derecha */}

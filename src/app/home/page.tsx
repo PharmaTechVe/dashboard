@@ -142,7 +142,7 @@ export default function HomePage() {
     },
   ];
 
-  // Acciones
+  // Acciones de edición / vista
   const handleEdit = (item: ProductItem) => {
     console.log('Editar producto:', item);
   };
@@ -163,7 +163,7 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex flex-1 flex-col">
         <Navbar />
