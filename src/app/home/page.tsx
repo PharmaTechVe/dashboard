@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Table, { Column } from '@/components/Table';
-import ActionsTable from '@/components/ActionsTable'; // Importa el componente de acciones
-import { Colors } from '@/styles/styles'; // Asegúrate de importar tu objeto de colores
+import ActionsTable from '@/components/ActionsTable';
+import { Colors } from '@/styles/styles';
 
 interface ProductItem {
   id: string;
@@ -23,7 +23,6 @@ interface ProductItem {
 export default function HomePage() {
   const router = useRouter();
 
-  // Simulamos más datos para ver la paginación
   const [productsData] = useState<ProductItem[]>([
     {
       id: '001',
@@ -168,7 +167,6 @@ export default function HomePage() {
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
           <h1 className="mb-4 text-2xl font-bold">Bienvenido a PharmaTech</h1>
 
-          {/* Contenedor de acciones (mismo ancho de la tabla y con padding bottom de 12px) */}
           <div className="w-full pb-3">
             <ActionsTable
               addButtonText="Agregar Producto"
