@@ -2,15 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 
 interface DropdownProps {
-  title?: string; // Label externo (arriba)
-  placeholder?: string; // Texto interno inicial en el botón
+  title?: string;
+  placeholder?: string;
   items: string[];
   onChange?: (value: string) => void;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
   title,
-  placeholder = 'Seleccione...', // Valor por defecto si no lo pasas
+  placeholder = 'Seleccione...',
   items,
   onChange,
 }) => {
@@ -48,7 +48,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-md border border-gray-400 bg-white px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        className="flex w-full items-center justify-between rounded-md border border-gray-400 bg-white px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2"
         onClick={() => setIsOpen(!isOpen)}
       >
         {selected || placeholder}

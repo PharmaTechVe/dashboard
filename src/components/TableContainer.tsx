@@ -65,7 +65,7 @@ export default function TableContainer<T>({
         />
       </div>
 
-      {/* Tabla (sin margen inferior) */}
+      {/* Tabla */}
       <div className="mb-0">
         <Table
           data={tableData}
