@@ -30,7 +30,7 @@ interface TableProps<T> {
   onEdit?: (item: T) => void;
   onView?: (item: T) => void;
   onSelect?: (selected: T[]) => void;
-  pagination?: PaginationProps; // <-- Nueva propiedad
+  pagination?: PaginationProps;
 }
 
 const Table = <T,>({
@@ -46,7 +46,6 @@ const Table = <T,>({
 }: TableProps<T>) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
-  // Lógica de selección (no se altera)
   const isAllSelected = data.length > 0 && selectedRows.length === data.length;
 
   const toggleSelectAll = () => {
@@ -73,9 +72,6 @@ const Table = <T,>({
     }
   };
 
-  // Lógica de paginación:
-  // Si no hay `pagination`, mostramos todos los datos.
-  // Si hay paginación, calculamos el subset correspondiente a la página actual.
   let displayedData = data;
   if (pagination) {
     const { currentPage, itemsPerPage } = pagination;
@@ -85,7 +81,7 @@ const Table = <T,>({
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-lg shadow-lg">
+    <div className="w-full overflow-x-auto">
       {title && <h2 className="text-xl font-semibold">{title}</h2>}
       {description && <p className="text-sm text-gray-600">{description}</p>}
 
@@ -96,7 +92,7 @@ const Table = <T,>({
           }`}
         >
           <tr>
-            <th className="flex items-center justify-center border px-4 py-2.5">
+            <th className="px-4 py-2 text-center">
               <CheckButton
                 checked={isAllSelected}
                 onChange={toggleSelectAll}
@@ -105,11 +101,13 @@ const Table = <T,>({
               />
             </th>
             {columns.map((column) => (
-              <th key={String(column.key)} className="border px-4 py-2">
+              <th key={String(column.key)} className="px-4 py-2 text-left">
                 {column.label}
               </th>
             ))}
-            {(onEdit || onView) && <th className="border px-4 py-2" />}
+            {(onEdit || onView) && (
+              <th className="px-4 py-2 text-center">Acciones</th>
+            )}
           </tr>
         </thead>
 
@@ -124,54 +122,56 @@ const Table = <T,>({
             return (
               <tr
                 key={globalIndex}
-                className={`${customColors?.rowBorder || 'border-gray-200'} border-b ${
-                  isSelected ? 'bg-[#D4D4D8]' : 'bg-white'
-                }`}
+                className={`${customColors?.rowBorder || 'border-gray-200'} border-b bg-white`}
               >
-                <td className="mt-[10px] flex items-center justify-center">
+                <td className="px-4 py-2 text-center">
                   <CheckButton
                     checked={isSelected}
                     onChange={() => toggleSelectRow(globalIndex)}
-                    strokeColor={Colors.primary}
+                    strokeColor={Colors.stroke}
                   />
                 </td>
+
                 {columns.map((column) => (
-                  <td key={String(column.key)} className="border px-4 py-2">
+                  <td key={String(column.key)} className="px-4 py-2 text-left">
                     {column.render
                       ? column.render(item)
                       : String(item[column.key])}
                   </td>
                 ))}
+
                 {(onEdit || onView) && (
-                  <td className="flex items-center justify-center space-x-2">
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(item)}
-                        className="flex items-center justify-center"
-                        style={{
-                          color: Colors.primary,
-                          border: 'none',
-                          background: 'transparent',
-                        }}
-                      >
-                        <PencilSquareIcon className="h-5 w-5" />
-                        <span className="ml-1">Editar</span>
-                      </button>
-                    )}
-                    {onView && (
-                      <button
-                        onClick={() => onView(item)}
-                        className="flex items-center focus:outline-none"
-                        style={{
-                          color: Colors.primary,
-                          border: 'none',
-                          background: 'transparent',
-                        }}
-                      >
-                        <EyeIcon className="h-5 w-5" />
-                        <span className="ml-1">Ver</span>
-                      </button>
-                    )}
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(item)}
+                          className="flex items-center justify-center"
+                          style={{
+                            color: Colors.primary,
+                            border: 'none',
+                            background: 'transparent',
+                          }}
+                        >
+                          <PencilSquareIcon className="h-4 w-4" />
+                          <span className="ml-1">Editar</span>
+                        </button>
+                      )}
+                      {onView && (
+                        <button
+                          onClick={() => onView(item)}
+                          className="flex items-center justify-center"
+                          style={{
+                            color: Colors.textMain,
+                            border: 'none',
+                            background: 'transparent',
+                          }}
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                          <span className="ml-1">Ver</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>
@@ -181,7 +181,7 @@ const Table = <T,>({
       </table>
 
       {pagination && (
-        <div className="mt-4 flex items-center justify-between px-2">
+        <div className="mt-4 flex flex-col items-center justify-between space-y-2 px-2 md:flex-row md:space-y-0">
           <span className="text-sm">
             Se muestran del{' '}
             <strong>

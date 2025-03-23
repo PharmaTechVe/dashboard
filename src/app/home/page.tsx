@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Table, { Column } from '@/components/Table';
+import ActionsTable from '@/components/ActionsTable'; // Importa el componente de acciones
 import { Colors } from '@/styles/styles'; // Asegúrate de importar tu objeto de colores
 
 interface ProductItem {
@@ -59,19 +60,13 @@ export default function HomePage() {
     },
     {
       id: '005',
-      product: {
-        name: 'Amoxicilina',
-        categories: [{ name: 'Antibiótico' }],
-      },
+      product: { name: 'Amoxicilina', categories: [{ name: 'Antibiótico' }] },
       presentation: { name: 'Cápsulas', quantity: 0 },
       price: 15.99,
     },
     {
       id: '006',
-      product: {
-        name: 'Metformina',
-        categories: [{ name: 'Antidiabético' }],
-      },
+      product: { name: 'Metformina', categories: [{ name: 'Antidiabético' }] },
       presentation: { name: 'Tabletas', quantity: 45 },
       price: 12.75,
     },
@@ -172,13 +167,22 @@ export default function HomePage() {
         <Navbar />
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
           <h1 className="mb-4 text-2xl font-bold">Bienvenido a PharmaTech</h1>
+
+          {/* Contenedor de acciones (mismo ancho de la tabla y con padding bottom de 12px) */}
+          <div className="w-full pb-3">
+            <ActionsTable
+              addButtonText="Agregar Producto"
+              onAddClick={() => console.log('Agregar nuevo producto')}
+              onSearch={(query) => console.log('Buscando:', query)}
+            />
+          </div>
+
+          {/* Componente Table */}
           <Table
             data={productsData}
             columns={columns}
-            title="Productos"
-            description="Lista de productos disponibles"
             customColors={{
-              headerBg: 'bg-[#1C2143]',
+              headerBg: 'bg-[#2D397B]',
               headerText: 'text-white',
               rowBorder: 'border-gray-200',
             }}
@@ -188,9 +192,7 @@ export default function HomePage() {
               currentPage,
               totalPages,
               itemsPerPage,
-              onPageChange: (page) => {
-                setCurrentPage(page);
-              },
+              onPageChange: (page) => setCurrentPage(page),
               onItemsPerPageChange: (newItemsPerPage) => {
                 setItemsPerPage(newItemsPerPage);
                 setCurrentPage(1);
