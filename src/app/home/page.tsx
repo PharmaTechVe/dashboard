@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
-import Table, { Column } from '@/components/Table';
-import ActionsTable from '@/components/ActionsTable';
+import TableContainer from '@/components/TableContainer';
+import { Column } from '@/components/Table';
 import { Colors } from '@/styles/styles';
+import Dropdown from '@/components/Dropdown';
 
 interface ProductItem {
   id: string;
@@ -89,12 +90,12 @@ export default function HomePage() {
     },
   ]);
 
-  // Estados de paginación
+  // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const totalPages = Math.ceil(productsData.length / itemsPerPage);
 
-  // Columnas con keys únicas
+  // Columnas para la tabla
   const columns: Column<ProductItem>[] = [
     {
       key: 'id',
@@ -141,6 +142,7 @@ export default function HomePage() {
     },
   ];
 
+  // Acciones
   const handleEdit = (item: ProductItem) => {
     console.log('Editar producto:', item);
   };
@@ -168,22 +170,24 @@ export default function HomePage() {
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
           <h1 className="mb-4 text-2xl font-bold">Bienvenido a PharmaTech</h1>
 
-          <div className="w-full pb-3">
-            <ActionsTable
-              addButtonText="Agregar Producto"
-              onAddClick={() => console.log('Agregar nuevo producto')}
-              onSearch={(query) => console.log('Buscando:', query)}
-            />
-          </div>
-
-          <Table
-            data={productsData}
-            columns={columns}
-            customColors={{
-              headerBg: 'bg-[#2D397B]',
-              headerText: 'text-white',
-              rowBorder: 'border-gray-200',
-            }}
+          <TableContainer
+            title="Productos"
+            dropdownComponent={
+              <Dropdown
+                title="Categoría"
+                items={[
+                  'Todos',
+                  'Antibiótico',
+                  'Analgésico',
+                  'Gastrointestinal',
+                ]}
+                onChange={(val) => console.log('Filtrar por:', val)}
+              />
+            }
+            onAddClick={() => console.log('Agregar nuevo producto')}
+            onSearch={(query) => console.log('Buscando:', query)}
+            tableData={productsData}
+            tableColumns={columns}
             onEdit={handleEdit}
             onView={handleView}
             pagination={{
@@ -191,10 +195,11 @@ export default function HomePage() {
               totalPages,
               itemsPerPage,
               onPageChange: (page) => setCurrentPage(page),
-              onItemsPerPageChange: (newItemsPerPage) => {
-                setItemsPerPage(newItemsPerPage);
+              onItemsPerPageChange: (val) => {
+                setItemsPerPage(val);
                 setCurrentPage(1);
               },
+              itemsPerPageOptions: [3, 5, 10, 15, 20],
             }}
           />
         </main>

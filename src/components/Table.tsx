@@ -5,7 +5,7 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from '@heroicons/react/24/solid';
-import { Colors } from '@/styles/styles';
+import { Colors, FontSizes } from '@/styles/styles';
 import CheckButton from './CheckButton';
 
 export interface Column<T> {
@@ -18,6 +18,8 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
+  itemsPerPageDropdown?: React.ReactNode;
+  itemsPerPageOptions?: number[];
   onPageChange: (page: number) => void;
   onItemsPerPageChange?: (items: number) => void;
 }
@@ -38,8 +40,6 @@ interface TableProps<T> {
   pagination?: PaginationProps;
 }
 
-// Esto es para solventar que no se use o detecte como any cuando pasas un dato dinamico.
-// Lo debe definir como tipo seguro
 function getValueSafely<T>(item: T, key: string): unknown {
   if (Object.prototype.hasOwnProperty.call(item, key)) {
     return item[key as keyof T];
@@ -198,19 +198,25 @@ const Table = <T,>({
 
       {pagination && (
         <div className="mt-4 flex flex-col items-center justify-between space-y-2 px-2 md:flex-row md:space-y-0">
-          <span className="text-sm">
+          <span
+            className="text-sm"
+            style={{
+              color: Colors.textMain,
+              fontSize: FontSizes.b1.size,
+            }}
+          >
             Se muestran del{' '}
-            <strong>
+            <span>
               {(pagination.currentPage - 1) * pagination.itemsPerPage + 1}
-            </strong>{' '}
+            </span>{' '}
             al{' '}
-            <strong>
+            <span>
               {Math.min(
                 pagination.currentPage * pagination.itemsPerPage,
                 data.length,
               )}
-            </strong>{' '}
-            de <strong>{data.length}</strong> resultados
+            </span>{' '}
+            de <span>{data.length}</span> resultados
           </span>
 
           <div className="flex h-[35px] overflow-hidden rounded-md border border-gray-300">
