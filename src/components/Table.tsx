@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
+import {
+  PencilSquareIcon,
+  EyeIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+} from '@heroicons/react/24/solid';
 import { Colors } from '@/styles/styles';
 import CheckButton from './CheckButton';
 
 export interface Column<T> {
-  key: keyof T;
+  key: string;
   label: string;
   render?: (item: T) => React.ReactNode;
 }
@@ -31,6 +36,15 @@ interface TableProps<T> {
   onView?: (item: T) => void;
   onSelect?: (selected: T[]) => void;
   pagination?: PaginationProps;
+}
+
+// Esto es para solventar que no se use o detecte como any cuando pasas un dato dinamico.
+// Lo debe definir como tipo seguro
+function getValueSafely<T>(item: T, key: string): unknown {
+  if (Object.prototype.hasOwnProperty.call(item, key)) {
+    return item[key as keyof T];
+  }
+  return undefined;
 }
 
 const Table = <T,>({
@@ -101,7 +115,7 @@ const Table = <T,>({
               />
             </th>
             {columns.map((column) => (
-              <th key={String(column.key)} className="px-4 py-2 text-left">
+              <th key={column.key} className="px-4 py-2 text-left">
                 {column.label}
               </th>
             ))}
@@ -122,7 +136,9 @@ const Table = <T,>({
             return (
               <tr
                 key={globalIndex}
-                className={`${customColors?.rowBorder || 'border-gray-200'} border-b bg-white`}
+                className={`${
+                  customColors?.rowBorder || 'border-gray-200'
+                } border-b bg-white`}
               >
                 <td className="px-4 py-2 text-center">
                   <CheckButton
@@ -133,10 +149,10 @@ const Table = <T,>({
                 </td>
 
                 {columns.map((column) => (
-                  <td key={String(column.key)} className="px-4 py-2 text-left">
+                  <td key={column.key} className="px-4 py-2 text-left">
                     {column.render
                       ? column.render(item)
-                      : String(item[column.key])}
+                      : String(getValueSafely(item, column.key) ?? '')}
                   </td>
                 ))}
 
@@ -197,59 +213,51 @@ const Table = <T,>({
             de <strong>{data.length}</strong> resultados
           </span>
 
-          {pagination.onItemsPerPageChange && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Items por página:</span>
-              <select
-                className="rounded border px-2 py-1 text-sm"
-                value={pagination.itemsPerPage}
-                onChange={(e) =>
-                  pagination.onItemsPerPageChange?.(Number(e.target.value))
-                }
-              >
-                <option value={6}>6</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-          )}
-
-          <div className="flex items-center space-x-1">
+          <div className="flex h-[35px] overflow-hidden rounded-md border border-gray-300">
             <button
-              className="rounded border px-2 py-1 text-sm"
               onClick={() =>
                 pagination.onPageChange(pagination.currentPage - 1)
               }
               disabled={pagination.currentPage === 1}
+              className={`flex h-[35px] w-[35px] items-center justify-center text-sm ${
+                pagination.currentPage === 1
+                  ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              &lt;
+              <ChevronLeftIcon className="h-4 w-4" />
             </button>
 
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
-              (page) => (
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+              .slice(0, 5)
+              .map((page, idx) => (
                 <button
                   key={page}
                   onClick={() => pagination.onPageChange(page)}
-                  className={`rounded border px-2 py-1 text-sm ${
+                  className={`flex h-[35px] w-[35px] items-center justify-center text-sm ${
+                    idx !== 0 ? 'border-l border-gray-300' : ''
+                  } ${
                     page === pagination.currentPage
-                      ? 'bg-blue-200 font-semibold'
-                      : ''
+                      ? 'border border-cyan-300 bg-indigo-50 text-indigo-900'
+                      : 'bg-white text-gray-800 hover:bg-gray-100'
                   }`}
                 >
                   {page}
                 </button>
-              ),
-            )}
+              ))}
 
             <button
-              className="rounded border px-2 py-1 text-sm"
               onClick={() =>
                 pagination.onPageChange(pagination.currentPage + 1)
               }
               disabled={pagination.currentPage === pagination.totalPages}
+              className={`flex h-[35px] w-[35px] items-center justify-center border-l border-gray-300 text-sm ${
+                pagination.currentPage === pagination.totalPages
+                  ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              &gt;
+              <ChevronRightIcon className="h-4 w-4" />
             </button>
           </div>
         </div>

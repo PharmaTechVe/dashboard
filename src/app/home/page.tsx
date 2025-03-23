@@ -94,6 +94,7 @@ export default function HomePage() {
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const totalPages = Math.ceil(productsData.length / itemsPerPage);
 
+  // Columnas con keys únicas
   const columns: Column<ProductItem>[] = [
     {
       key: 'id',
@@ -101,12 +102,12 @@ export default function HomePage() {
       render: (item) => item.id,
     },
     {
-      key: 'product',
+      key: 'productName',
       label: 'Nombre',
       render: (item) => item.product.name,
     },
     {
-      key: 'product',
+      key: 'productCategory',
       label: 'Categoría',
       render: (item) => item.product.categories[0]?.name || '-',
     },
@@ -116,12 +117,12 @@ export default function HomePage() {
       render: (item) => `$${item.price.toFixed(2)}`,
     },
     {
-      key: 'presentation',
+      key: 'stockQty',
       label: 'Stock',
       render: (item) => item.presentation.quantity,
     },
     {
-      key: 'presentation',
+      key: 'stockStatus',
       label: 'Status',
       render: (item) => {
         const isAvailable = item.presentation.quantity > 0;
@@ -175,7 +176,6 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Componente Table */}
           <Table
             data={productsData}
             columns={columns}
