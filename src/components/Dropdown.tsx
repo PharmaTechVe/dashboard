@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
+import { Colors, FontSizes } from '@/styles/styles';
 
 interface DropdownProps {
   title?: string;
   placeholder?: string;
   items: string[];
+  width?: string | number;
+  height?: string | number;
   onChange?: (value: string) => void;
 }
 
@@ -12,6 +15,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   title,
   placeholder = 'Seleccione...',
   items,
+  width = '16rem',
+  height = 'auto',
   onChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,9 +44,22 @@ const Dropdown: React.FC<DropdownProps> = ({
   }, []);
 
   return (
-    <div ref={dropdownRef} className="relative w-64">
+    <div
+      ref={dropdownRef}
+      className="relative w-64"
+      style={{
+        width,
+        height,
+      }}
+    >
       {title && (
-        <label className="mb-1 block text-sm font-medium text-gray-700">
+        <label
+          className="mb-1 block text-sm font-medium"
+          style={{
+            color: Colors.textLowContrast,
+            fontSize: FontSizes.b1.size,
+          }}
+        >
           {title}
         </label>
       )}
@@ -50,6 +68,10 @@ const Dropdown: React.FC<DropdownProps> = ({
         type="button"
         className="flex w-full items-center justify-between rounded-md border border-gray-400 bg-white px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2"
         onClick={() => setIsOpen(!isOpen)}
+        style={{
+          color: Colors.textLowContrast,
+          fontSize: FontSizes.b1.size,
+        }}
       >
         {selected || placeholder}
         <ChevronDownIcon className="h-5 w-5 text-gray-600" />

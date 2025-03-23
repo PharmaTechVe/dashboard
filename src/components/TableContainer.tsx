@@ -91,7 +91,9 @@ export default function TableContainer<T>({
       {/* Dropdown de ítems por página */}
       <div className="mt-[-38px] flex justify-center">
         <Dropdown
-          placeholder="página"
+          placeholder="Página"
+          width="125px"
+          height="35px"
           items={pagination.itemsPerPageOptions.map((num) => num.toString())}
           onChange={(val) => pagination.onItemsPerPageChange(Number(val))}
         />
