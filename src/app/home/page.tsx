@@ -131,7 +131,7 @@ export default function HomePage() {
           <span
             className="items-center justify-center rounded-md px-3 py-1 text-xs font-semibold"
             style={{
-              backgroundColor: Colors.secondaryLight,
+              backgroundColor: isAvailable ? Colors.secondaryLight : '#F08080',
               color: Colors.textMain,
             }}
           >

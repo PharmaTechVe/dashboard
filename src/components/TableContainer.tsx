@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import ActionsTable from '@/components/ActionsTable';
 import Table, { Column } from '@/components/Table';
 import Dropdown from '@/components/Dropdown';
@@ -43,6 +43,13 @@ export default function TableContainer<T>({
   pagination,
   customColors,
 }: TableContainerProps<T>) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownItemHeight = 35; // px
+  const dropdownOptionsCount = pagination.itemsPerPageOptions.length;
+  const dropdownHeight = isDropdownOpen
+    ? `${dropdownItemHeight * dropdownOptionsCount + 1.5 * 35}px`
+    : '35px';
+
   return (
     <div className="w-full min-w-[405px] rounded-lg bg-white p-4 shadow-md">
       {/* Título + Dropdown */}
@@ -93,9 +100,10 @@ export default function TableContainer<T>({
         <Dropdown
           placeholder="Página"
           width="125px"
-          height="35px"
+          height={dropdownHeight}
           items={pagination.itemsPerPageOptions.map((num) => num.toString())}
           onChange={(val) => pagination.onItemsPerPageChange(Number(val))}
+          onToggle={setIsDropdownOpen}
         />
       </div>
     </div>

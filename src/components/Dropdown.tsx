@@ -9,6 +9,7 @@ interface DropdownProps {
   width?: string | number;
   height?: string | number;
   onChange?: (value: string) => void;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -18,6 +19,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   width = '16rem',
   height = 'auto',
   onChange,
+  onToggle,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -27,6 +29,13 @@ const Dropdown: React.FC<DropdownProps> = ({
     setSelected(item);
     setIsOpen(false);
     if (onChange) onChange(item);
+    if (onToggle) onToggle(false);
+  };
+
+  const toggleDropdown = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    if (onToggle) onToggle(newState);
   };
 
   useEffect(() => {
@@ -36,12 +45,13 @@ const Dropdown: React.FC<DropdownProps> = ({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        if (onToggle) onToggle(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [onToggle]);
 
   return (
     <div
@@ -67,7 +77,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       <button
         type="button"
         className="flex w-full items-center justify-between rounded-md border border-gray-400 bg-white px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         style={{
           color: Colors.textLowContrast,
           fontSize: FontSizes.b1.size,
