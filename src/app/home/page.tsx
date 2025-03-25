@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
@@ -39,6 +40,14 @@ type ProductItem = {
   price: number;
 };
 
+const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return (
+    sessionStorage.getItem('pharmatechToken') ||
+    localStorage.getItem('pharmatechToken')
+  );
+};
+
 export default function HomePage() {
   const [productsData, setProductsData] = useState<ProductItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,6 +56,11 @@ export default function HomePage() {
 
   const fetchProducts = async (page: number, limit: number) => {
     try {
+      const token = getToken();
+      if (!token) {
+        console.warn('No token found');
+        return;
+      }
       const response: ProductResponse = await api.product.getProducts({
         page,
         limit,
