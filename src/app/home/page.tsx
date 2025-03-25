@@ -1,14 +1,32 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
 import { Colors } from '@/styles/styles';
 import Dropdown from '@/components/Dropdown';
+import { api } from '@/lib/sdkConfig';
 
-interface ProductItem {
+interface ProductResponse {
+  results: {
+    id: string;
+    product: {
+      name: string;
+      categories: { name: string }[];
+    };
+    presentation: {
+      name: string;
+      quantity: number;
+    };
+    price: number;
+  }[];
+  count: number;
+  next?: string | null;
+  previous?: string | null;
+}
+
+type ProductItem = {
   id: string;
   product: {
     name: string;
@@ -19,88 +37,52 @@ interface ProductItem {
     quantity: number;
   };
   price: number;
-}
+};
 
 export default function HomePage() {
-  const router = useRouter();
-
-  const [productsData] = useState<ProductItem[]>([
-    {
-      id: '001',
-      product: { name: 'Paracetamol', categories: [{ name: 'Analgésico' }] },
-      presentation: { name: 'Tabletas', quantity: 50 },
-      price: 5.99,
-    },
-    {
-      id: '002',
-      product: {
-        name: 'Ibuprofeno',
-        categories: [{ name: 'Antiinflamatorio' }],
-      },
-      presentation: { name: 'Cápsulas', quantity: 30 },
-      price: 7.49,
-    },
-    {
-      id: '003',
-      product: {
-        name: 'Omeprazol',
-        categories: [{ name: 'Gastrointestinal' }],
-      },
-      presentation: { name: 'Cápsulas', quantity: 20 },
-      price: 10.99,
-    },
-    {
-      id: '004',
-      product: {
-        name: 'Loratadina',
-        categories: [{ name: 'Antihistamínico' }],
-      },
-      presentation: { name: 'Tabletas', quantity: 10 },
-      price: 3.5,
-    },
-    {
-      id: '005',
-      product: { name: 'Amoxicilina', categories: [{ name: 'Antibiótico' }] },
-      presentation: { name: 'Cápsulas', quantity: 0 },
-      price: 15.99,
-    },
-    {
-      id: '006',
-      product: { name: 'Metformina', categories: [{ name: 'Antidiabético' }] },
-      presentation: { name: 'Tabletas', quantity: 45 },
-      price: 12.75,
-    },
-    {
-      id: '007',
-      product: {
-        name: 'Salbutamol',
-        categories: [{ name: 'Broncodilatador' }],
-      },
-      presentation: { name: 'Inhalador', quantity: 5 },
-      price: 25.0,
-    },
-    {
-      id: '008',
-      product: {
-        name: 'Ranitidina',
-        categories: [{ name: 'Gastrointestinal' }],
-      },
-      presentation: { name: 'Tabletas', quantity: 12 },
-      price: 9.99,
-    },
-  ]);
-
-  // Paginación
+  const [productsData, setProductsData] = useState<ProductItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
-  const totalPages = Math.ceil(productsData.length / itemsPerPage);
+  const [totalItems, setTotalItems] = useState(0);
 
-  // Columnas para la tabla
+  const fetchProducts = async (page: number, limit: number) => {
+    try {
+      const response: ProductResponse = await api.product.getProducts({
+        page,
+        limit,
+      });
+
+      const fetchedProducts: ProductItem[] = response.results.map((item) => ({
+        id: item.id,
+        product: {
+          name: item.product.name,
+          categories: item.product.categories,
+        },
+        presentation: {
+          name: item.presentation.name,
+          quantity: item.presentation.quantity,
+        },
+        price: item.price,
+      }));
+
+      setProductsData(fetchedProducts);
+      setTotalItems(response.count);
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts(currentPage, itemsPerPage);
+  }, [currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const columns: Column<ProductItem>[] = [
     {
       key: 'id',
       label: 'ID',
-      render: (item) => item.id,
+      render: (item) => item.id.slice(0, 6),
     },
     {
       key: 'productName',
@@ -110,7 +92,7 @@ export default function HomePage() {
     {
       key: 'productCategory',
       label: 'Categoría',
-      render: (item) => item.product.categories[0]?.name || '-',
+      render: (item) => item.product.categories?.[0]?.name || '-',
     },
     {
       key: 'price',
@@ -142,7 +124,6 @@ export default function HomePage() {
     },
   ];
 
-  // Acciones de edición / vista
   const handleEdit = (item: ProductItem) => {
     console.log('Editar producto:', item);
   };
@@ -150,17 +131,6 @@ export default function HomePage() {
   const handleView = (item: ProductItem) => {
     console.log('Ver producto:', item);
   };
-
-  useEffect(() => {
-    const token =
-      typeof window !== 'undefined' &&
-      (localStorage.getItem('pharmatechToken') ||
-        sessionStorage.getItem('pharmatechToken'));
-
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
 
   return (
     <div className="flex min-h-screen">
