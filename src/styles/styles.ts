@@ -7,6 +7,7 @@ export const Colors = {
   secondaryWhite: '#FFFFFF',
   disabled: '#D3D3D3',
   primaryTransparent: 'rgb(28, 33, 67, .75)',
+  primaryVariant: '#2D397B',
 
   textMain: '#393938',
   textWhite: '#FFFFFF',

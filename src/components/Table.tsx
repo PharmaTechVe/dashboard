@@ -1,131 +1,191 @@
-import React from 'react';
-import Button from '@/components/Button';
+'use client';
 
-interface ProductItem {
-  id: string;
-  product: {
-    name: string;
-    categories: { name: string }[];
-  };
-  presentation: {
-    name: string;
-    quantity: number;
-  };
-  price: number;
+import React, { useState } from 'react';
+import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
+import { Colors } from '@/styles/styles';
+import CheckButton from './CheckButton';
+import Pagination from './Pagination';
+
+export interface Column<T> {
+  key: string;
+  label: string;
+  render?: (item: T) => React.ReactNode;
 }
 
-interface AdminProductsTableProps {
-  products: ProductItem[];
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  onItemsPerPageChange?: (items: number) => void;
 }
 
-const AdminProductsTable: React.FC<AdminProductsTableProps> = ({
-  products,
-}) => {
-  const getStatus = (quantity: number) => {
-    return quantity > 0 ? 'Disponible' : 'Agotado';
+interface TableProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  title?: string;
+  description?: string;
+  customColors?: {
+    headerBg?: string;
+    headerText?: string;
+    rowBorder?: string;
+  };
+  onEdit?: (item: T) => void;
+  onView?: (item: T) => void;
+  onSelect?: (selected: T[]) => void;
+  pagination?: PaginationProps;
+}
+
+function getValueSafely<T>(item: T, key: string): unknown {
+  if (Object.prototype.hasOwnProperty.call(item, key)) {
+    return item[key as keyof T];
+  }
+  return undefined;
+}
+
+const Table = <T,>({
+  data,
+  columns,
+  title,
+  description,
+  customColors,
+  onEdit,
+  onView,
+  onSelect,
+  pagination,
+}: TableProps<T>) => {
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+  const isAllSelected = data.length > 0 && selectedRows.length === data.length;
+
+  const toggleSelectAll = () => {
+    const newSelected = isAllSelected ? [] : data.map((_, i) => i);
+    setSelectedRows(newSelected);
+    if (onSelect) {
+      onSelect(newSelected.map((i) => data[i]));
+    }
+  };
+
+  const toggleSelectRow = (index: number) => {
+    let newSelected: number[];
+    if (selectedRows.includes(index)) {
+      newSelected = selectedRows.filter((i) => i !== index);
+    } else {
+      newSelected = [...selectedRows, index];
+    }
+    setSelectedRows(newSelected);
+    if (onSelect) {
+      onSelect(newSelected.map((i) => data[i]));
+    }
   };
 
   return (
-    <div className="rounded-md bg-white p-6 shadow-md">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-800">Productos</h2>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col">
-            <label htmlFor="buscar" className="text-sm text-gray-600">
-              Buscar
-            </label>
-            <div className="relative">
-              <input
-                id="buscar"
-                type="text"
-                placeholder="Buscar..."
-                className="w-48 rounded-md border border-gray-300 px-3 py-2 pr-8 text-sm text-gray-700 focus:outline-none"
+    <div className="w-full overflow-x-auto">
+      {title && <h2 className="text-xl font-semibold">{title}</h2>}
+      {description && <p className="text-sm text-gray-600">{description}</p>}
+
+      <table className="w-full border-collapse">
+        <thead
+          className={`${customColors?.headerBg || 'bg-gray-200'} ${
+            customColors?.headerText || 'text-black'
+          }`}
+        >
+          <tr>
+            <th className="px-4 py-2 text-center">
+              <CheckButton
+                checked={isAllSelected}
+                onChange={toggleSelectAll}
+                strokeColor={Colors.iconWhite}
+                filled={Colors.iconWhite}
               />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse overflow-hidden rounded-md">
-          <thead className="bg-[#1C2143] text-white">
-            <tr>
-              <th className="px-4 py-3 text-left">
-                <input type="checkbox" />
+            </th>
+            {columns.map((column) => (
+              <th key={column.key} className="px-4 py-2 text-left">
+                {column.label}
               </th>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Nombre</th>
-              <th className="px-4 py-3 text-left">Categoría</th>
-              <th className="px-4 py-3 text-left">Precio</th>
-              <th className="px-4 py-3 text-left">Stock</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((item) => (
-              <tr key={item.id} className="border-b border-gray-200">
-                <td className="px-4 py-3">
-                  <input type="checkbox" />
-                </td>
-                <td className="px-4 py-3">{item.id.substring(0, 8)}</td>
-                <td className="px-4 py-3">{item.product.name}</td>
-                <td className="px-4 py-3">
-                  {item.product.categories[0]?.name || '-'}
-                </td>
-                <td className="px-4 py-3">${item.price.toFixed(2)}</td>
-                <td className="px-4 py-3">{item.presentation.quantity}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                    {getStatus(item.presentation.quantity)}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Button
-                    onClick={() => {}}
-                    variant="white"
-                    className="mr-2"
-                    width="auto"
-                    height="auto"
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    onClick={() => {}}
-                    variant="submit"
-                    width="auto"
-                    height="auto"
-                  >
-                    Ver
-                  </Button>
-                </td>
-              </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+            {(onEdit || onView) && (
+              <th className="px-4 py-2 text-center">Acciones</th>
+            )}
+          </tr>
+        </thead>
 
-      {/* Footer: Paginación */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-        <p>Se muestran de 1 a 20 de {products.length} resultados</p>
-        <div className="flex items-center gap-2">
-          <span>Página</span>
-          <select className="rounded border border-gray-300 p-1 text-sm">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-          </select>
-          <button className="px-2 py-1 text-gray-600 hover:text-gray-800">
-            &lt;
-          </button>
-          <button className="px-2 py-1 text-gray-600 hover:text-gray-800">
-            &gt;
-          </button>
-        </div>
-      </div>
+        <tbody>
+          {data.map((item, index) => {
+            const isSelected = selectedRows.includes(index);
+            return (
+              <tr
+                key={index}
+                className={`${
+                  customColors?.rowBorder || 'border-gray-200'
+                } border-b bg-white`}
+              >
+                <td className="px-4 py-2 text-center">
+                  <CheckButton
+                    checked={isSelected}
+                    onChange={() => toggleSelectRow(index)}
+                    strokeColor={Colors.stroke}
+                  />
+                </td>
+                {columns.map((column) => (
+                  <td key={column.key} className="px-4 py-2 text-left">
+                    {column.render
+                      ? column.render(item)
+                      : String(getValueSafely(item, column.key) ?? '')}
+                  </td>
+                ))}
+                {(onEdit || onView) && (
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex items-center justify-center space-x-4">
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(item)}
+                          className="flex items-center justify-center"
+                          style={{
+                            color: Colors.primary,
+                            border: 'none',
+                            background: 'transparent',
+                          }}
+                        >
+                          <PencilSquareIcon className="h-4 w-4" />
+                          <span className="ml-1">Editar</span>
+                        </button>
+                      )}
+                      {onView && (
+                        <button
+                          onClick={() => onView(item)}
+                          className="flex items-center justify-center"
+                          style={{
+                            color: Colors.textMain,
+                            border: 'none',
+                            background: 'transparent',
+                          }}
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                          <span className="ml-1">Ver</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          itemsPerPage={pagination.itemsPerPage}
+          totalItems={pagination.totalItems}
+          onPageChange={pagination.onPageChange}
+        />
+      )}
     </div>
   );
 };
 
-export default AdminProductsTable;
+export default Table;

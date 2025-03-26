@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={theme.poppins.variable}>
-      <body>{children}</body>
+      <body className="m-0 min-h-screen p-0">{children}</body>
     </html>
   );
 }

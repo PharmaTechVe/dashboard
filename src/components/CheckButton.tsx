@@ -2,15 +2,19 @@ import React from 'react';
 import { Colors } from '@/styles/styles';
 
 type CheckButtonProps = {
-  text: string;
+  text?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  strokeColor?: string;
+  filled?: string;
 };
 
 const CheckButton: React.FC<CheckButtonProps> = ({
-  text,
+  text = '',
   checked,
   onChange,
+  strokeColor,
+  filled,
 }) => {
   const handleCheckboxChange = () => {
     onChange(!checked);
@@ -26,10 +30,10 @@ const CheckButton: React.FC<CheckButtonProps> = ({
           className="sr-only"
         />
         <div
-          className={`mr-4 flex h-5 w-5 items-center justify-center rounded border transition-all duration-200`}
+          className="mr-4 flex h-5 w-5 items-center justify-center rounded border transition-all duration-200"
           style={{
-            backgroundColor: checked ? Colors.primary : 'transparent',
-            borderColor: checked ? Colors.primary : Colors.primary,
+            backgroundColor: checked ? Colors.primary : 'white',
+            borderColor: strokeColor || Colors.primary,
           }}
         >
           {checked && (
@@ -37,7 +41,7 @@ const CheckButton: React.FC<CheckButtonProps> = ({
               width="11"
               height="8"
               viewBox="0 0 11 8"
-              fill="none"
+              fill={filled}
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
@@ -50,7 +54,7 @@ const CheckButton: React.FC<CheckButtonProps> = ({
           )}
         </div>
       </div>
-      <span style={{ color: Colors.textMain }}>{text}</span>
+      {text && <span style={{ color: Colors.textMain }}>{text}</span>}
     </label>
   );
 };
