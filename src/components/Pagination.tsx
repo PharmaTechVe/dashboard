@@ -1,11 +1,11 @@
 'use client';
+
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Colors, FontSizes } from '@/styles/styles';
 
 interface PaginationProps {
   currentPage: number;
-
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;

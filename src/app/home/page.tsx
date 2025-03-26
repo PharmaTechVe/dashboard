@@ -177,6 +177,7 @@ export default function HomePage() {
             pagination={{
               currentPage,
               totalPages,
+              totalItems,
               itemsPerPage,
               onPageChange: (page) => setCurrentPage(page),
               onItemsPerPageChange: (val) => {

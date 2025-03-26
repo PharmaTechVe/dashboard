@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
 import { Colors } from '@/styles/styles';
@@ -14,6 +15,7 @@ export interface Column<T> {
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalItems: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   onItemsPerPageChange?: (items: number) => void;
@@ -78,14 +80,6 @@ const Table = <T,>({
     }
   };
 
-  const displayedData = (() => {
-    if (!pagination) return data;
-    const { currentPage, itemsPerPage } = pagination;
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return data.slice(startIndex, endIndex);
-  })();
-
   return (
     <div className="w-full overflow-x-auto">
       {title && <h2 className="text-xl font-semibold">{title}</h2>}
@@ -118,15 +112,11 @@ const Table = <T,>({
         </thead>
 
         <tbody>
-          {displayedData.map((item, index) => {
-            const globalIndex = pagination
-              ? (pagination.currentPage - 1) * pagination.itemsPerPage + index
-              : index;
-            const isSelected = selectedRows.includes(globalIndex);
-
+          {data.map((item, index) => {
+            const isSelected = selectedRows.includes(index);
             return (
               <tr
-                key={globalIndex}
+                key={index}
                 className={`${
                   customColors?.rowBorder || 'border-gray-200'
                 } border-b bg-white`}
@@ -134,7 +124,7 @@ const Table = <T,>({
                 <td className="px-4 py-2 text-center">
                   <CheckButton
                     checked={isSelected}
-                    onChange={() => toggleSelectRow(globalIndex)}
+                    onChange={() => toggleSelectRow(index)}
                     strokeColor={Colors.stroke}
                   />
                 </td>
@@ -190,7 +180,7 @@ const Table = <T,>({
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           itemsPerPage={pagination.itemsPerPage}
-          totalItems={data.length}
+          totalItems={pagination.totalItems}
           onPageChange={pagination.onPageChange}
         />
       )}

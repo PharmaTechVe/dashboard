@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import ActionsTable from '@/components/ActionsTable';
 import Table, { Column } from '@/components/Table';
@@ -18,6 +19,7 @@ interface TableContainerProps<T> {
   pagination: {
     currentPage: number;
     totalPages: number;
+    totalItems: number;
     itemsPerPage: number;
     onPageChange: (page: number) => void;
     onItemsPerPageChange: (newItemsPerPage: number) => void;
@@ -88,6 +90,7 @@ export default function TableContainer<T>({
           pagination={{
             currentPage: pagination.currentPage,
             totalPages: pagination.totalPages,
+            totalItems: pagination.totalItems,
             itemsPerPage: pagination.itemsPerPage,
             onPageChange: pagination.onPageChange,
             onItemsPerPageChange: pagination.onItemsPerPageChange,
