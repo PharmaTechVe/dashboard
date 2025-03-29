@@ -30,6 +30,8 @@ interface TableContainerProps<T> {
     headerText?: string;
     rowBorder?: string;
   };
+  expandableRows?: boolean;
+  rowDropdownComponent?: (item: T, index: number) => React.ReactNode;
 }
 
 export default function TableContainer<T>({
@@ -44,6 +46,8 @@ export default function TableContainer<T>({
   onSelect,
   pagination,
   customColors,
+  expandableRows,
+  rowDropdownComponent,
 }: TableContainerProps<T>) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
@@ -95,6 +99,8 @@ export default function TableContainer<T>({
             onPageChange: pagination.onPageChange,
             onItemsPerPageChange: pagination.onItemsPerPageChange,
           }}
+          expandableRows={expandableRows}
+          rowDropdownComponent={rowDropdownComponent}
         />
       </div>
 

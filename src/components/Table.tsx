@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
+import {
+  PencilSquareIcon,
+  EyeIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from '@heroicons/react/24/solid';
 import { Colors } from '@/styles/styles';
 import CheckButton from './CheckButton';
 import Pagination from './Pagination';
@@ -35,6 +40,8 @@ interface TableProps<T> {
   onView?: (item: T) => void;
   onSelect?: (selected: T[]) => void;
   pagination?: PaginationProps;
+  expandableRows?: boolean;
+  rowDropdownComponent?: (item: T, index: number) => React.ReactNode;
 }
 
 function getValueSafely<T>(item: T, key: string): unknown {
@@ -54,8 +61,11 @@ const Table = <T,>({
   onView,
   onSelect,
   pagination,
+  expandableRows = false,
+  rowDropdownComponent,
 }: TableProps<T>) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   const isAllSelected = data.length > 0 && selectedRows.length === data.length;
 
@@ -80,6 +90,12 @@ const Table = <T,>({
     }
   };
 
+  const toggleExpandRow = (index: number) => {
+    setExpandedRows((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+    );
+  };
+
   return (
     <div className="w-full overflow-x-auto">
       {title && <h2 className="text-xl font-semibold">{title}</h2>}
@@ -92,14 +108,17 @@ const Table = <T,>({
           }`}
         >
           <tr>
-            <th className="px-4 py-2 text-center">
-              <CheckButton
-                checked={isAllSelected}
-                onChange={toggleSelectAll}
-                strokeColor={Colors.iconWhite}
-                filled={Colors.iconWhite}
-              />
-            </th>
+            {!expandableRows && (
+              <th className="px-4 py-2 text-center">
+                <CheckButton
+                  checked={isAllSelected}
+                  onChange={toggleSelectAll}
+                  strokeColor={Colors.iconWhite}
+                  filled={Colors.iconWhite}
+                />
+              </th>
+            )}
+            {expandableRows && <th className="w-10" />}
             {columns.map((column) => (
               <th key={column.key} className="px-4 py-2 text-left">
                 {column.label}
@@ -114,62 +133,86 @@ const Table = <T,>({
         <tbody>
           {data.map((item, index) => {
             const isSelected = selectedRows.includes(index);
+            const isExpanded = expandedRows.includes(index);
+
             return (
-              <tr
-                key={index}
-                className={`${
-                  customColors?.rowBorder || 'border-gray-200'
-                } border-b bg-white`}
-              >
-                <td className="px-4 py-2 text-center">
-                  <CheckButton
-                    checked={isSelected}
-                    onChange={() => toggleSelectRow(index)}
-                    strokeColor={Colors.stroke}
-                  />
-                </td>
-                {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-2 text-left">
-                    {column.render
-                      ? column.render(item)
-                      : String(getValueSafely(item, column.key) ?? '')}
-                  </td>
-                ))}
-                {(onEdit || onView) && (
-                  <td className="px-4 py-2 text-center">
-                    <div className="flex items-center justify-center space-x-4">
-                      {onEdit && (
-                        <button
-                          onClick={() => onEdit(item)}
-                          className="flex items-center justify-center"
-                          style={{
-                            color: Colors.primary,
-                            border: 'none',
-                            background: 'transparent',
-                          }}
-                        >
-                          <PencilSquareIcon className="h-4 w-4" />
-                          <span className="ml-1">Editar</span>
-                        </button>
-                      )}
-                      {onView && (
-                        <button
-                          onClick={() => onView(item)}
-                          className="flex items-center justify-center"
-                          style={{
-                            color: Colors.textMain,
-                            border: 'none',
-                            background: 'transparent',
-                          }}
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                          <span className="ml-1">Ver</span>
-                        </button>
-                      )}
-                    </div>
-                  </td>
+              <React.Fragment key={index}>
+                <tr
+                  className={`${
+                    customColors?.rowBorder || 'border-gray-200'
+                  } border-b bg-white`}
+                >
+                  {!expandableRows && (
+                    <td className="px-4 py-2 text-center">
+                      <CheckButton
+                        checked={isSelected}
+                        onChange={() => toggleSelectRow(index)}
+                        strokeColor={Colors.stroke}
+                      />
+                    </td>
+                  )}
+                  {expandableRows && (
+                    <td className="text-center">
+                      <button onClick={() => toggleExpandRow(index)}>
+                        {isExpanded ? (
+                          <ChevronUpIcon className="h-5 w-5 text-gray-600" />
+                        ) : (
+                          <ChevronDownIcon className="h-5 w-5 text-gray-600" />
+                        )}
+                      </button>
+                    </td>
+                  )}
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-4 py-2 text-left">
+                      {column.render
+                        ? column.render(item)
+                        : String(getValueSafely(item, column.key) ?? '')}
+                    </td>
+                  ))}
+                  {(onEdit || onView) && (
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex items-center justify-center space-x-4">
+                        {onEdit && (
+                          <button
+                            onClick={() => onEdit(item)}
+                            className="flex items-center justify-center"
+                            style={{
+                              color: Colors.primary,
+                              border: 'none',
+                              background: 'transparent',
+                            }}
+                          >
+                            <PencilSquareIcon className="h-4 w-4" />
+                            <span className="ml-1">Editar</span>
+                          </button>
+                        )}
+                        {onView && (
+                          <button
+                            onClick={() => onView(item)}
+                            className="flex items-center justify-center"
+                            style={{
+                              color: Colors.textMain,
+                              border: 'none',
+                              background: 'transparent',
+                            }}
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            <span className="ml-1">Ver</span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+
+                {expandableRows && isExpanded && rowDropdownComponent && (
+                  <tr className="bg-gray-50">
+                    <td colSpan={columns.length + 2 /* expand btn + actions */}>
+                      {rowDropdownComponent(item, index)}
+                    </td>
+                  </tr>
                 )}
-              </tr>
+              </React.Fragment>
             );
           })}
         </tbody>
