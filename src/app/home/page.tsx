@@ -1,5 +1,5 @@
 'use client';
-
+import { PharmaTech } from '@pharmatech/sdk';
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
@@ -7,7 +7,6 @@ import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
 import { Colors } from '@/styles/styles';
 import Dropdown from '@/components/Dropdown';
-import { api } from '@/lib/sdkConfig';
 
 interface ProductResponse {
   results: {
@@ -53,7 +52,6 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const [totalItems, setTotalItems] = useState(0);
-
   const fetchProducts = async (page: number, limit: number) => {
     try {
       const token = getToken();
@@ -61,7 +59,8 @@ export default function HomePage() {
         console.warn('No token found');
         return;
       }
-      const response: ProductResponse = await api.product.getProducts({
+      const pharmaTech = PharmaTech.getInstance(true);
+      const response: ProductResponse = await pharmaTech.product.getProducts({
         page,
         limit,
       });
