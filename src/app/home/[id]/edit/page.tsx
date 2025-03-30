@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -25,7 +25,6 @@ interface CityItem {
 
 export default function EditBranchPage() {
   const { id } = useParams();
-  const router = useRouter();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -154,10 +153,6 @@ export default function EditBranchPage() {
 
       await api.branch.update(id, payload, token);
       toast.success('Sucursal actualizada exitosamente');
-
-      setTimeout(() => {
-        router.push('/home');
-      }, 2000);
     } catch (error) {
       console.error('Error al actualizar la sucursal:', error);
       toast.error('Ocurrió un error al actualizar la sucursal');
