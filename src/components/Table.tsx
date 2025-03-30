@@ -104,28 +104,29 @@ const Table = <T,>({
       <table className="w-full border-collapse">
         <thead
           className={`${customColors?.headerBg || 'bg-gray-200'} ${
-            customColors?.headerText || 'text-black'
+            customColors?.headerText || 'text-gray'
           }`}
         >
           <tr>
-            {!expandableRows && (
-              <th className="px-4 py-2 text-center">
-                <CheckButton
-                  checked={isAllSelected}
-                  onChange={toggleSelectAll}
-                  strokeColor={Colors.iconWhite}
-                  filled={Colors.iconWhite}
-                />
-              </th>
-            )}
+            <th className="w-12 px-4 py-2 text-center">
+              <CheckButton
+                checked={isAllSelected}
+                onChange={toggleSelectAll}
+                strokeColor={Colors.iconWhite}
+                filled={Colors.iconWhite}
+              />
+            </th>
+
             {expandableRows && <th className="w-10" />}
+
             {columns.map((column) => (
               <th key={column.key} className="px-4 py-2 text-left">
                 {column.label}
               </th>
             ))}
+
             {(onEdit || onView) && (
-              <th className="px-4 py-2 text-center">Acciones</th>
+              <th className="px-4 py-2 text-center"></th> // columna de acciones sin texto
             )}
           </tr>
         </thead>
@@ -142,17 +143,19 @@ const Table = <T,>({
                     customColors?.rowBorder || 'border-gray-200'
                   } border-b bg-white`}
                 >
-                  {!expandableRows && (
-                    <td className="px-4 py-2 text-center">
-                      <CheckButton
-                        checked={isSelected}
-                        onChange={() => toggleSelectRow(index)}
-                        strokeColor={Colors.stroke}
-                      />
-                    </td>
-                  )}
+                  <td className="text-gray px-4 py-2 text-center">
+                    <CheckButton
+                      checked={isSelected}
+                      onChange={() => toggleSelectRow(index)}
+                      strokeColor={Colors.stroke}
+                    />
+                  </td>
+
                   {expandableRows && (
-                    <td className="text-center">
+                    <td
+                      className="text-center"
+                      style={{ color: Colors.textMain }}
+                    >
                       <button onClick={() => toggleExpandRow(index)}>
                         {isExpanded ? (
                           <ChevronUpIcon className="h-5 w-5 text-gray-600" />
@@ -162,6 +165,7 @@ const Table = <T,>({
                       </button>
                     </td>
                   )}
+
                   {columns.map((column) => (
                     <td key={column.key} className="px-4 py-2 text-left">
                       {column.render
@@ -169,9 +173,10 @@ const Table = <T,>({
                         : String(getValueSafely(item, column.key) ?? '')}
                     </td>
                   ))}
+
                   {(onEdit || onView) && (
                     <td className="px-4 py-2 text-center">
-                      <div className="flex items-center justify-center space-x-4">
+                      <div className="flex items-center justify-center gap-x-6 px-2">
                         {onEdit && (
                           <button
                             onClick={() => onEdit(item)}
@@ -207,7 +212,14 @@ const Table = <T,>({
 
                 {expandableRows && isExpanded && rowDropdownComponent && (
                   <tr className="bg-gray-50">
-                    <td colSpan={columns.length + 2 /* expand btn + actions */}>
+                    <td
+                      colSpan={
+                        columns.length +
+                        1 + // checkbox
+                        (expandableRows ? 1 : 0) + // expand arrow
+                        (onEdit || onView ? 1 : 0) // acciones
+                      }
+                    >
                       {rowDropdownComponent(item, index)}
                     </td>
                   </tr>

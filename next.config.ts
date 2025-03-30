@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cloudinary.images-iherb.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'farmaciard.com',
+      },
+    ],
+  },
 };
+
 
 export default nextConfig;
