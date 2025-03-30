@@ -1,59 +1,61 @@
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/image.png" alt="PharmaTech Logo" width="200">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <h2>PharmaTech Administrative Dashboard</h2>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white">
-      <img src="https://img.shields.io/badge/tailwindcss-0F172A?&logo=tailwindcss">
-      <img src="https://img.shields.io/badge/vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white">
-    </td>
-  </tr>
-</table>
+# PharmaTech Core API
 
-## 📌 About the Project
-
-This is a **Next.js** project created with [create-next-app](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-**PharmaTech** is a sales management platform for a network of pharmacy branches.  
-This system enables the administration of ecommerce orders, users, and products.
-
-## 📦 Pre-requisites
-
-- [npm](https://www.npmjs.com/) (Node Package Manager)
-- The local backend is running, and the local database is populated with test user accounts.
-
-## 🚀 Getting Started
-
-To run the development server, use one of the following commands:
-
-1. Clone the repository
+## Project setup
 
 ```bash
-git clone https://github.com/PharmaTechVe/dashboard.git
-cd app
+$ npm install
+
+# Prepare Husky
+$ npm run prepare
 ```
 
-2. Open a terminal in the frontend project, and install dependencies
+## Compile and run the project
 
 ```bash
-npm install
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
 ```
 
-3. Run the development server
+## Run the project with Docker
+```bash
+$ docker compose up --build
+```
+
+## Generate migrations
+To generate migrations we need to create folder called migrations if does not exists in the module folder.
+After the entity definition or update it is necessary to generate the migration with the following command:
+```bash
+$ npm run migration:generate <path-to-migrations-folder>/<name>-migration
+```
+
+To generate the migration inside the docker container:
+```bash
+$ docker compose exec api npm run migration:generate <path-to-migrations-folder>/<name>-migration
+```
+
+## Apply migration
+To apply the pending migrations in the database is necessary to run the followin command:
+```bash
+$ npm run migration:run
+```
+
+To generate the migration inside the docker container:
+```bash
+$ docker compose exec api npm run migration:run
+```
+
+## Run tests
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# unit tests
+$ npm run test
+
+# test coverage
+$ npm run test:coverage
 ```

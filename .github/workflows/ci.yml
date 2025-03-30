@@ -5,7 +5,7 @@ on:
     branches: [main, dev]
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,7 +15,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -26,5 +26,42 @@ jobs:
       - name: Run format check
         run: npm run check-format
 
-      - name: Run tests with vitest
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_DB: pharmatech
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options:
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        env:
+          POSTGRES_NAME: pharmatech
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_HOST: db
+          POSTGRES_PORT: 5432
         run: npm run test
