@@ -220,10 +220,10 @@ export default function EditBranchPage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <Dropdown
-                    key={selectedStateName}
+                    selected={selectedStateName}
                     title="Estado"
                     placeholder="Selecciona el Estado"
-                    items={states.map((s) => s.name)}
+                    items={states.map((s) => ({ label: s.name, value: s.id }))}
                     onChange={setSelectedStateName}
                   />
                   {errors.stateId && (
@@ -232,10 +232,10 @@ export default function EditBranchPage() {
                 </div>
                 <div>
                   <Dropdown
-                    key={selectedCityName}
+                    selected={selectedCityName}
                     title="Ciudad"
                     placeholder="Selecciona la Ciudad"
-                    items={cities.map((c) => c.name)}
+                    items={cities.map((c) => ({ label: c.name, value: c.id }))}
                     onChange={setSelectedCityName}
                   />
                   {errors.cityId && (
