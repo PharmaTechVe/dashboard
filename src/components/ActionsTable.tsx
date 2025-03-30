@@ -45,7 +45,7 @@ export default function ActionTable({
 
       {/* Contenedor del SearchBar y botón  */}
       <div className="flex w-full items-center justify-end gap-4">
-        {/* SearchBar (El que esta en  components no cumple las propiedades...) */}
+        {/* SearchBar */}
         <div className="inline-flex h-[38px] w-[204px]">
           <input
             type="text"

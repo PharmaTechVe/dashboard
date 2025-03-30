@@ -125,9 +125,7 @@ const Table = <T,>({
               </th>
             ))}
 
-            {(onEdit || onView) && (
-              <th className="px-4 py-2 text-center"></th> // columna de acciones sin texto
-            )}
+            {(onEdit || onView) && <th className="px-4 py-2 text-center"></th>}
           </tr>
         </thead>
 
@@ -216,8 +214,8 @@ const Table = <T,>({
                       colSpan={
                         columns.length +
                         1 + // checkbox
-                        (expandableRows ? 1 : 0) + // expand arrow
-                        (onEdit || onView ? 1 : 0) // acciones
+                        (expandableRows ? 1 : 0) + // expandable
+                        (onEdit || onView ? 1 : 0) // actions
                       }
                     >
                       {rowDropdownComponent(item, index)}

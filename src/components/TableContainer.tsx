@@ -58,7 +58,7 @@ export default function TableContainer<T>({
 
   return (
     <div className="w-full min-w-[405px] rounded-lg bg-white p-4 shadow-md">
-      {/* Título + Dropdown */}
+      {/* Title + Dropdown */}
       <div className="mb-8 mt-[24px] flex items-center justify-between">
         <h2
           className="mb-4 text-[24px] font-normal"
@@ -69,7 +69,7 @@ export default function TableContainer<T>({
         <div>{dropdownComponent}</div>
       </div>
 
-      {/* Contenedor para ActionsTable */}
+      {/* Container for ActionsTable */}
       <div className="mb-4">
         <ActionsTable
           addButtonText="Agregar Producto"
@@ -78,7 +78,7 @@ export default function TableContainer<T>({
         />
       </div>
 
-      {/* Tabla */}
+      {/* Table */}
       <div className="mb-0">
         <Table
           data={tableData}
@@ -104,7 +104,7 @@ export default function TableContainer<T>({
         />
       </div>
 
-      {/* Dropdown de ítems por página */}
+      {/* Dropdown for itemsPerPage */}
       <div className="mt-[-38px] flex justify-center">
         <Dropdown
           placeholder="Página"
