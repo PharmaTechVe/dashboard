@@ -2,10 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import { Colors, FontSizes } from '@/styles/styles';
 
+type DropdownItem = {
+  label: string;
+  value: string;
+};
+
 interface DropdownProps {
   title?: string;
   placeholder?: string;
-  items: string[];
+  items: string[] | DropdownItem[];
+  selected?: string | null;
   width?: string | number;
   height?: string | number;
   onChange?: (value: string) => void;
@@ -16,13 +22,14 @@ const Dropdown: React.FC<DropdownProps> = ({
   title,
   placeholder = 'Seleccione...',
   items,
+  selected = null,
   width = '16rem',
   height = 'auto',
   onChange,
   onToggle,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [itemSelected, setSelected] = useState<string | null>(selected);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (item: string) => {
@@ -37,6 +44,12 @@ const Dropdown: React.FC<DropdownProps> = ({
     setIsOpen(newState);
     if (onToggle) onToggle(newState);
   };
+
+  useEffect(() => {
+    if (selected !== null) {
+      setSelected(selected);
+    }
+  }, [selected]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,7 +96,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           fontSize: FontSizes.b1.size,
         }}
       >
-        {selected || placeholder}
+        {itemSelected || placeholder}
         <ChevronDownIcon className="h-5 w-5 text-gray-600" />
       </button>
 
@@ -91,11 +104,13 @@ const Dropdown: React.FC<DropdownProps> = ({
         <ul className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
           {items.map((item, index) => (
             <li
-              key={index}
+              key={typeof item === 'string' ? index : item.value}
               className="cursor-pointer px-4 py-2 text-sm hover:bg-gray-100"
-              onClick={() => handleSelect(item)}
+              onClick={() =>
+                handleSelect(typeof item === 'string' ? item : item.label)
+              }
             >
-              {item}
+              {typeof item === 'string' ? item : item.label}
             </li>
           ))}
         </ul>
