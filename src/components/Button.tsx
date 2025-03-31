@@ -14,7 +14,7 @@ type ButtonProps = {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  variant?: 'submit' | 'white' | 'light' | 'icon';
+  variant?: 'submit' | 'white' | 'light' | 'icon' | 'gray';
   textColor?: string;
 };
 

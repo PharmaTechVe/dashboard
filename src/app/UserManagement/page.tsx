@@ -13,14 +13,9 @@ export default function UsersPage() {
   const router = useRouter();
   const { users, pagination, actions, loading, error } = useUsers();
 
-  const roles = ['Todos', 'Administrador', 'Usuario', 'Técnico'];
+  const roles = ['Todos', 'Administrador', 'Usuario'];
 
   const columns: Column<UserItem>[] = [
-    {
-      key: 'id',
-      label: 'ID',
-      render: (item) => item.id,
-    },
     {
       key: 'firstName',
       label: 'Nombre',
@@ -52,9 +47,11 @@ export default function UsersPage() {
     },
   ];
 
-  const handleAddUser = () => router.push('/users/new');
-  const handleView = (item: UserItem) => router.push(`/users/${item.id}`);
-  const handleEdit = (item: UserItem) => router.push(`/users/${item.id}/edit`);
+  const handleAddUser = () => router.push('/UserManagement/new');
+  const handleView = (item: UserItem) =>
+    router.push(`/UserManagement/${item.id}`);
+  const handleEdit = (item: UserItem) =>
+    router.push(`/UserManagement/${item.id}/edit`);
 
   return (
     <div className="flex min-h-screen">

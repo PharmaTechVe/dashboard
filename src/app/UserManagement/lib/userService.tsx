@@ -7,18 +7,15 @@ export interface UserList {
   email: string;
   documentId: string;
   phoneNumber: string;
+  // Si la API no envía estos campos en la raíz, se pueden obtener desde profile
   gender: string;
-  password: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: unknown;
-  lastOrderDate: unknown;
+  birthDate: string;
   role: string;
   isValidated: boolean;
-  profile: {
-    profilePicture: string;
-    birthDate: string;
-    gender: string;
+  // Propiedad opcional profile (con datos anidados)
+  profile?: {
+    birthDate?: string;
+    gender?: string;
   };
 }
 
@@ -29,6 +26,21 @@ export interface UserItem {
   email: string;
   role: string;
   status: string;
+  documentId: string;
+  phoneNumber: string;
+  gender: string;
+  birthDate: string;
+}
+
+export interface NewUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  documentId: string;
+  phoneNumber: string;
+  gender: string;
+  birthDate: string;
+  role: string;
 }
 
 export interface UserResponse {
@@ -38,9 +50,7 @@ export interface UserResponse {
   previous: string | null;
 }
 
-/**
- * Transforma un objeto UserList (devuelto por la API) al modelo interno UserItem.
- */
+// Transformación: si existe profile, usamos sus datos; de lo contrario, usamos los del objeto raíz
 const transformUser = (user: UserList): UserItem => ({
   id: user.id,
   firstName: user.firstName,
@@ -48,6 +58,10 @@ const transformUser = (user: UserList): UserItem => ({
   email: user.email,
   role: user.role,
   status: user.isValidated ? 'Validated' : 'Not Validated',
+  documentId: user.documentId,
+  phoneNumber: user.phoneNumber,
+  gender: user.profile?.gender || user.gender,
+  birthDate: user.profile?.birthDate || user.birthDate,
 });
 
 interface ApiUserService {
@@ -65,9 +79,9 @@ interface ApiUserService {
     next: string | null;
     previous: string | null;
   }>;
-  getById: (userId: string, token: string) => Promise<UserList>;
-  post: (data: Omit<UserList, 'id'>, token: string) => Promise<UserList>;
-  put: (
+  getProfile: (userId: string, token: string) => Promise<UserList>;
+  create: (data: NewUser, token: string) => Promise<UserList>;
+  update: (
     userId: string,
     data: Partial<UserList>,
     token: string,
@@ -75,7 +89,6 @@ interface ApiUserService {
   delete: (userId: string, token: string) => Promise<void>;
 }
 
-// Se forzará la conversión al tipo esperado:
 const userApi = api.user as unknown as ApiUserService;
 
 export const findAllUsers = async (
@@ -97,38 +110,15 @@ export const findUserById = async (
   userId: string,
   token: string,
 ): Promise<UserItem> => {
-  const user = await userApi.getById(userId, token);
+  const user = await userApi.getProfile(userId, token);
   return transformUser(user);
 };
 
 export const createUser = async (
-  data: Omit<UserItem, 'id' | 'status'>,
+  data: NewUser,
   token: string,
 ): Promise<UserItem> => {
-  const newUser = await userApi.post(
-    {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      role: data.role,
-      documentId: '',
-      phoneNumber: '',
-      gender: '',
-      password: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      deletedAt: null,
-      lastOrderDate: null,
-      isValidated: true,
-      profile: {
-        profilePicture: '',
-        birthDate: new Date().toISOString(),
-        gender: '',
-      },
-    },
-    token,
-  );
-
+  const newUser = await userApi.create(data, token);
   return transformUser(newUser);
 };
 
@@ -137,14 +127,18 @@ export const updateUser = async (
   data: Partial<UserItem>,
   token: string,
 ): Promise<UserItem> => {
+  // Preparamos el objeto de actualización. Puedes ampliar esto si necesitas actualizar otros campos.
   const updateData: Partial<UserList> = {};
-
   if (data.firstName) updateData.firstName = data.firstName;
   if (data.lastName) updateData.lastName = data.lastName;
   if (data.email) updateData.email = data.email;
   if (data.role) updateData.role = data.role;
+  if (data.documentId) updateData.documentId = data.documentId;
+  if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
+  if (data.gender) updateData.gender = data.gender;
+  if (data.birthDate) updateData.birthDate = data.birthDate;
 
-  const user = await userApi.put(userId, updateData, token);
+  const user = await userApi.update(userId, updateData, token);
   return transformUser(user);
 };
 
