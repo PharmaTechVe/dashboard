@@ -1,0 +1,173 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  categorySchema,
+  CategoryFormValues,
+} from '@/lib/validations/categorySchema';
+import { Client, CategoryService } from '@pharmatech/sdk';
+import Sidebar from '@/components/SideBar';
+import AdminNavBar from '@/components/Navbar';
+
+const EditCategoryPage = () => {
+  const { id } = useParams();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentCategory, setCurrentCategory] =
+    useState<CategoryFormValues | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<CategoryFormValues>({
+    resolver: zodResolver(categorySchema),
+  });
+
+  useEffect(() => {
+    const fetchCategory = async () => {
+      try {
+        const isDevMode = process.env.NODE_ENV === 'development';
+        const client = new Client(isDevMode);
+        const categoryService = new CategoryService(client);
+
+        const response = await categoryService.getById(id as string);
+        setCurrentCategory(response);
+        reset({
+          name: response.name,
+          description: response.description,
+        });
+      } catch (error) {
+        console.error('Error fetching category:', error);
+        router.push('/categories');
+      }
+    };
+
+    fetchCategory();
+  }, [id, reset, router]);
+
+  const onSubmit = async (data: CategoryFormValues) => {
+    try {
+      setIsSubmitting(true);
+      const isDevMode = process.env.NODE_ENV === 'development';
+      const client = new Client(isDevMode);
+      const categoryService = new CategoryService(client);
+
+      await categoryService.update(id as string, data, '');
+
+      router.push(`/categories/${id}`);
+    } catch (error) {
+      console.error('Error updating category:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!currentCategory) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 overflow-auto">
+          <AdminNavBar />
+          <div className="flex h-full items-center justify-center">
+            <p>Cargando categoría...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 overflow-auto">
+        <AdminNavBar />
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">
+              Editar Categoría #{id}
+            </h1>
+            <p className="text-gray-600">
+              Edita la información de la Categoría
+            </p>
+          </div>
+
+          <div className="rounded-md bg-white p-6 shadow-md">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              {/* Campo Nombre */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Nombre de la Categoría
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  {...register('name')}
+                  className={`block w-full rounded-md border px-4 py-3 focus:outline-none ${
+                    errors.name
+                      ? 'border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-600">{errors.name.message}</p>
+                )}
+              </div>
+
+              {/* Campo Descripción */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Descripción
+                </label>
+                <textarea
+                  id="description"
+                  rows={4}
+                  {...register('description')}
+                  className={`block w-full rounded-md border px-4 py-3 focus:outline-none ${
+                    errors.description
+                      ? 'border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                />
+                {errors.description && (
+                  <p className="text-sm text-red-600">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex justify-end gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/categories/${id}`)}
+                  className="rounded-md bg-gray-200 px-6 py-2 text-gray-700 hover:bg-gray-300"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:opacity-70"
+                >
+                  {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EditCategoryPage;
