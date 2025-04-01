@@ -159,7 +159,7 @@ export default function EditProductPage() {
               </div>
               <div>
                 <label className="block text-[16px] font-medium text-gray-600">
-                  Generic Name
+                  Nombre genérico
                 </label>
                 <input
                   className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
@@ -170,43 +170,6 @@ export default function EditProductPage() {
                 {errors.genericName && (
                   <p className="text-sm text-red-500">{errors.genericName}</p>
                 )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Name
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Product Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Description
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Product Description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Priority
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Priority"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                />
               </div>
               <div>
                 <Dropdown
@@ -224,6 +187,43 @@ export default function EditProductPage() {
                     {errors.manufacturerId}
                   </p>
                 )}
+              </div>
+              <div>
+                <label className="block text-[16px] font-medium text-gray-600">
+                  Nombre
+                </label>
+                <input
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                  placeholder="Product Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-[16px] font-medium text-gray-600">
+                  Descripción
+                </label>
+                <textarea
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                  placeholder="Product Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[16px] font-medium text-gray-600">
+                  Prioridad
+                </label>
+                <input
+                  type="number"
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                  placeholder="Priority"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                />
               </div>
             </div>
           </main>

@@ -160,6 +160,17 @@ export default function GenericProductDetailPage() {
 
             <div>
               <label className="block text-[16px] font-medium text-gray-600">
+                Fabricante
+              </label>
+              <input
+                className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+                value={product.manufacturer.name}
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-[16px] font-medium text-gray-600">
                 Nombre genérico
               </label>
               <input
@@ -176,17 +187,6 @@ export default function GenericProductDetailPage() {
               <textarea
                 className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
                 value={product.description}
-                readOnly
-              />
-            </div>
-
-            <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Fabricante
-              </label>
-              <input
-                className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-                value={product.manufacturer.name}
                 readOnly
               />
             </div>
