@@ -68,7 +68,7 @@ export default function TableContainer<T>({
       {/* Contenedor para ActionsTable */}
       <div className="mb-4">
         <ActionsTable
-          addButtonText="Agregar Producto"
+          addButtonText="Agregar Categoria"
           onAddClick={onAddClick}
           onSearch={onSearch}
         />
