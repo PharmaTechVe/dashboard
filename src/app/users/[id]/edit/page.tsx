@@ -30,7 +30,6 @@ const roleLabels = {
   [UserRole.DELIVERY]: 'Repartidor',
 };
 
-// Función para convertir fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
 const formatDate = (dateStr: string): string => {
   const parts = dateStr.split('/');
   if (parts.length !== 3) return dateStr;
@@ -44,7 +43,7 @@ export default function EditUserPage() {
   const [firstName, setFirstName] = useState('Santiago');
   const [lastName, setLastName] = useState('Perdamo');
   const [documentId, setDocumentId] = useState('10234567');
-  const [birthDate, setBirthDate] = useState('28/07/1986'); // Asegúrate de usar el mismo formato esperado (DD/MM/YYYY)
+  const [birthDate, setBirthDate] = useState('28-07-1986');
   const [phoneNumber, setPhoneNumber] = useState('0414-1234567');
   const [email, setEmail] = useState('santipppl@gmail.com');
   const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
@@ -70,7 +69,7 @@ export default function EditUserPage() {
       setBirthDate(
         user.profile.birthDate
           ? new Date(user.profile.birthDate).toISOString().split('T')[0]
-          : '28/07/1986',
+          : '28-07-1986',
       );
       setPhoneNumber(user.phoneNumber || '0414-1234567');
       setEmail(user.email || 'santipppl@gmail.com');
@@ -95,23 +94,19 @@ export default function EditUserPage() {
   }, [fetchUser]);
 
   const handleSubmit = async () => {
-    // Validar que se haya seleccionado un género
     if (!gender) {
       toast.error('Por favor, selecciona un género');
       return;
     }
-
-    // Transformar gender a "hombre" o "mujer"
     const genero = gender === UserGender.MALE ? 'hombre' : 'mujer';
 
-    // Validación con registerSchema
     const result = registerSchema.safeParse({
       nombre: firstName,
       apellido: lastName,
       email,
       cedula: documentId,
       telefono: phoneNumber,
-      fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
+      fechaNacimiento: formatDate(birthDate),
       genero,
     });
 
@@ -141,8 +136,7 @@ export default function EditUserPage() {
         firstName,
         lastName,
         phoneNumber,
-        // Se convierte la fecha a Date para cumplir con el tipo esperado
-        birthDate: new Date(formatDate(birthDate)),
+        birthDate: formatDate(birthDate),
         gender,
         role,
       };
@@ -181,15 +175,15 @@ export default function EditUserPage() {
             <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)]">
               <div className="mb-8 flex items-center justify-between">
                 <div>
-                  <h1 className="font-poppins text-[28px] font-normal leading-[42px] text-[#393938]">
+                  <h1 className="text-[28px] font-normal leading-[42px] text-[#393938]">
                     Usuario: #{id?.toString().slice(0, 3)}
                   </h1>
-                  <h5 className="font-poppins text-[16px] font-normal leading-[42px] text-[#393938]">
+                  <h5 className="text-[16px] font-normal leading-[42px] text-[#393938]">
                     Editar la información del Usuario
                   </h5>
                 </div>
                 <Button
-                  className="font-poppins rounded-[6px] text-[16px] font-medium leading-[24px]"
+                  className="rounded-[6px] text-[16px] font-medium leading-[24px]"
                   color={Colors.primary}
                   paddingX={4}
                   paddingY={2.5}
@@ -206,14 +200,14 @@ export default function EditUserPage() {
                 {/* Columna izquierda */}
                 <div className="space-y-6">
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Nombre
                     </label>
                     <input
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="h-10 w-full rounded-[6px] border border-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
                     {errors.firstName && (
                       <p className="text-sm text-red-500">{errors.firstName}</p>
@@ -221,20 +215,20 @@ export default function EditUserPage() {
                   </div>
 
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Cédula
                     </label>
                     <input
                       type="text"
                       value={documentId}
                       onChange={(e) => setDocumentId(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       disabled
                     />
                   </div>
 
                   <div className="flex w-[249px] flex-col">
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Fecha de nacimiento
                     </label>
                     <div className="relative">
@@ -242,20 +236,20 @@ export default function EditUserPage() {
                         type="text"
                         value={birthDate}
                         onChange={(e) => setBirthDate(e.target.value)}
-                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Teléfono
                     </label>
                     <input
                       type="text"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
                   </div>
                 </div>
@@ -263,23 +257,23 @@ export default function EditUserPage() {
                 {/* Columna derecha */}
                 <div className="space-y-6">
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Apellido
                     </label>
                     <input
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
                   </div>
 
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Género
                     </label>
                     <div className="flex h-10 items-center gap-4">
-                      <label className="font-poppins flex items-center gap-2 text-[16px] text-[#393938]">
+                      <label className="flex items-center gap-2 text-[16px] text-[#393938]">
                         <input
                           type="radio"
                           name="gender"
@@ -289,7 +283,7 @@ export default function EditUserPage() {
                         />
                         Hombre
                       </label>
-                      <label className="font-poppins flex items-center gap-2 text-[16px] text-[#393938]">
+                      <label className="flex items-center gap-2 text-[16px] text-[#393938]">
                         <input
                           type="radio"
                           name="gender"
@@ -303,14 +297,14 @@ export default function EditUserPage() {
                   </div>
 
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Rol
                     </label>
                     <div className="relative">
                       <select
                         value={role}
                         onChange={(e) => setRole(e.target.value as UserRole)}
-                        className="font-poppins h-10 w-full appearance-none rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        className="h-10 w-full appearance-none rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       >
                         {Object.values(UserRole).map((roleValue) => (
                           <option key={roleValue} value={roleValue}>
@@ -330,14 +324,14 @@ export default function EditUserPage() {
                   </div>
 
                   <div>
-                    <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                    <label className="mb-1 block text-sm font-medium text-[#393938]">
                       Correo electrónico
                     </label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       disabled
                     />
                   </div>
