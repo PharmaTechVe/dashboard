@@ -9,7 +9,7 @@ import Button from '@/components/Button';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
-import { z } from 'zod';
+import { registerSchema } from '@/lib/validations/registerSchema';
 
 enum UserGender {
   MALE = 'm',
@@ -30,18 +30,13 @@ const roleLabels = {
   [UserRole.DELIVERY]: 'Repartidor',
 };
 
-const newUserSchema = z.object({
-  firstName: z.string().nonempty('El nombre es obligatorio'),
-  lastName: z.string().nonempty('El apellido es obligatorio'),
-  documentId: z.string().nonempty('La cédula es obligatoria'),
-  birthDate: z.string().nonempty('La fecha de nacimiento es obligatoria'),
-  phoneNumber: z.string().nonempty('El teléfono es obligatorio'),
-  email: z.string().email('Formato de correo inválido'),
-  role: z.nativeEnum(UserRole),
-  gender: z.enum(['m', 'f'], {
-    errorMap: () => ({ message: 'Selecciona un género válido' }),
-  }),
-});
+// Función para convertir fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
+const formatDate = (dateStr: string): string => {
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return dateStr;
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+};
 
 export default function EditUserPage() {
   const { id } = useParams();
@@ -49,7 +44,7 @@ export default function EditUserPage() {
   const [firstName, setFirstName] = useState('Santiago');
   const [lastName, setLastName] = useState('Perdamo');
   const [documentId, setDocumentId] = useState('10234567');
-  const [birthDate, setBirthDate] = useState('28-07-1986');
+  const [birthDate, setBirthDate] = useState('28/07/1986'); // Asegúrate de usar el mismo formato esperado (DD/MM/YYYY)
   const [phoneNumber, setPhoneNumber] = useState('0414-1234567');
   const [email, setEmail] = useState('santipppl@gmail.com');
   const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
@@ -75,7 +70,7 @@ export default function EditUserPage() {
       setBirthDate(
         user.profile.birthDate
           ? new Date(user.profile.birthDate).toISOString().split('T')[0]
-          : '28-07-1986',
+          : '28/07/1986',
       );
       setPhoneNumber(user.phoneNumber || '0414-1234567');
       setEmail(user.email || 'santipppl@gmail.com');
@@ -100,29 +95,38 @@ export default function EditUserPage() {
   }, [fetchUser]);
 
   const handleSubmit = async () => {
-    const result = newUserSchema.safeParse({
-      firstName,
-      lastName,
-      documentId,
-      birthDate,
-      phoneNumber,
+    // Validar que se haya seleccionado un género
+    if (!gender) {
+      toast.error('Por favor, selecciona un género');
+      return;
+    }
+
+    // Transformar gender a "hombre" o "mujer"
+    const genero = gender === UserGender.MALE ? 'hombre' : 'mujer';
+
+    // Validación con registerSchema
+    const result = registerSchema.safeParse({
+      nombre: firstName,
+      apellido: lastName,
       email,
-      role,
-      gender,
+      cedula: documentId,
+      telefono: phoneNumber,
+      fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
+      genero,
     });
 
     if (!result.success) {
       const { fieldErrors } = result.error.flatten();
       setErrors({
-        firstName: fieldErrors.firstName?.[0] ?? '',
-        lastName: fieldErrors.lastName?.[0] ?? '',
-        documentId: fieldErrors.documentId?.[0] ?? '',
-        birthDate: fieldErrors.birthDate?.[0] ?? '',
-        phoneNumber: fieldErrors.phoneNumber?.[0] ?? '',
-        email: fieldErrors.email?.[0] ?? '',
-        role: fieldErrors.role?.[0] ?? '',
-        gender: fieldErrors.gender?.[0] ?? '',
+        firstName: fieldErrors.nombre?.[0] || '',
+        lastName: fieldErrors.apellido?.[0] || '',
+        email: fieldErrors.email?.[0] || '',
+        documentId: fieldErrors.cedula?.[0] || '',
+        phoneNumber: fieldErrors.telefono?.[0] || '',
+        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
+        gender: fieldErrors.genero?.[0] || '',
       });
+      toast.error('Por favor, revisa los errores en el formulario');
       return;
     }
 
@@ -137,13 +141,13 @@ export default function EditUserPage() {
         firstName,
         lastName,
         phoneNumber,
-        birthDate,
+        // Se convierte la fecha a Date para cumplir con el tipo esperado
+        birthDate: new Date(formatDate(birthDate)),
         gender,
         role,
       };
 
       console.log('Datos a actualizar:', payload);
-
       await api.user.update(id, payload, token);
       toast.success('Usuario actualizado exitosamente');
       setTimeout(() => {
@@ -167,7 +171,7 @@ export default function EditUserPage() {
                 items={[
                   { label: 'Usuarios', href: '/users' },
                   {
-                    label: `Usuario #${id?.toString().slice(0, 3)}`,
+                    label: `Editar Usuario #${id?.toString().slice(0, 3)}`,
                     href: '',
                   },
                 ]}
