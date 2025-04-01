@@ -97,34 +97,39 @@ export default function GenericProductListPage() {
       <div className="flex flex-1 flex-col">
         <Navbar />
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
-          <TableContainer
-            title="Productos genéricos"
-            dropdownComponent={
-              <Dropdown
-                title="Categorias"
-                items={['All']}
-                onChange={(val) => console.log('Filter by:', val)}
-              />
-            }
-            onAddClick={handleAdd}
-            onSearch={(query) => console.log('Searching:', query)}
-            tableData={products}
-            tableColumns={columns}
-            onEdit={handleEdit}
-            onView={handleView}
-            pagination={{
-              currentPage,
-              totalPages,
-              totalItems,
-              itemsPerPage,
-              onPageChange: (page) => setCurrentPage(page),
-              onItemsPerPageChange: (val) => {
-                setItemsPerPage(val);
-                setCurrentPage(1);
-              },
-              itemsPerPageOptions: [5, 10, 15, 20],
-            }}
-          />
+          <div
+            className="overflow-y-auto"
+            style={{ maxHeight: 'calc(100vh - 150px)' }}
+          >
+            <TableContainer
+              title="Productos genéricos"
+              dropdownComponent={
+                <Dropdown
+                  title="Categorias"
+                  items={['All']}
+                  onChange={(val) => console.log('Filter by:', val)}
+                />
+              }
+              onAddClick={handleAdd}
+              onSearch={(query) => console.log('Searching:', query)}
+              tableData={products}
+              tableColumns={columns}
+              onEdit={handleEdit}
+              onView={handleView}
+              pagination={{
+                currentPage,
+                totalPages,
+                totalItems,
+                itemsPerPage,
+                onPageChange: (page) => setCurrentPage(page),
+                onItemsPerPageChange: (val) => {
+                  setItemsPerPage(val);
+                  setCurrentPage(1);
+                },
+                itemsPerPageOptions: [5, 10, 15, 20],
+              }}
+            />
+          </div>
         </main>
       </div>
     </div>
