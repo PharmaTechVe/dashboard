@@ -6,6 +6,7 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
+import { Colors } from '@/styles/styles';
 
 interface ActionsTableProps {
   addButtonText: string;
@@ -31,16 +32,20 @@ export default function ActionTable({
       <div>
         <button
           type="button"
-          className="border-stroke text-TextMain flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          className="border-stroke flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          style={{ color: Colors.textMain }}
         >
-          <EllipsisVerticalIcon className="text-TextMain h-5 w-5" />
+          <EllipsisVerticalIcon
+            className="h-5 w-5"
+            style={{ color: Colors.textMain }}
+          />
           <span>Acciones</span>
         </button>
       </div>
 
       {/* Contenedor del SearchBar y botón  */}
       <div className="flex w-full items-center justify-end gap-4">
-        {/* SearchBar (El que esta en  components no cumple las propiedades...) */}
+        {/* SearchBar */}
         <div className="inline-flex h-[38px] w-[204px]">
           <input
             type="text"
@@ -62,7 +67,8 @@ export default function ActionTable({
         <button
           type="button"
           onClick={onAddClick}
-          className="border-stroke text-TextMain flex items-center gap-2 rounded-md border bg-white px-4 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          className="border-stroke flex items-center gap-2 rounded-md border bg-white px-4 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          style={{ color: Colors.textMain }}
         >
           <PlusIcon className="text-TextMain h-5 w-5" />
           <span>{addButtonText}</span>
