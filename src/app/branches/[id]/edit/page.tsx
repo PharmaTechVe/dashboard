@@ -169,7 +169,7 @@ export default function EditBranchPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Sucursales', href: '/home' },
+                  { label: 'Sucursales', href: '/branches' },
                   {
                     label: `Editar Sucursal #${id?.toString().slice(0, 3)}`,
                     href: '',

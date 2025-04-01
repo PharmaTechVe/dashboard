@@ -167,7 +167,7 @@ export default function NewBranchPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Sucursales', href: '/home' },
+                  { label: 'Sucursales', href: '/branches' },
                   { label: 'Crear sucursal', href: '' },
                 ]}
               />
