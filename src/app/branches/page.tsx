@@ -123,16 +123,16 @@ export default function BranchesPage() {
     }, */
   ];
   const handleAddBranch = () => {
-    router.push('/home/new');
+    router.push('/branches/new');
   };
 
   const handleView = (item: BranchItem) => {
-    router.push(`/home/${item.id}`);
+    router.push(`/branches/${item.id}`);
     console.log('Ver sucursal:', item);
   };
 
   const handleEdit = (item: BranchItem) => {
-    router.push(`/home/${item.id}/edit`);
+    router.push(`/branches/${item.id}/edit`);
     console.log('Editar sucursal:', item);
   };
 
