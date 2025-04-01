@@ -151,7 +151,7 @@ const Table = <T,>({
 
                   {expandableRows && (
                     <td
-                      className="text-center"
+                      className="text-center text-gray-600"
                       style={{ color: Colors.textMain }}
                     >
                       <button onClick={() => toggleExpandRow(index)}>
@@ -165,7 +165,11 @@ const Table = <T,>({
                   )}
 
                   {columns.map((column) => (
-                    <td key={column.key} className="px-4 py-2 text-left">
+                    <td
+                      key={column.key}
+                      className="px-4 py-2 text-left"
+                      style={{ color: Colors.textMain }}
+                    >
                       {column.render
                         ? column.render(item)
                         : String(getValueSafely(item, column.key) ?? '')}

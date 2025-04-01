@@ -107,7 +107,6 @@ export default function Page() {
   }, [selectedPresentation]);
 
   const columns: Column<ProductItem>[] = [
-    { key: 'id', label: 'ID' },
     { key: 'nombre', label: 'Nombre' },
     { key: 'categoria', label: 'Categoría' },
     {
@@ -144,12 +143,6 @@ export default function Page() {
             className="h-full w-full object-contain"
           />
         </div>
-      ),
-    },
-    {
-      key: 'id',
-      render: (item) => (
-        <span className={textClass}>{item.id.slice(0, 6)}</span>
       ),
     },
     {
