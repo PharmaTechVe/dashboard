@@ -12,6 +12,7 @@ import RadioButton from '@/components/RadioButton';
 import { Colors } from '@/styles/styles';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
+import { registerSchema } from '@/lib/validations/registerSchema';
 
 // Los enums vienen de la SDK
 enum UserGender {
@@ -54,6 +55,7 @@ export default function NewUserPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   // Actualiza la fecha desde el componente Calendar
   const handleDateSelect = (date: string) => {
@@ -61,10 +63,44 @@ export default function NewUserPage() {
   };
 
   const handleSubmit = async () => {
+    // Validar que se haya seleccionado un género
     if (!gender) {
       toast.error('Por favor, selecciona un género');
       return;
     }
+
+    // Transformar gender a "hombre" o "mujer" (ya que el schema espera estos valores)
+    const genero = gender === UserGender.MALE ? 'hombre' : 'mujer';
+
+    // Prepara los datos para la validación usando el schema
+    const result = registerSchema.safeParse({
+      nombre: firstName,
+      apellido: lastName,
+      email,
+      cedula: documentId,
+      telefono: phoneNumber,
+      fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
+      genero,
+    });
+
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
+      setErrors({
+        firstName: fieldErrors.nombre?.[0] || '',
+        lastName: fieldErrors.apellido?.[0] || '',
+        email: fieldErrors.email?.[0] || '',
+        documentId: fieldErrors.cedula?.[0] || '',
+        phoneNumber: fieldErrors.telefono?.[0] || '',
+        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
+        gender: fieldErrors.genero?.[0] || '',
+      });
+      toast.error('Por favor, revisa los errores en el formulario');
+      return;
+    }
+
+    // Si la validación es exitosa, limpia errores y procede a enviar
+    setErrors({});
+    setLoading(true);
 
     try {
       const token =
@@ -72,6 +108,7 @@ export default function NewUserPage() {
         localStorage.getItem('pharmatechToken');
       if (!token) {
         toast.error('No se encontró token de autenticación');
+        setLoading(false);
         return;
       }
 
@@ -108,6 +145,8 @@ export default function NewUserPage() {
     } catch (error) {
       console.error('Error al crear usuario:', error);
       toast.error('Ocurrió un error al crear el usuario');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,9 +179,10 @@ export default function NewUserPage() {
                   height="44px"
                   onClick={handleSubmit}
                   textColor={Colors.textWhite}
+                  disabled={loading}
                   className="font-poppins rounded-[6px] border-none bg-[#1C2143] text-[16px] font-medium leading-[24px] text-white transition-colors hover:bg-[#2D365F] focus:outline-none focus:ring-2 focus:ring-[#1C2143]/50 active:bg-[#151A35]"
                 >
-                  Agregar Usuario
+                  {loading ? 'Cargando...' : 'Agregar Usuario'}
                 </Button>
               </div>
               <p className="pb-8 text-[16px] font-normal text-[#393938]">

@@ -175,6 +175,7 @@ export default function UsersPage() {
                     onChange={handleRoleChange}
                   />
                 }
+                addButtonText="Agregar Usuario"
                 onAddClick={handleAddUser}
                 onSearch={handleSearch}
                 tableData={filteredUsers}

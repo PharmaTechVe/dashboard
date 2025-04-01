@@ -30,6 +30,7 @@ interface TableContainerProps<T> {
     headerText?: string;
     rowBorder?: string;
   };
+  addButtonText?: string;
 }
 
 export default function TableContainer<T>({
@@ -44,6 +45,7 @@ export default function TableContainer<T>({
   onSelect,
   pagination,
   customColors,
+  addButtonText = 'Agregar Producto',
 }: TableContainerProps<T>) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
@@ -57,7 +59,7 @@ export default function TableContainer<T>({
       {/* Título + Dropdown */}
       <div className="mb-8 mt-[24px] flex items-center justify-between">
         <h2
-          className="mb-4 text-[24px] font-normal"
+          className="mb-4 ml-6 text-[24px] font-normal"
           style={{ color: Colors.textMain }}
         >
           {title}
@@ -68,7 +70,7 @@ export default function TableContainer<T>({
       {/* Contenedor para ActionsTable */}
       <div className="mb-4">
         <ActionsTable
-          addButtonText="Agregar Producto"
+          addButtonText={addButtonText}
           onAddClick={onAddClick}
           onSearch={onSearch}
         />
