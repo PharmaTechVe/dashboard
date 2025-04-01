@@ -15,22 +15,18 @@ interface CategoryItem {
   id: string;
   name: string;
   description: string;
-  status: boolean;
 }
 
 export default function CategoryDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const [category, setCategory] = useState<CategoryItem | null>(null);
-  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const getToken = () => {
     if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
+    return localStorage.getItem('pharmatechToken');
   };
 
   useEffect(() => {
@@ -40,12 +36,10 @@ export default function CategoryDetailsPage() {
 
       try {
         const response = await api.category.getById(id);
-
         setCategory({
           id: response.id,
           name: response.name,
           description: response.description,
-          status: true,
         });
       } catch (error) {
         console.error('Error al obtener la categoría:', error);
@@ -57,10 +51,12 @@ export default function CategoryDetailsPage() {
   }, [id]);
 
   const handleEdit = () => {
-    if (typeof id === 'string') router.push(`/categories/${id}/edit`);
+    if (typeof id === 'string') {
+      router.push(`/categories/${id}/edit`);
+    }
   };
 
-  const handleToggleStatus = async () => {
+  const handleDelete = async () => {
     if (!category) return;
 
     const token = getToken();
@@ -70,31 +66,22 @@ export default function CategoryDetailsPage() {
     }
 
     setIsProcessing(true);
+
     try {
-      await api.category.update(
-        id,
-        {
-          name: category.name,
-          description: category.description,
-        },
-        token,
-      );
+      await api.category.delete(id, token);
+      toast.success(`Categoría eliminada exitosamente`);
 
-      toast.success(
-        `Categoría ${!category.status ? 'activada' : 'desactivada'} exitosamente`,
-      );
-
-      setCategory({ ...category, status: !category.status });
-      setShowStatusModal(false);
+      router.push('/categories');
     } catch (error) {
-      console.error('Error al cambiar estado de la categoría:', error);
-      toast.error('Error al cambiar estado de la categoría');
+      console.error('Error al eliminar la categoría:', error);
+      toast.error('Error al eliminar la categoría');
     } finally {
       setIsProcessing(false);
+      setShowDeleteModal(false);
     }
   };
 
-  const handleCancelStatusChange = () => setShowStatusModal(false);
+  const handleCancelDelete = () => setShowDeleteModal(false);
 
   return (
     <>
@@ -115,14 +102,15 @@ export default function CategoryDetailsPage() {
               />
             </div>
 
+            {}
             <ModalConfirm
-              isOpen={showStatusModal}
-              onClose={handleCancelStatusChange}
-              onConfirm={handleToggleStatus}
-              title="Desactivar Categoría"
-              description="¿Deseas desactivar esta categoría? Esta acción hará que la categoría deje de estar disponible para su selección en el sistema"
+              isOpen={showDeleteModal}
+              onClose={handleCancelDelete}
+              onConfirm={handleDelete}
+              title="Eliminar Categoría"
+              description="¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer."
               cancelText="Cancelar"
-              confirmText="Desactivar"
+              confirmText="Eliminar"
               width="512px"
               height="200px"
             />
@@ -134,22 +122,19 @@ export default function CategoryDetailsPage() {
                     Categoría #{category.id.slice(0, 3)}
                   </h1>
                   <div className="flex gap-6">
-                    {category.status && (
-                      <Button
-                        color={Colors.secondaryWhite}
-                        paddingX={4}
-                        paddingY={4}
-                        textSize="16"
-                        width="173px"
-                        height="48px"
-                        onClick={() => setShowStatusModal(true)}
-                        className="border-red-600 hover:border-red-600 hover:bg-red-50"
-                        textColor={Colors.semanticDanger}
-                        disabled={isProcessing}
-                      >
-                        Desactivar
-                      </Button>
-                    )}
+                    <Button
+                      color={Colors.semanticDanger}
+                      paddingX={4}
+                      paddingY={4}
+                      textSize="16"
+                      width="173px"
+                      height="48px"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      disabled={isProcessing}
+                    >
+                      Eliminar
+                    </Button>
                     <Button
                       color={Colors.primary}
                       paddingX={4}
@@ -170,7 +155,7 @@ export default function CategoryDetailsPage() {
                     Nombre de la Categoría
                   </label>
                   <input
-                    className="mt-1 w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+                    className="mt-1 w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
                     value={category.name}
                     readOnly
                   />
@@ -181,40 +166,10 @@ export default function CategoryDetailsPage() {
                     Descripción
                   </label>
                   <textarea
-                    className="mt-1 h-[120px] w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+                    className="mt-1 h-[120px] w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
                     value={category.description}
                     readOnly
                   />
-                </div>
-
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Estado
-                  </label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span
-                      className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                        category.status
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {category.status ? 'Activo' : 'Inactivo'}
-                    </span>
-                    {!category.status && (
-                      <Button
-                        color={Colors.primary}
-                        paddingX={4}
-                        paddingY={2}
-                        textSize="14"
-                        onClick={() => handleToggleStatus()}
-                        textColor={Colors.textWhite}
-                        disabled={isProcessing}
-                      >
-                        Reactivar
-                      </Button>
-                    )}
-                  </div>
                 </div>
               </div>
             ) : (
