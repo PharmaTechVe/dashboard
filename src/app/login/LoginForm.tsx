@@ -52,7 +52,7 @@ export default function LoginForm() {
         toast.success('Inicio de sesión exitoso');
         setEmail('');
         setPassword('');
-        router.push('/UserManagement');
+        router.push('/home');
       } catch (err) {
         console.error('Error en el login:', err);
         setGeneralError('Error al iniciar sesión. Verifica tus credenciales.');

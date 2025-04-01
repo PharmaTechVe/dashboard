@@ -104,7 +104,7 @@ export default function NewUserPage() {
       setEmail('');
       setErrors({});
 
-      router.push('/UserManagement');
+      router.push('/users');
     } catch (error) {
       console.error('Error al crear usuario:', error);
       toast.error('Ocurrió un error al crear el usuario');
@@ -121,7 +121,7 @@ export default function NewUserPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Usuarios', href: '/UserManagement' },
+                  { label: 'Usuarios', href: '/users' },
                   { label: 'Crear Usuario', href: '' },
                 ]}
               />

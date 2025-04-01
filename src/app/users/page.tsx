@@ -8,6 +8,7 @@ import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
+
 interface UserItem {
   id: string;
   firstName: string;
@@ -34,16 +35,30 @@ const roleTranslations: Record<string, string> = {
   delivery: 'Repartidor',
 } as const;
 
+// Objeto inverso para mapear de español a inglés.
+const roleReverse: Record<string, string> = {
+  Administrador: 'admin',
+  'Administrador de Sucursal': 'branch_admin',
+  Cliente: 'customer',
+  Repartidor: 'delivery',
+};
+
 export default function UsersPage() {
   const router = useRouter();
 
   // Estado para la lista de usuarios
   const [users, setUsers] = useState<UserItem[]>([]);
 
-  // Roles disponibles (se definen como constante ya que no varían)
-  const roles = ['Todos', 'admin', 'branch_admin', 'customer', 'delivery'];
+  // Roles en español para el dropdown (incluye "Todos")
+  const roles = [
+    'Todos',
+    'Administrador',
+    'Administrador de Sucursal',
+    'Cliente',
+    'Repartidor',
+  ];
 
-  // Estado para el rol seleccionado en el dropdown
+  // Estado para el rol seleccionado (internamente en inglés, excepto "Todos")
   const [selectedRole, setSelectedRole] = useState<string>('Todos');
 
   // Estados para la paginación
@@ -74,7 +89,7 @@ export default function UsersPage() {
     fetchUsers(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage]);
 
-  // Filtrar usuarios según el rol seleccionado
+  // Filtrar usuarios según el rol seleccionado (valor en inglés)
   const filteredUsers =
     selectedRole === 'Todos'
       ? users
@@ -99,7 +114,6 @@ export default function UsersPage() {
       label: 'Correo',
       render: (item) => item.email,
     },
-
     {
       key: 'role',
       label: 'Rol',
@@ -107,10 +121,12 @@ export default function UsersPage() {
     },
     {
       key: 'isValidated',
-      label: 'Estatus',
+      label: 'Correo\u00A0Validado',
       render: (item) => (
         <div
-          className={`// Cambiado a order-0 flex h-[24px] w-[85px] min-w-[100px] flex-none flex-grow-0 flex-row items-center justify-center gap-px rounded-[6px] px-[10px] py-[3px] ${item.isValidated ? 'bg-[#A3E4D7]' : 'bg-[#F5B7B1]'} text-xs font-medium`}
+          className={`ml-2.5 flex h-[24px] w-[85px] min-w-[100px] flex-none flex-grow-0 flex-row items-center justify-center gap-px rounded-[6px] px-[10px] py-[3px] ${
+            item.isValidated ? 'bg-[#A3E4D7]' : 'bg-[#F5B7B1]'
+          } text-xs font-medium`}
         >
           {item.isValidated ? 'Validado' : 'No Validado'}
         </div>
@@ -119,21 +135,22 @@ export default function UsersPage() {
   ];
 
   const handleAddUser = () => {
-    router.push('/UserManagement/new');
+    router.push('/users/new');
   };
 
   const handleView = (item: UserItem) => {
-    router.push(`/UserManagement/${item.id}`);
+    router.push(`/users/${item.id}`);
     console.log('Ver usuario:', item);
   };
 
   const handleEdit = (item: UserItem) => {
-    router.push(`/UserManagement/${item.id}/edit`);
+    router.push(`/users/${item.id}/edit`);
     console.log('Editar usuario:', item);
   };
 
+  // Si se selecciona "Todos" se guarda directamente; sino se convierte la etiqueta en español al valor en inglés.
   const handleRoleChange = (val: string) => {
-    setSelectedRole(val);
+    setSelectedRole(val === 'Todos' ? 'Todos' : roleReverse[val]);
     console.log('Filtrar por rol:', val);
   };
 
@@ -147,7 +164,7 @@ export default function UsersPage() {
       <div className="flex flex-1 flex-col">
         <Navbar />
         <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
-          <div className="mmx-auto my-12">
+          <div className="mx-auto my-12">
             <div className="[&>ul]:max-h-60 [&>ul]:overflow-y-auto">
               <TableContainer
                 title="Usuarios"

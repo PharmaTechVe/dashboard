@@ -147,7 +147,7 @@ export default function EditUserPage() {
       await api.user.update(id, payload, token);
       toast.success('Usuario actualizado exitosamente');
       setTimeout(() => {
-        router.push('/UserManagement');
+        router.push('/users');
       }, 2000);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
@@ -165,7 +165,7 @@ export default function EditUserPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Usuarios', href: '/UserManagement' },
+                  { label: 'Usuarios', href: '/users' },
                   {
                     label: `Usuario #${id?.toString().slice(0, 3)}`,
                     href: '',

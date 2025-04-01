@@ -124,7 +124,7 @@ export default function UserDetailsPage() {
 
   const handleEdit = () => {
     if (typeof id === 'string') {
-      router.push(`/UserManagement/${id}/edit`);
+      router.push(`/users/${id}/edit`);
     }
   };
 
@@ -139,7 +139,7 @@ export default function UserDetailsPage() {
       toast.success('Usuario eliminado exitosamente');
       setShowModal(false);
       setTimeout(() => {
-        router.push('/UserManagement');
+        router.push('/users');
       }, 2000);
     } catch (error) {
       console.error('Error al eliminar el usuario:', error);
@@ -170,7 +170,7 @@ export default function UserDetailsPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Usuarios', href: '/UserManagement' },
+                  { label: 'Usuarios', href: '/users' },
                   { label: `Usuario #${id?.toString().slice(0, 3)}`, href: '' },
                 ]}
               />
