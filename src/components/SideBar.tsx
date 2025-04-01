@@ -13,6 +13,7 @@ import {
   TagIcon,
   UsersIcon,
   PresentationChartBarIcon,
+  BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
 import '@/styles/globals.css';
@@ -72,6 +73,11 @@ const Sidebar = () => {
       name: 'Promos y cupones',
       icon: <TagIcon className="h-6 w-6" />,
       route: '/promos',
+    },
+    {
+      name: 'Sucursales',
+      icon: <BuildingStorefrontIcon className="h-6 w-6" />,
+      route: '/branches',
     },
     {
       name: 'Usuarios',
