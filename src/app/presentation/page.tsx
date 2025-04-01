@@ -47,6 +47,8 @@ export default function Page() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [totalItems, setTotalItems] = useState(0);
+  const [selectedPresentation, setSelectedPresentation] =
+    useState<Presentation | null>(null);
 
   const fetchData = async (page: number, limit: number) => {
     const token = getToken();
@@ -98,6 +100,12 @@ export default function Page() {
     fetchData(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage]);
 
+  useEffect(() => {
+    if (selectedPresentation) {
+      console.log('Detalles de presentación:', selectedPresentation);
+    }
+  }, [selectedPresentation]);
+
   const columns: Column<ProductItem>[] = [
     { key: 'id', label: 'ID' },
     { key: 'nombre', label: 'Nombre' },
@@ -123,7 +131,7 @@ export default function Page() {
   const imageWrapperClass =
     'flex h-12 w-12 items-center justify-center overflow-hidden rounded border border-transparent';
 
-  const subColumns: RowColumn<Presentation>[] = [
+  const getSubColumns = (): RowColumn<Presentation>[] => [
     {
       key: 'image',
       render: (item) => (
@@ -140,24 +148,20 @@ export default function Page() {
     },
     {
       key: 'id',
-
       render: (item) => (
         <span className={textClass}>{item.id.slice(0, 6)}</span>
       ),
     },
     {
       key: 'nombre',
-
       render: (item) => <span className={textClass}>{item.nombre}</span>,
     },
     {
       key: 'precio',
-
       render: (item) => <span className={textClass}>{item.precio}</span>,
     },
     {
       key: 'stock',
-
       render: (item) => (
         <span className={iconTextClass}>
           <Square3Stack3DIcon className="h-5 w-5" />
@@ -167,7 +171,6 @@ export default function Page() {
     },
     {
       key: 'fechaStock',
-
       render: (item) => (
         <span className={iconTextClass}>
           <CalendarIcon className="h-5 w-5" />
@@ -177,8 +180,9 @@ export default function Page() {
     },
     {
       key: 'detalles',
-      render: () => (
+      render: (item) => (
         <div
+          onClick={() => setSelectedPresentation(item)}
           className="flex cursor-pointer items-center justify-end gap-1"
           style={{ color: Colors.primaryVariant }}
         >
@@ -226,7 +230,7 @@ export default function Page() {
             }}
             expandableRows
             rowDropdownComponent={(item) => (
-              <RowTable data={item.presentaciones} columns={subColumns} />
+              <RowTable data={item.presentaciones} columns={getSubColumns()} />
             )}
           />
         </main>
