@@ -140,7 +140,6 @@ export default function NewBranchPage() {
 
       toast.success('Sucursal creada exitosamente');
 
-      // Limpiar formulario
       setName('');
       setAddress('');
       setLatitude('');
