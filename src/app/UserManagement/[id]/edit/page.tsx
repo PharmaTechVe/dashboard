@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -45,10 +45,11 @@ const newUserSchema = z.object({
 
 export default function EditUserPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [firstName, setFirstName] = useState('Santiago');
   const [lastName, setLastName] = useState('Perdamo');
   const [documentId, setDocumentId] = useState('10234567');
-  const [birthDate, setBirthDate] = useState('28/07/1986');
+  const [birthDate, setBirthDate] = useState('28-07-1986');
   const [phoneNumber, setPhoneNumber] = useState('0414-1234567');
   const [email, setEmail] = useState('santipppl@gmail.com');
   const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
@@ -73,8 +74,8 @@ export default function EditUserPage() {
       setDocumentId(user.documentId || '10234567');
       setBirthDate(
         user.profile.birthDate
-          ? new Date(user.profile.birthDate).toLocaleDateString('es-ES')
-          : '28/07/1986',
+          ? new Date(user.profile.birthDate).toISOString().split('T')[0]
+          : '28-07-1986',
       );
       setPhoneNumber(user.phoneNumber || '0414-1234567');
       setEmail(user.email || 'santipppl@gmail.com');
@@ -136,13 +137,18 @@ export default function EditUserPage() {
         firstName,
         lastName,
         phoneNumber,
+        birthDate,
         gender,
+        role,
       };
 
       console.log('Datos a actualizar:', payload);
 
       await api.user.update(id, payload, token);
       toast.success('Usuario actualizado exitosamente');
+      setTimeout(() => {
+        router.push('/UserManagement');
+      }, 2000);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
       toast.error('Ocurrió un error al actualizar el usuario');
@@ -159,7 +165,7 @@ export default function EditUserPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Usuarios', href: '/usuarios' },
+                  { label: 'Usuarios', href: '/UserManagement' },
                   {
                     label: `Usuario #${id?.toString().slice(0, 3)}`,
                     href: '',
@@ -203,7 +209,7 @@ export default function EditUserPage() {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
                     {errors.firstName && (
                       <p className="text-sm text-red-500">{errors.firstName}</p>
@@ -218,7 +224,8 @@ export default function EditUserPage() {
                       type="text"
                       value={documentId}
                       onChange={(e) => setDocumentId(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      disabled
                     />
                   </div>
 
@@ -326,7 +333,8 @@ export default function EditUserPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                      disabled
                     />
                   </div>
                 </div>

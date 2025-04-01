@@ -1,7 +1,7 @@
 'use client';
 
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -9,24 +9,118 @@ import Button from '@/components/Button';
 import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { toast, ToastContainer } from 'react-toastify';
-import { deleteUser } from '../lib/userService';
-import useUser from '../lib/UseUser'; // Asegúrate de que la ruta y el casing sean correctos
+import { api } from '@/lib/sdkConfig';
+import { ChevronRightIcon } from '@heroicons/react/24/solid';
+
+enum UserRole {
+  ADMIN = 'admin',
+  BRANCH_ADMIN = 'branch_admin',
+  CUSTOMER = 'customer',
+  DELIVERY = 'delivery',
+}
+
+const roleLabels = {
+  [UserRole.ADMIN]: 'Administrador',
+  [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
+  [UserRole.CUSTOMER]: 'Cliente',
+  [UserRole.DELIVERY]: 'Repartidor',
+};
+
+type ApiUserResponse = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  documentId: string;
+  phoneNumber: string;
+  role: string;
+  isValidated: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  lastOrderDate: Date | null;
+  profile: {
+    birthDate?: Date | string;
+    gender?: string;
+    profilePicture?: string;
+  };
+};
+
+type UserList = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  documentId: string;
+  phoneNumber: string;
+  role: string;
+  profile: {
+    birthDate?: Date | string;
+    gender?: 'm' | 'f';
+    profilePicture?: string;
+  };
+};
 
 export default function UserDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState<UserList | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Uso del hook para obtener el usuario
-  const { user, loading, error } = useUser(typeof id === 'string' ? id : '');
-
-  const getToken = () => {
+  const getToken = useCallback(() => {
     if (typeof window === 'undefined') return null;
     return (
       sessionStorage.getItem('pharmatechToken') ||
       localStorage.getItem('pharmatechToken')
     );
-  };
+  }, []);
+
+  const fetchUser = useCallback(async () => {
+    const token = getToken();
+    if (!token || typeof id !== 'string') {
+      setError('Token no encontrado o ID inválido');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const userData: ApiUserResponse = await api.user.getProfile(id, token);
+
+      const processedUser: UserList = {
+        id: userData.id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        documentId: userData.documentId,
+        phoneNumber: userData.phoneNumber,
+        role: userData.role,
+        profile: {
+          birthDate: userData.profile?.birthDate,
+          gender:
+            userData.profile?.gender === 'm' || userData.profile?.gender === 'f'
+              ? userData.profile.gender
+              : undefined,
+          profilePicture: userData.profile?.profilePicture,
+        },
+      };
+
+      setUser(processedUser);
+      setError(null);
+    } catch (err) {
+      console.error('Error al cargar el usuario:', err);
+      setError('No se pudo cargar la información del usuario');
+      toast.error('No se pudo cargar la información del usuario');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, getToken]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const handleEdit = () => {
     if (typeof id === 'string') {
@@ -41,7 +135,7 @@ export default function UserDetailsPage() {
       return;
     }
     try {
-      await deleteUser(id, token);
+      await api.user.delete(id, token);
       toast.success('Usuario eliminado exitosamente');
       setShowModal(false);
       setTimeout(() => {
@@ -55,15 +149,14 @@ export default function UserDetailsPage() {
 
   const handleCancel = () => setShowModal(false);
 
-  // Formatear la fecha y asignar el género (ya vienen transformados en el usuario)
-  const formattedBirthDate =
-    user && user.birthDate
-      ? new Date(user.birthDate).toLocaleDateString('es-ES')
-      : '';
+  const formattedBirthDate = user?.profile?.birthDate
+    ? new Date(user.profile.birthDate).toLocaleDateString('es-ES')
+    : '';
+
   const displayGender =
-    user && user.gender === 'm'
+    user?.profile?.gender === 'm'
       ? 'Masculino'
-      : user && user.gender === 'f'
+      : user?.profile?.gender === 'f'
         ? 'Femenino'
         : 'No especificado';
 
@@ -96,154 +189,147 @@ export default function UserDetailsPage() {
             />
 
             {loading ? (
-              <p className="text-[16px]">Cargando datos del usuario...</p>
+              <p className="font-poppins text-[16px]">
+                Cargando datos del usuario...
+              </p>
             ) : error ? (
-              <p className="text-[16px] text-red-500">{error}</p>
+              <p className="font-poppins text-[16px] text-red-500">{error}</p>
             ) : user ? (
-              <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
-                <div className="mb-6 flex items-center justify-between">
-                  <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                    Usuario #{user.id.slice(0, 3)}
-                  </h1>
+              <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)]">
+                <div className="mb-8 flex items-center justify-between">
+                  <div>
+                    <h1 className="font-poppins text-[28px] font-normal leading-[42px] text-[#393938]">
+                      Usuario: #{user.id.slice(0, 3)}
+                    </h1>
+                  </div>
                   <div className="flex gap-6">
-                    <Button
-                      color={Colors.secondaryWhite}
-                      paddingX={4}
-                      paddingY={4}
-                      textSize="16"
-                      width="173px"
-                      height="48px"
+                    <button
                       onClick={() => setShowModal(true)}
-                      className="border-red-600 hover:border-red-600 hover:bg-red-50"
-                      textColor={Colors.semanticDanger}
+                      className="font-poppins flex h-[44px] w-[196px] items-center justify-center rounded-[6px] border border-[#E10000] bg-white text-[16px] font-medium leading-[24px] text-[#E10000] transition-colors hover:bg-red-50"
                     >
                       Eliminar Usuario
-                    </Button>
+                    </button>
                     <Button
                       color={Colors.primary}
                       paddingX={4}
-                      paddingY={4}
+                      paddingY={2.5}
                       textSize="16"
-                      width="177px"
-                      height="48px"
+                      width="196px"
+                      height="44px"
                       onClick={handleEdit}
                       textColor={Colors.textWhite}
+                      className="font-poppins rounded-[6px] border-none bg-[#1C2143] text-[16px] font-medium leading-[24px] text-white transition-colors hover:bg-[#2D365F] focus:outline-none focus:ring-2 focus:ring-[#1C2143]/50 active:bg-[#151A35]"
                     >
                       Editar Usuario
                     </Button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Nombre
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.firstName}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Apellido
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.lastName}
-                      readOnly
-                    />
-                  </div>
-                </div>
+                <div className="mb-8 grid grid-cols-2 items-start gap-x-16 gap-y-6">
+                  {/* Columna izquierda */}
+                  <div className="space-y-6">
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Nombre
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={user.firstName}
+                        readOnly
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Cédula
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.documentId || ''}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Género
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={displayGender}
-                      readOnly
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Cédula
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={user.documentId || ''}
+                        readOnly
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Fecha de Nacimiento
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={formattedBirthDate}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Rol
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.role || ''}
-                      readOnly
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Fecha de nacimiento
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={formattedBirthDate}
+                        readOnly
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Teléfono
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.phoneNumber || ''}
-                      readOnly
-                    />
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Teléfono
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={user.phoneNumber || ''}
+                        readOnly
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Correo electrónico
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-                      value={user.email || ''}
-                      readOnly
-                    />
+
+                  {/* Columna derecha */}
+                  <div className="space-y-6">
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Apellido
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={user.lastName}
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Género
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={displayGender}
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Rol
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={roleLabels[user.role as UserRole] || user.role}
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
+                        Correo electrónico
+                      </label>
+                      <input
+                        className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                        value={user.email || ''}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
-                  <Button
-                    color={Colors.secondaryWhite}
-                    paddingX={4}
-                    paddingY={4}
-                    textSize="16"
-                    width="240px"
-                    height="48px"
-                    onClick={() => console.log('Ver registro de actividad')}
-                    className="border-gray-300 hover:bg-gray-100"
-                    textColor={Colors.primary}
-                  >
-                    Ver Registro de Actividad
-                  </Button>
+                  <button className="font-poppins flex items-center justify-center gap-1 rounded-[6px] bg-white px-4 py-2 text-[16px] font-normal leading-[24px] text-[#393938] transition-colors hover:bg-gray-100 focus:outline-none focus:ring-0">
+                    <span>Ver Registro de Actividad</span>
+                    <ChevronRightIcon className="h-6 w-6 text-[#393938]" />
+                  </button>
                 </div>
               </div>
             ) : (
-              <p className="text-[16px]">
+              <p className="font-poppins text-[16px]">
                 No se encontró información del usuario.
               </p>
             )}

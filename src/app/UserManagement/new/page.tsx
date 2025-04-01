@@ -1,25 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
-import Calendar from '@/components/Calendar'; // Componente de calendario
+import Calendar from '@/components/Calendar';
 import RadioButton from '@/components/RadioButton';
 import { Colors } from '@/styles/styles';
-import { registerSchema } from '@/lib/validations/registerSchema';
 import { toast, ToastContainer } from 'react-toastify';
-import { createUser, NewUser } from '../lib/userService';
-import { useRouter } from 'next/navigation';
+import { api } from '@/lib/sdkConfig';
 
-// Mapeo de roles: clave = opción mostrada, valor = lo que espera la API
-const roleMapping: Record<string, string> = {
-  Administrador: 'admin',
-  'Administrador de Sucursal': 'branch_admin',
-  Cliente: 'customer',
-  Delivery: 'delivery',
+// Los enums vienen de la SDK
+enum UserGender {
+  MALE = 'm',
+  FEMALE = 'f',
+}
+
+enum UserRole {
+  ADMIN = 'admin',
+  BRANCH_ADMIN = 'branch_admin',
+  CUSTOMER = 'customer',
+  DELIVERY = 'delivery',
+}
+
+// Mapeo para mostrar etiquetas en el dropdown y obtener el valor que espera la API
+const roleMapping: Record<string, UserRole> = {
+  Administrador: UserRole.ADMIN,
+  'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
+  Cliente: UserRole.CUSTOMER,
+  Delivery: UserRole.DELIVERY,
+};
+
+// Función para convertir fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
+const formatDate = (dateStr: string): string => {
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return dateStr;
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 export default function NewUserPage() {
@@ -28,42 +48,21 @@ export default function NewUserPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [documentId, setDocumentId] = useState('');
-  const [gender, setGender] = useState<'m' | 'f' | ''>('');
+  const [gender, setGender] = useState<UserGender | ''>('');
   const [birthDate, setBirthDate] = useState('');
   const [role, setRole] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Función para seleccionar la fecha desde el componente Calendar
+  // Actualiza la fecha desde el componente Calendar
   const handleDateSelect = (date: string) => {
     setBirthDate(date);
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit disparado');
-    // Validación usando el schema; asegúrate de que registerSchema incluya todos los campos necesarios.
-    const result = registerSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
-      email,
-      cedula: documentId,
-      telefono: phoneNumber,
-      fechaNacimiento: birthDate,
-      genero: gender === 'm' ? 'hombre' : gender === 'f' ? 'mujer' : '',
-    });
-
-    if (!result.success) {
-      const { fieldErrors } = result.error.flatten();
-      setErrors({
-        firstName: fieldErrors.nombre?.[0] ?? '',
-        lastName: fieldErrors.apellido?.[0] ?? '',
-        email: fieldErrors.email?.[0] ?? '',
-        documentId: fieldErrors.cedula?.[0] ?? '',
-        phoneNumber: fieldErrors.telefono?.[0] ?? '',
-        birthDate: fieldErrors.fechaNacimiento?.[0] ?? '',
-        gender: fieldErrors.genero?.[0] ?? '',
-      });
+    if (!gender) {
+      toast.error('Por favor, selecciona un género');
       return;
     }
 
@@ -76,21 +75,22 @@ export default function NewUserPage() {
         return;
       }
 
-      const mappedRole = roleMapping[role] || 'customer';
+      const mappedRole = roleMapping[role] || UserRole.CUSTOMER;
+      const formattedBirthDate = formatDate(birthDate);
 
-      const payload: NewUser = {
+      const payload = {
         firstName,
         lastName,
         email,
-        role: mappedRole,
         documentId,
         phoneNumber: phoneNumber.trim(),
+        birthDate: formattedBirthDate,
         gender,
-        birthDate,
+        role: mappedRole,
       };
-      console.log('Payload a enviar:', payload);
 
-      await createUser(payload, token);
+      console.log('Payload a enviar:', payload);
+      await api.user.create(payload, token);
       toast.success('Usuario creado exitosamente');
 
       // Limpiar formulario
@@ -126,25 +126,26 @@ export default function NewUserPage() {
                 ]}
               />
             </div>
-            <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
-              <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+            <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-lg">
+              <div className="mb-8 flex flex-col items-center justify-between md:flex-row">
+                <h1 className="text-[28px] font-normal leading-[42px] text-[#393938]">
                   Nuevo Usuario
                 </h1>
                 <Button
                   color={Colors.primary}
                   paddingX={4}
-                  paddingY={4}
+                  paddingY={2.5}
                   textSize="16"
                   width="196px"
                   height="44px"
                   onClick={handleSubmit}
                   textColor={Colors.textWhite}
+                  className="font-poppins rounded-[6px] border-none bg-[#1C2143] text-[16px] font-medium leading-[24px] text-white transition-colors hover:bg-[#2D365F] focus:outline-none focus:ring-2 focus:ring-[#1C2143]/50 active:bg-[#151A35]"
                 >
                   Agregar Usuario
                 </Button>
               </div>
-              <p className="text-[16px] text-[#393938]">
+              <p className="pb-8 text-[16px] font-normal text-[#393938]">
                 Agrega la información del usuario
               </p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -153,13 +154,16 @@ export default function NewUserPage() {
                     Nombre
                   </label>
                   <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none"
+                    type="text"
                     placeholder="Agrega el nombre"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.firstName && (
-                    <p className="text-sm text-red-500">{errors.firstName}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.firstName}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -167,29 +171,35 @@ export default function NewUserPage() {
                     Apellido
                   </label>
                   <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none"
+                    type="text"
                     placeholder="Agrega el apellido"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.lastName && (
-                    <p className="text-sm text-red-500">{errors.lastName}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.lastName}
+                    </p>
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Cédula
                   </label>
                   <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none"
+                    type="text"
                     placeholder="Agrega el número de cédula"
                     value={documentId}
                     onChange={(e) => setDocumentId(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.documentId && (
-                    <p className="text-sm text-red-500">{errors.documentId}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.documentId}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -199,30 +209,32 @@ export default function NewUserPage() {
                   <div className="mt-1 flex gap-6">
                     <RadioButton
                       text="Hombre"
-                      selected={gender === 'm'}
-                      onSelect={() => setGender('m')}
+                      selected={gender === UserGender.MALE}
+                      onSelect={() => setGender(UserGender.MALE)}
                     />
                     <RadioButton
                       text="Mujer"
-                      selected={gender === 'f'}
-                      onSelect={() => setGender('f')}
+                      selected={gender === UserGender.FEMALE}
+                      onSelect={() => setGender(UserGender.FEMALE)}
                     />
                   </div>
                   {errors.gender && (
-                    <p className="text-sm text-red-500">{errors.gender}</p>
+                    <p className="mt-1 text-sm text-red-500">{errors.gender}</p>
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Fecha de nacimiento
                   </label>
-                  <div className="relative">
+                  <div className="relative mt-1">
                     <Calendar onDateSelect={handleDateSelect} />
                   </div>
                   {errors.birthDate && (
-                    <p className="text-sm text-red-500">{errors.birthDate}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.birthDate}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -243,19 +255,22 @@ export default function NewUserPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Teléfono
                   </label>
                   <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none"
+                    type="text"
                     placeholder="Agrega número de teléfono"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.phoneNumber && (
-                    <p className="text-sm text-red-500">{errors.phoneNumber}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.phoneNumber}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -263,13 +278,14 @@ export default function NewUserPage() {
                     Correo electrónico
                   </label>
                   <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none"
+                    type="email"
                     placeholder="Agrega correo electrónico"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email}</p>
+                    <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                   )}
                 </div>
               </div>
