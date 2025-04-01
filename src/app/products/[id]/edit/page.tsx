@@ -33,8 +33,8 @@ export default function EditProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
-  const [manufacturerId, setManufacturerId] = useState('');
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [manufacturerId, setManufacturerId] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -74,7 +74,7 @@ export default function EditProductPage() {
       setName(product.name);
       setDescription(product.description || '');
       setPriority(product.priority.toString());
-      setManufacturerId(product.manufacturer.id);
+      setSelectedManufacturer(product.manufacturer.name);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Error fetching product details.');
