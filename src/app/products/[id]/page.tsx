@@ -5,6 +5,7 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
+import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
@@ -31,6 +32,7 @@ export default function GenericProductDetailPage() {
   const [product, setProduct] = useState<GenericProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const getToken = () => {
     if (typeof window === 'undefined') return null;
@@ -69,7 +71,7 @@ export default function GenericProductDetailPage() {
     }
     try {
       await api.genericProduct.delete(id, token);
-      toast.success('Product deleted successfully');
+      toast.success('Producto eliminado exitosamente');
       setTimeout(() => {
         router.push('/products/');
       }, 2000);
@@ -78,6 +80,8 @@ export default function GenericProductDetailPage() {
       toast.error('Error deleting product');
     }
   };
+
+  const handleCancel = () => setShowModal(false);
 
   const breadcrumbItems = [
     { label: 'Inicio', href: '/' },
@@ -98,6 +102,17 @@ export default function GenericProductDetailPage() {
           <div className="mx-auto mb-4 max-w-[904px]">
             <Breadcrumb items={breadcrumbItems} />
           </div>
+          <ModalConfirm
+            isOpen={showModal}
+            onClose={handleCancel}
+            onConfirm={handleDelete}
+            title="Eliminar Producto"
+            description="¿Estás seguro de que deseas eliminar este producto? Esta acción hará que el producto deje de estar activo en el sistema"
+            cancelText="Cancelar"
+            confirmText="Eliminar"
+            width="512px"
+            height="200px"
+          />
           <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
             <div className="mb-6 flex items-center justify-between">
               <h1 className="text-[28px] font-normal leading-none text-[#393938]">
@@ -111,7 +126,7 @@ export default function GenericProductDetailPage() {
                   textSize="16"
                   width="173px"
                   height="48px"
-                  onClick={handleDelete}
+                  onClick={() => setShowModal(true)}
                   className="border-red-600 hover:border-red-600 hover:bg-red-50"
                   textColor={Colors.semanticDanger}
                 >
