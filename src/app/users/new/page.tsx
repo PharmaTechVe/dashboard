@@ -12,6 +12,7 @@ import RadioButton from '@/components/RadioButton';
 import { Colors } from '@/styles/styles';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
+
 import { registerSchema } from '@/lib/validations/registerSchema';
 
 // Los enums vienen de la SDK
@@ -43,6 +44,32 @@ const formatDate = (dateStr: string): string => {
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'messages' in error) {
+    const errorObj = error as Record<string, unknown>;
+    const messages = errorObj.messages;
+    if (typeof messages === 'string') {
+      return messages;
+    } else if (Array.isArray(messages)) {
+      // Se busca el primer elemento que sea string
+      const firstString = messages.find(
+        (msg): msg is string => typeof msg === 'string',
+      );
+      return firstString || 'Error';
+    }
+  } else if (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error
+  ) {
+    const errorObj = error as Record<string, unknown>;
+    const message = errorObj.message;
+    if (typeof message === 'string') {
+      return message;
+    }
+  }
+  return 'Ocurrió un error inesperado';
+}
 export default function NewUserPage() {
   const router = useRouter();
 
@@ -142,9 +169,11 @@ export default function NewUserPage() {
       setErrors({});
 
       router.push('/users');
-    } catch (error) {
-      console.error('Error al crear usuario:', error);
-      toast.error('Ocurrió un error al crear el usuario');
+    } catch (error: unknown) {
+      // Quita o comenta esta línea para evitar que se imprima la traza en consola
+      // console.error('Error al crear usuario:', error);
+      const errorMsg = getErrorMessage(error);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
