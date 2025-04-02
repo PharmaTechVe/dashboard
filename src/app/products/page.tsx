@@ -52,7 +52,7 @@ export default function GenericProductListPage() {
 
   useEffect(() => {
     fetchProducts(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, fetchProducts]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
