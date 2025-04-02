@@ -30,28 +30,29 @@ export default function CategoriesPage() {
     );
   };
 
-  const fetchCategories = async (page: number, limit: number) => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const response = await api.category.findAll({
-        page,
-        limit,
-      });
-
-      const filteredResults = response.results;
-      setCategories(filteredResults);
-      setTotalItems(response.count);
-    } catch (error) {
-      console.error('Error al obtener categorías:', error);
-      toast.error('Error al cargar las categorías');
-    }
-  };
-
   useEffect(() => {
+    const fetchCategories = async (page: number, limit: number) => {
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const response = await api.category.findAll({
+          page,
+          limit,
+        });
+
+        const filteredResults = response.results;
+        setCategories(filteredResults);
+        setTotalItems(response.count);
+      } catch (error) {
+        console.error('Error al obtener categorías:', error);
+        toast.error('Error al cargar las categorías');
+      }
+    };
+
     fetchCategories(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage, fetchCategories]);
+  }, [currentPage, itemsPerPage]);
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const columns: Column<CategoryItem>[] = [
