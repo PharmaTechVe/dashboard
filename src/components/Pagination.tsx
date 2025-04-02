@@ -1,136 +1,83 @@
 'use client';
-import '../styles/globals.css';
-import React, { useState } from 'react';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-} from '@heroicons/react/24/solid';
+
+import React from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { Colors, FontSizes } from '@/styles/styles';
 
 interface PaginationProps {
+  currentPage: number;
   totalPages: number;
-  previousText?: string;
-  nextText?: string;
-  previousIcon?: 'chevron' | 'arrow';
-  nextIcon?: 'chevron' | 'arrow';
-  buttonStyle?: React.CSSProperties;
-  pageButtonStyle?: React.CSSProperties;
-  activePageColor?: string;
-  inactivePageColor?: string;
-  buttonBorderStyle?: 'rounded' | 'full';
-  backgroundColor?: string;
+  itemsPerPage: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
+export default function Pagination({
+  currentPage,
   totalPages,
-  previousText = '',
-  nextText = '',
-  previousIcon = 'chevron',
-  nextIcon = 'chevron',
-  buttonStyle = {},
-  pageButtonStyle = {},
-  activePageColor = '',
-  inactivePageColor = '',
-  buttonBorderStyle = '',
-  backgroundColor = '',
-}) => {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const buttonSize =
-    previousText || nextText
-      ? { height: '25px', width: '25px' }
-      : { height: '34px', width: '34px' };
-
-  const renderPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-    if (endPage - startPage < maxPagesToShow - 1) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      const isActive = currentPage === i;
-      const activeBgColor = {
-        backgroundColor: activePageColor,
-        color: '#FFFFFF',
-      };
-      const inactiveBgColor = {
-        backgroundColor: inactivePageColor,
-        color: '#000000',
-      };
-
-      pages.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          className={`mt-2 flex items-center justify-center border ${buttonBorderStyle === 'full' ? 'rounded-full' : 'rounded-md'}`}
-          style={{
-            ...buttonSize,
-            ...pageButtonStyle,
-            ...(isActive ? activeBgColor : inactiveBgColor),
-          }}
-        >
-          {i}
-        </button>,
-      );
-    }
-    return pages;
-  };
+  itemsPerPage,
+  totalItems,
+  onPageChange,
+}: PaginationProps) {
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div
-      className="mb-10 flex h-[50px] w-[300px] justify-center space-x-2 rounded-xl border px-2"
-      style={{ backgroundColor }}
-    >
-      <button
-        className="mt-2 flex items-center justify-center border text-xs"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+    <div className="mt-4 flex flex-col items-center justify-between space-y-2 px-2 md:flex-row md:space-y-0">
+      <span
+        className="text-sm"
         style={{
-          ...buttonSize,
-          ...buttonStyle,
-          backgroundColor: inactivePageColor,
-          color: '#000000',
-          borderRadius: buttonBorderStyle === 'full' ? '50%' : '4px',
+          color: Colors.textMain,
+          fontSize: FontSizes.b1.size,
         }}
       >
-        {previousIcon === 'chevron' ? (
+        Se muestran del <span>{startIndex}</span> al <span>{endIndex}</span> de{' '}
+        <span>{totalItems}</span> resultados
+      </span>
+
+      <div className="flex h-[35px] overflow-hidden rounded-md border border-gray-300">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`flex h-[35px] w-[35px] items-center justify-center text-sm ${
+            currentPage === 1
+              ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+        >
           <ChevronLeftIcon className="h-4 w-4" />
-        ) : (
-          <ArrowLeftIcon className="h-4 w-4" />
-        )}
-        {previousText && <span className="ml-1 text-xs">{previousText}</span>}
-      </button>
-      {renderPageNumbers()}
-      <button
-        className="mt-2 flex items-center justify-center border text-xs"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        style={{
-          ...buttonSize,
-          ...buttonStyle,
-          backgroundColor: inactivePageColor,
-          color: '#000000',
-          borderRadius: buttonBorderStyle === 'full' ? '50%' : '4px',
-        }}
-      >
-        {nextText && <span className="mr-1 text-xs">{nextText}</span>}
-        {nextIcon === 'chevron' ? (
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1)
+          .slice(0, 5)
+          .map((page, idx) => (
+            <button
+              key={page}
+              onClick={() => onPageChange(page)}
+              className={`flex h-[35px] w-[35px] items-center justify-center text-sm ${
+                idx !== 0 ? 'border-l border-gray-300' : ''
+              } ${
+                page === currentPage
+                  ? 'border border-cyan-300 bg-indigo-50 text-indigo-900'
+                  : 'bg-white text-gray-800 hover:bg-gray-100'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`flex h-[35px] w-[35px] items-center justify-center border-l border-gray-300 text-sm ${
+            currentPage === totalPages
+              ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+          }`}
+        >
           <ChevronRightIcon className="h-4 w-4" />
-        ) : (
-          <ArrowRightIcon className="h-4 w-4" />
-        )}
-      </button>
+        </button>
+      </div>
     </div>
   );
-};
-
-export default Pagination;
+}

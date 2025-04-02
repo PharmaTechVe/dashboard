@@ -15,7 +15,7 @@ interface InputProps {
   helperText?: string;
   helperTextColor?: string;
   disabled?: boolean;
-  type?: 'text' | 'password' | 'email' | 'number';
+  type?: 'text' | 'password' | 'email' | 'number' | 'date';
   value?: string;
   showPasswordToggle?: boolean;
   showPasswordToggleIconColor?: string;
