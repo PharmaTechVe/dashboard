@@ -135,7 +135,7 @@ export default function CategoryDetailsPage() {
                       className="border-red-600 hover:border-red-600 hover:bg-red-50"
                       textColor={Colors.semanticDanger}
                     >
-                      Eliminar Producto
+                      Eliminar Categoría
                     </Button>
                     <Button
                       color={Colors.primary}
