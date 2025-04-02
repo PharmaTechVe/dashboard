@@ -101,6 +101,7 @@ export default function CategoriesPage() {
               onAddClick={handleAddCategory}
               onEdit={handleEditCategory}
               onView={handleViewCategory}
+              addButtonText="Agregar Categoria"
               onSearch={(query) => console.log('Buscando sucursal:', query)}
               pagination={{
                 currentPage,
