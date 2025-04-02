@@ -51,7 +51,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetchCategories(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, fetchCategories]);
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const columns: Column<CategoryItem>[] = [
