@@ -38,6 +38,7 @@ export default function GenericProductListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [categories, setCategories] = useState<string[]>([]);
   const router = useRouter();
 
   const fetchProducts = async (page: number, limit: number) => {
@@ -49,6 +50,20 @@ export default function GenericProductListPage() {
       console.error('Error fetching generic products:', error);
     }
   };
+
+  useEffect(() => {
+    api.category
+      .findAll({ page: 1, limit: 20 })
+      .then((resp: { results: Category[] }) => {
+        if (resp && resp.results) {
+          const catNames = resp.results.map((cat: Category) => cat.name);
+          setCategories(catNames);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Error al cargar categorías:', err);
+      });
+  }, []);
 
   useEffect(() => {
     fetchProducts(currentPage, itemsPerPage);
@@ -106,7 +121,7 @@ export default function GenericProductListPage() {
               dropdownComponent={
                 <Dropdown
                   title="Categorias"
-                  items={['All']}
+                  items={categories}
                   onChange={(val) => console.log('Filter by:', val)}
                 />
               }

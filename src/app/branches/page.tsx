@@ -154,6 +154,7 @@ export default function BranchesPage() {
                   />
                 }
                 //onAddClick={() => console.log('Agregar nueva sucursal')}
+                addButtonText="Agregar Sucursal"
                 onAddClick={handleAddBranch}
                 onSearch={(query) => console.log('Buscando sucursal:', query)}
                 tableData={branches}

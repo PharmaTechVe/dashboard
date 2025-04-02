@@ -140,20 +140,6 @@ export default function NewGenericProductPage() {
               </div>
               <div>
                 <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Ingresa el nombre del producto"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
                   Nombre Genérico
                 </label>
                 <input
@@ -164,6 +150,37 @@ export default function NewGenericProductPage() {
                 />
                 {errors.genericName && (
                   <p className="text-sm text-red-500">{errors.genericName}</p>
+                )}
+              </div>
+              <div>
+                <Dropdown
+                  title="Fabricante"
+                  placeholder="Selecciona el fabricante"
+                  items={manufacturers.map((m) => ({
+                    label: m.name,
+                    value: m.id,
+                  }))}
+                  selected={selectedManufacturer}
+                  onChange={setSelectedManufacturer}
+                />
+                {errors.manufacturerId && (
+                  <p className="text-sm text-red-500">
+                    {errors.manufacturerId}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-[16px] font-medium text-gray-600">
+                  Nombre
+                </label>
+                <input
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                  placeholder="Ingresa el nombre del producto"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
               <div>
@@ -193,23 +210,6 @@ export default function NewGenericProductPage() {
                 />
                 {errors.priority && (
                   <p className="text-sm text-red-500">{errors.priority}</p>
-                )}
-              </div>
-              <div>
-                <Dropdown
-                  title="Fabricante"
-                  placeholder="Selecciona el fabricante"
-                  items={manufacturers.map((m) => ({
-                    label: m.name,
-                    value: m.id,
-                  }))}
-                  selected={selectedManufacturer}
-                  onChange={setSelectedManufacturer}
-                />
-                {errors.manufacturerId && (
-                  <p className="text-sm text-red-500">
-                    {errors.manufacturerId}
-                  </p>
                 )}
               </div>
             </div>
