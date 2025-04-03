@@ -71,9 +71,8 @@ export default function CategoryDetailsPage() {
       await api.category.delete(id, token);
       toast.success(`Categoría eliminada exitosamente`);
 
-      router.push('/categories');
       setTimeout(() => {
-        router.push('/branches');
+        router.push('/categories');
       }, 2000);
     } catch (error) {
       console.error('Error al eliminar la categoría:', error);

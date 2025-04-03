@@ -89,7 +89,6 @@ export default function UsersPage() {
     fetchUsers(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage]);
 
-  // Filtrar usuarios según el rol seleccionado (valor en inglés)
   const filteredUsers =
     selectedRole === 'Todos'
       ? users
@@ -97,7 +96,6 @@ export default function UsersPage() {
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Columnas a mostrar en la tabla
   const columns: Column<UserItem>[] = [
     {
       key: 'firstName',
@@ -148,7 +146,6 @@ export default function UsersPage() {
     console.log('Editar usuario:', item);
   };
 
-  // Si se selecciona "Todos" se guarda directamente; sino se convierte la etiqueta en español al valor en inglés.
   const handleRoleChange = (val: string) => {
     setSelectedRole(val === 'Todos' ? 'Todos' : roleReverse[val]);
     console.log('Filtrar por rol:', val);

@@ -37,9 +37,8 @@ export default function EditCategoryPage() {
         setName(category.name);
         setDescription(category.description);
       } catch (error) {
-        console.error('Error al cargar la categoría:', error);
-        toast.error('Error al cargar los datos de la categoría');
-        router.push('/categories');
+        console.error('Error al actualizar la categoría:', error);
+        toast.error('Error al actualiza los datos de la categoría');
       }
     };
 
@@ -86,7 +85,7 @@ export default function EditCategoryPage() {
 
       setTimeout(() => {
         router.push(`/categories/`);
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Error al actualizar la categoría:', error);
       toast.error('Ocurrió un error al actualizar la categoría');

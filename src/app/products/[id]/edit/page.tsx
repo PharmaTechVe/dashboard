@@ -116,10 +116,12 @@ export default function EditProductPage() {
     try {
       await api.genericProduct.update(id, payload, token);
       toast.success('Product updated successfully');
-      router.push('/products');
+      setTimeout(() => {
+        router.push('/products');
+      }, 2000);
     } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('Error updating product');
+      console.error('Ocurrió un error al actualizar el producto:', error);
+      toast.error('Ocurrió un error al actualizar el producto');
     }
   };
 

@@ -66,7 +66,7 @@ export default function GenericProductDetailPage() {
   const handleDelete = async () => {
     const token = getToken();
     if (!token || typeof id !== 'string') {
-      toast.error('Error: token or id invalid');
+      toast.error('Error: token el token es invalido');
       return;
     }
     try {
@@ -76,8 +76,8 @@ export default function GenericProductDetailPage() {
         router.push('/products/');
       }, 2000);
     } catch (err) {
-      console.error('Error deleting product:', err);
-      toast.error('Error deleting product');
+      console.error('Error al borrar el producto:', err);
+      toast.error('Error al borrar el producto');
     }
   };
 

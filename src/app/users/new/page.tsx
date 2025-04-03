@@ -157,7 +157,6 @@ export default function NewUserPage() {
       await api.user.create(payload, token);
       toast.success('Usuario creado exitosamente');
 
-      // Limpiar formulario
       setFirstName('');
       setLastName('');
       setDocumentId('');
@@ -168,10 +167,10 @@ export default function NewUserPage() {
       setEmail('');
       setErrors({});
 
-      router.push('/users');
+      setTimeout(() => {
+        router.push('/users');
+      }, 2000);
     } catch (error: unknown) {
-      // Quita o comenta esta línea para evitar que se imprima la traza en consola
-      // console.error('Error al crear usuario:', error);
       const errorMsg = getErrorMessage(error);
       toast.error(errorMsg);
     } finally {

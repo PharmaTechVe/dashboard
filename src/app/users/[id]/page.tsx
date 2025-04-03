@@ -142,8 +142,8 @@ export default function UserDetailsPage() {
         router.push('/users');
       }, 2000);
     } catch (error) {
-      console.error('Error al eliminar el usuario:', error);
-      toast.error('Error al eliminar el usuario');
+      console.error('Ocurrio un error al eliminar el usuario:', error);
+      toast.error('Ocurrio un error al eliminar el usuario');
     }
   };
 

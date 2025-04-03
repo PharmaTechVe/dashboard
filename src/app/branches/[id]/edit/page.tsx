@@ -12,6 +12,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { newBranchSchema } from '@/lib/validations/newBranchSchema';
 import { toast, ToastContainer } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 interface StateItem {
   id: string;
@@ -38,6 +39,8 @@ export default function EditBranchPage() {
   const [selectedCityName, setSelectedCityName] = useState('');
   const [stateId, setStateId] = useState('');
   const [cityId, setCityId] = useState('');
+
+  const router = useRouter();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -153,6 +156,9 @@ export default function EditBranchPage() {
 
       await api.branch.update(id, payload, token);
       toast.success('Sucursal actualizada exitosamente');
+      setTimeout(() => {
+        router.push('/branches');
+      }, 2000);
     } catch (error) {
       console.error('Error al actualizar la sucursal:', error);
       toast.error('Ocurrió un error al actualizar la sucursal');
