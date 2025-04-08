@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { loginSchema } from '@/lib/validations/loginSchema';
@@ -8,9 +9,12 @@ import CheckButton from '@/components/CheckButton';
 import theme from '@/styles/styles';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/sdkConfig';
+import { useAuth } from '@/context/AuthContext'; // 👈 importamos el contexto
 
 export default function LoginForm() {
+  const { login } = useAuth(); // 👈 usamos login del contexto
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -42,15 +46,13 @@ export default function LoginForm() {
 
         const response = await api.auth.login({ email, password });
 
-        sessionStorage.setItem('pharmatechToken', response.accessToken);
-        if (remember) {
-          localStorage.setItem('pharmatechToken', response.accessToken);
-        }
-
+        login(response.accessToken, remember); // 👈 usamos login del contexto
         toast.success('Inicio de sesión exitoso');
+
         setEmail('');
         setPassword('');
-        router.push('/products');
+
+        router.push('/products'); // 👈 o la ruta que necesites después del login
       } catch (err) {
         console.error('Error en el login:', err);
         setGeneralError('Error al iniciar sesión. Verifica tus credenciales.');
@@ -58,7 +60,7 @@ export default function LoginForm() {
         setLoading(false);
       }
     },
-    [email, password, remember, router],
+    [email, password, remember, router, login],
   );
 
   return (
@@ -136,6 +138,7 @@ export default function LoginForm() {
               onChange={(newValue) => setRemember(newValue)}
             />
           </div>
+
           {generalError && (
             <p className="text-xs text-red-500" role="alert">
               {generalError}
