@@ -115,7 +115,7 @@ export default function DatePicker1({ onDateSelect }: DatePicker1Props) {
               <select
                 value={month}
                 onChange={handleMonthChange}
-                className="w-16 appearance-none bg-transparent text-center text-lg font-medium md:appearance-none"
+                className="appearance-none bg-transparent text-center text-lg font-medium md:appearance-none"
               >
                 {MONTH_NAMES.map((m, index) => (
                   <option key={index} value={index}>

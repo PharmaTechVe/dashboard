@@ -34,14 +34,8 @@ export default function LoginForm() {
         return;
       }
 
-      setEmailError('');
-      setPasswordError('');
-
       try {
-        loginSchema.parse({ email, password });
-
-        const response = await api.auth.login({ email, password });
-
+        const response = await api.auth.login(result.data);
         sessionStorage.setItem('pharmatechToken', response.accessToken);
         if (remember) {
           localStorage.setItem('pharmatechToken', response.accessToken);
