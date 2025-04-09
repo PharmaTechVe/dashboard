@@ -198,7 +198,9 @@ const Sidebar = () => {
                       }`}
                       onClick={() =>
                         item.subItems
-                          ? setOpenSubmenu(openSubmenu === item.name ? null : item.name)
+                          ? setOpenSubmenu(
+                              openSubmenu === item.name ? null : item.name,
+                            )
                           : handleNavigation(item.route)
                       }
                     >
@@ -217,7 +219,9 @@ const Sidebar = () => {
                       }`}
                       onClick={() =>
                         item.subItems
-                          ? setOpenSubmenu(openSubmenu === item.name ? null : item.name)
+                          ? setOpenSubmenu(
+                              openSubmenu === item.name ? null : item.name,
+                            )
                           : handleNavigation(item.route)
                       }
                     >

@@ -25,7 +25,7 @@ interface User {
   email: string;
   role: string;
   isValidated: boolean;
-  profilePicture?: string; 
+  profilePicture?: string;
 }
 
 interface AuthContextType {
