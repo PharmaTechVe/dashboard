@@ -135,13 +135,20 @@ export default function NewPromotionPage() {
       await api.promo.create(promoData, token);
       toast.success('Promoción creada exitosamente');
       setTimeout(() => router.push('/promos'), 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear la promoción:', error);
       let errorMessage = 'Ocurrió un error al crear la promoción';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        if (
+          (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message
+        ) {
+          errorMessage = (
+            error as unknown as { response: { data: { message: string } } }
+          ).response.data.message;
+        } else {
+          errorMessage = error.message;
+        }
       }
       toast.error(errorMessage);
       setIsSubmitting(false);

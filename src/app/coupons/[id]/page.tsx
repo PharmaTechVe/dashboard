@@ -52,7 +52,18 @@ export default function CouponDetailsPage() {
           token,
         );
 
-        const foundCoupon = allCoupons.results.find((c: any) => c.id === id);
+        const foundCoupon = allCoupons.results.find((c) => c.id === id);
+
+        if (foundCoupon) {
+          setCoupon({
+            id: foundCoupon.id,
+            code: foundCoupon.code,
+            discount: foundCoupon.discount,
+            minPurchase: foundCoupon.minPurchase,
+            maxUses: foundCoupon.maxUses,
+            expirationDate: foundCoupon.expirationDate.toISOString(),
+          });
+        }
 
         if (!foundCoupon) {
           throw new Error('Cupón no encontrado');

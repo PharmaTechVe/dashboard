@@ -9,7 +9,7 @@ import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
-import { Promo } from '@pharmatech/sdk/types';
+//import { Promo } from '@pharmatech/sdk/types';
 
 type PromoStatus = 'Activa' | 'Finalizada';
 
@@ -43,11 +43,6 @@ export default function PromosPage() {
       month: '2-digit',
       year: 'numeric',
     });
-  };
-
-  const formatDateForBackend = (input: Date | string): string => {
-    const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toISOString().split('T')[0];
   };
 
   const getToken = () => {
@@ -94,8 +89,12 @@ export default function PromosPage() {
 
         setPromos(filtered);
         setTotalItems(response.count);
-      } catch (error: any) {
-        console.error('Error al obtener promociones:', error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error al obtener promociones:', error.message);
+        } else {
+          console.error('Error al obtener promociones:', error);
+        }
         toast.error('Error al cargar las promociones');
       }
     };
@@ -176,32 +175,6 @@ export default function PromosPage() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
-  };
-
-  const handleCreatePromo = async (
-    newPromo: Omit<PromoItem, 'id' | 'originalId' | 'status'>,
-  ) => {
-    try {
-      const token = getToken();
-      if (!token) {
-        toast.error('No se encontró token de autenticación');
-        return;
-      }
-
-      const payload = {
-        name: newPromo.name,
-        discount: newPromo.discount,
-        startAt: formatDateForBackend(newPromo.startAt),
-        expiredAt: formatDateForBackend(newPromo.expiredAt),
-      };
-
-      await api.promo.create(payload as unknown as Promo, token);
-      toast.success('Promoción creada exitosamente');
-      router.push('/promos');
-    } catch (error: any) {
-      console.error('Error al crear promoción:', error);
-      toast.error('Error al crear la promoción');
-    }
   };
 
   return (

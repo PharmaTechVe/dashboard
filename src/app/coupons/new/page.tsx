@@ -133,13 +133,20 @@ export default function NewCouponPage() {
       await api.coupon.create(couponData, token);
       toast.success('Cupón creado exitosamente');
       setTimeout(() => router.push('/coupons'), 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear el cupón:', error);
       let errorMessage = 'Ocurrió un error al crear el cupón';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        if (
+          (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message
+        ) {
+          errorMessage = (
+            error as unknown as { response: { data: { message: string } } }
+          ).response.data.message;
+        } else {
+          errorMessage = error.message;
+        }
       }
       toast.error(errorMessage);
       setIsSubmitting(false);
@@ -199,7 +206,7 @@ export default function NewCouponPage() {
                   Agrega la información del cupón
                 </p>
 
-                {/* Código del cupón */}
+                {}
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Código del cupón
@@ -220,7 +227,7 @@ export default function NewCouponPage() {
                 </div>
 
                 <div className="flex flex-col gap-4 md:flex-row md:gap-6">
-                  {/* Fecha de finalización */}
+                  {}
                   <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
                       Fecha de finalización
@@ -245,7 +252,7 @@ export default function NewCouponPage() {
                     )}
                   </div>
 
-                  {/* Usos máximos */}
+                  {}
                   <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
                       Usos máximos
@@ -270,7 +277,7 @@ export default function NewCouponPage() {
                 </div>
 
                 <div className="flex flex-col gap-4 md:flex-row md:gap-6">
-                  {/* Porcentaje de descuento */}
+                  {}
                   <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
                       Porcentaje de descuento
@@ -294,7 +301,7 @@ export default function NewCouponPage() {
                     )}
                   </div>
 
-                  {/* Compra mínima */}
+                  {}
                   <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
                       Compra mínima
@@ -311,7 +318,7 @@ export default function NewCouponPage() {
                       value={minPurchase}
                       onChange={handleChange}
                       min="0"
-                      step="1" 
+                      step="1"
                     />
                     {errors.minPurchase && (
                       <p className="mt-1 text-sm text-red-500">

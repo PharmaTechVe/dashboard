@@ -44,20 +44,29 @@ export default function EditCouponPage() {
     );
   };
 
+  interface Coupon {
+    id: string;
+    code: string;
+    discount: number;
+    minPurchase: number;
+    maxUses: number;
+    expirationDate: Date;
+  }
+
   useEffect(() => {
     const fetchCoupon = async () => {
       const token = getToken();
       if (!token || typeof id !== 'string') return;
 
       try {
-       
         const allCoupons = await api.coupon.findAll(
           { page: 1, limit: 100 },
           token,
         );
 
-       
-        const coupon = allCoupons.results.find((c: any) => c.id === id);
+        const coupon = allCoupons.results.find((c: Coupon) => c.id === id) as
+          | Coupon
+          | undefined;
 
         if (!coupon) {
           throw new Error('Cupón no encontrado');
@@ -74,9 +83,14 @@ export default function EditCouponPage() {
         setTempMinPurchase(coupon.minPurchase);
         setTempMaxUses(coupon.maxUses);
         setTempExpirationDate(new Date(coupon.expirationDate));
-      } catch (error: any) {
-        console.error('Error al cargar el cupón:', error);
-        toast.error('Error al cargar los datos del cupón');
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error al cargar el cupón:', error.message);
+          toast.error('Error al cargar los datos del cupón');
+        } else {
+          console.error('Error desconocido al cargar el cupón:', error);
+          toast.error('Error desconocido al cargar los datos del cupón');
+        }
         router.push('/coupons');
       }
     };
@@ -150,14 +164,14 @@ export default function EditCouponPage() {
         { page: 1, limit: 100 },
         token,
       );
-      const coupon = allCoupons.results.find((c: any) => c.id === id);
+      const coupon = allCoupons.results.find((c: Coupon) => c.id === id);
 
       if (!coupon) {
         throw new Error('Cupón no encontrado');
       }
 
       await api.coupon.update(
-        coupon.code, 
+        coupon.code,
         {
           code: tempCode.trim(),
           discount: Number(tempDiscount),
@@ -170,10 +184,10 @@ export default function EditCouponPage() {
 
       toast.success('Cupón actualizado exitosamente');
       setTimeout(() => router.push(`/coupons/${id}`), 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al actualizar el cupón:', error);
       const errorMessage =
-        error?.response?.data?.message || error.message || 'Error desconocido';
+        error instanceof Error ? error.message : 'Error desconocido';
       toast.error(errorMessage);
       setIsSubmitting(false);
     }

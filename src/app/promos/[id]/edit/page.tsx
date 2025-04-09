@@ -55,8 +55,12 @@ export default function EditPromoPage() {
         setTempDiscount(promo.discount);
         setTempStartAt(new Date(promo.startAt));
         setTempExpiredAt(new Date(promo.expiredAt));
-      } catch (error: any) {
-        console.error('Error al cargar la promoción:', error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error al cargar la promoción:', error.message);
+        } else {
+          console.error('Error al cargar la promoción:', error);
+        }
         toast.error('Error al cargar los datos de la promoción');
         router.push('/promos');
       }
@@ -130,10 +134,13 @@ export default function EditPromoPage() {
 
       toast.success('Promoción actualizada exitosamente');
       setTimeout(() => router.push(`/promos/${id}`), 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al actualizar la promoción:', error);
       const errorMessage =
-        error?.response?.data?.message || error.message || 'Error desconocido';
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ||
+        (error as Error)?.message ||
+        'Error desconocido';
       toast.error(errorMessage);
       setIsSubmitting(false);
     }

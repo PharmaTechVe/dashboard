@@ -51,11 +51,6 @@ export default function CouponsPage() {
     });
   };
 
-  const formatDateForBackend = (input: Date | string): string => {
-    const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toISOString();
-  };
-
   const getToken = () => {
     return (
       sessionStorage.getItem('pharmatechToken') ||
@@ -78,22 +73,35 @@ export default function CouponsPage() {
           token,
         );
 
-        // Calcular el índice inicial basado en la página actual
         const startIndex = (currentPage - 1) * itemsPerPage + 1;
 
-        const mapped = response.results.map((coupon: any, index: number) => ({
-          id: (startIndex + index).toString(),
-          originalId: coupon.id,
-          code: coupon.code,
-          discount: coupon.discount,
-          minPurchase: coupon.minPurchase,
-          status: calculateStatus(new Date(coupon.expirationDate)),
-          expirationDate: formatDate(coupon.expirationDate),
-          maxUses: coupon.maxUses,
-          createdAt: coupon.createdAt,
-          updatedAt: coupon.updatedAt,
-          deletedAt: coupon.deletedAt,
-        }));
+        interface CouponResponse {
+          id: string;
+          code: string;
+          discount: number;
+          minPurchase: number;
+          expirationDate: Date;
+          maxUses: number;
+          createdAt?: string;
+          updatedAt?: string;
+          deletedAt?: string | null;
+        }
+
+        const mapped = response.results.map(
+          (coupon: CouponResponse, index: number) => ({
+            id: (startIndex + index).toString(),
+            originalId: coupon.id,
+            code: coupon.code,
+            discount: coupon.discount,
+            minPurchase: coupon.minPurchase,
+            status: calculateStatus(new Date(coupon.expirationDate)),
+            expirationDate: formatDate(coupon.expirationDate),
+            maxUses: coupon.maxUses,
+            createdAt: coupon.createdAt,
+            updatedAt: coupon.updatedAt,
+            deletedAt: coupon.deletedAt,
+          }),
+        );
 
         const filtered = searchQuery
           ? mapped.filter((c) =>
@@ -103,8 +111,12 @@ export default function CouponsPage() {
 
         setCoupons(filtered);
         setTotalItems(response.count);
-      } catch (error: any) {
-        console.error('Error al obtener cupones:', error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error al obtener cupones:', error.message);
+        } else {
+          console.error('Error al obtener cupones:', error);
+        }
         toast.error('Error al cargar los cupones');
       }
     };
@@ -166,33 +178,6 @@ export default function CouponsPage() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
-  };
-
-  const handleCreateCoupon = async (
-    newCoupon: Omit<CouponItem, 'id' | 'status'>,
-  ) => {
-    try {
-      const token = getToken();
-      if (!token) {
-        toast.error('No se encontró token de autenticación');
-        return;
-      }
-
-      const payload = {
-        code: newCoupon.code,
-        discount: newCoupon.discount,
-        minPurchase: newCoupon.minPurchase,
-        expirationDate: new Date(newCoupon.expirationDate),
-        maxUses: newCoupon.maxUses,
-      };
-
-      await api.coupon.create(payload, token);
-      toast.success('Cupón creado exitosamente');
-      router.push('/cupones');
-    } catch (error: any) {
-      console.error('Error al crear cupón:', error);
-      toast.error('Error al crear el cupón');
-    }
   };
 
   return (
