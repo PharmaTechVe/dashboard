@@ -58,9 +58,10 @@ export const registerSchema = z
       .string()
       .transform((value) => (value?.trim() === '' ? null : value))
       .nullable()
+      .optional()
       .refine(
         (value) => value === null || value === 'hombre' || value === 'mujer',
-        'Selecciona un género',
+        'Género inválido',
       ),
     // Campos de contraseña opcionales
     password: z
