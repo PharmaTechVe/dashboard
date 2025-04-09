@@ -10,23 +10,32 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker1 from '@/components/Calendar';
 
 export default function EditPromoPage() {
   const { id } = useParams();
   const router = useRouter();
+
   const [name, setName] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
-  const [expiredAt, setExpiredAt] = useState<Date | null>(new Date());
+  const [startAt, setStartAt] = useState<Date | null>(null);
+  const [expiredAt, setExpiredAt] = useState<Date | null>(null);
+
+  const [tempName, setTempName] = useState('');
+  const [tempDiscount, setTempDiscount] = useState<number | ''>('');
+  const [tempStartAt, setTempStartAt] = useState<Date | null>(null);
+  const [tempExpiredAt, setTempExpiredAt] = useState<Date | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   const getToken = () => {
     if (typeof window === 'undefined') return '';
     return (
       sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
+      localStorage.getItem('pharmatechToken') ||
+      ''
     );
   };
 
@@ -39,32 +48,51 @@ export default function EditPromoPage() {
         const promo = await api.promo.getById(id, token);
         setName(promo.name);
         setDiscount(promo.discount);
+        setStartAt(new Date(promo.startAt));
         setExpiredAt(new Date(promo.expiredAt));
-      } catch (error) {
+
+        setTempName(promo.name);
+        setTempDiscount(promo.discount);
+        setTempStartAt(new Date(promo.startAt));
+        setTempExpiredAt(new Date(promo.expiredAt));
+      } catch (error: any) {
         console.error('Error al cargar la promoción:', error);
         toast.error('Error al cargar los datos de la promoción');
-        router.push('/promotions');
+        router.push('/promos');
       }
     };
 
     fetchPromo();
   }, [id, router]);
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  useEffect(() => {
+    const hasChanges =
+      tempName !== name ||
+      tempDiscount !== discount ||
+      tempStartAt?.toISOString() !== startAt?.toISOString() ||
+      tempExpiredAt?.toISOString() !== expiredAt?.toISOString();
+
+    setHasPendingChanges(hasChanges);
+  }, [
+    tempName,
+    tempDiscount,
+    tempStartAt,
+    tempExpiredAt,
+    name,
+    discount,
+    startAt,
+    expiredAt,
+  ]);
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setErrors({});
 
-    if (!expiredAt) {
-      setErrors({ expiredAt: 'La fecha de finalización es requerida' });
-      setIsSubmitting(false);
-      return;
-    }
-
     const validationData = {
-      name,
-      discount: Number(discount),
-      expiredAt,
+      name: tempName.trim(),
+      discount: Number(tempDiscount),
+      startAt: tempStartAt,
+      expiredAt: tempExpiredAt,
     };
 
     const validationResult = promoSchema.safeParse(validationData);
@@ -73,7 +101,8 @@ export default function EditPromoPage() {
       const { fieldErrors } = validationResult.error.flatten();
       setErrors({
         name: fieldErrors.name?.[0] ?? '',
-        discount: fieldErrors.discount?.[0] ?? '',
+        discount: fieldErrors.discount?.[0] ?? 'Debe ser entre 1 y 100',
+        startAt: fieldErrors.startAt?.[0] ?? '',
         expiredAt: fieldErrors.expiredAt?.[0] ?? '',
       });
       setIsSubmitting(false);
@@ -91,44 +120,48 @@ export default function EditPromoPage() {
       await api.promo.update(
         id,
         {
-          name,
-          discount: Number(discount),
-          expiredAt: expiredAt,
+          name: tempName.trim(),
+          discount: Number(tempDiscount),
+          startAt: tempStartAt as Date,
+          expiredAt: tempExpiredAt as Date,
         },
         token,
       );
 
       toast.success('Promoción actualizada exitosamente');
-
-      setTimeout(() => {
-        router.push(`/promotions/${id}`);
-      }, 1500);
-    } catch (error) {
+      setTimeout(() => router.push(`/promos/${id}`), 1500);
+    } catch (error: any) {
       console.error('Error al actualizar la promoción:', error);
-      toast.error('Ocurrió un error al actualizar la promoción');
+      const errorMessage =
+        error?.response?.data?.message || error.message || 'Error desconocido';
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name: fieldName, value } = e.target;
-
     if (fieldName === 'name') {
-      setName(value);
+      setTempName(value.trimStart());
     } else if (fieldName === 'discount') {
-      setDiscount(value === '' ? '' : Number(value));
+      setTempDiscount(value === '' ? '' : Number(value));
     }
+    setErrors((prev) => ({ ...prev, [fieldName]: '' }));
+  };
 
-    if (errors[fieldName]) {
-      setErrors((prev) => ({ ...prev, [fieldName]: '' }));
+  const handleStartSelect = (dateStr: string) => {
+    const date = new Date(dateStr);
+    setTempStartAt(date);
+    setErrors((prev) => ({ ...prev, startAt: '' }));
+    if (tempExpiredAt && date > tempExpiredAt) {
+      setTempExpiredAt(date);
     }
   };
 
-  const handleDateChange = (date: Date | null) => {
-    setExpiredAt(date);
-    if (errors['expiredAt']) {
-      setErrors((prev) => ({ ...prev, expiredAt: '' }));
-    }
+  const handleExpiredSelect = (dateStr: string) => {
+    const date = new Date(dateStr);
+    setTempExpiredAt(date);
+    setErrors((prev) => ({ ...prev, expiredAt: '' }));
   };
 
   return (
@@ -141,10 +174,10 @@ export default function EditPromoPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Promociones', href: '/promotions' },
+                  { label: 'Promociones', href: '/promos' },
                   {
                     label: `Promoción #${typeof id === 'string' ? id.slice(0, 3) : ''}`,
-                    href: `/promotions/${id}`,
+                    href: `/promos/${id}`,
                   },
                   { label: 'Editar', href: '' },
                 ]}
@@ -157,22 +190,36 @@ export default function EditPromoPage() {
                   Editar Promoción #
                   {typeof id === 'string' ? id.slice(0, 3) : ''}
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={() => handleSubmit()}
-                  textColor={Colors.textWhite}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                </Button>
+                <div className="flex gap-4">
+                  <Button
+                    color={Colors.secondaryWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="120px"
+                    height="44px"
+                    onClick={() => router.push(`/promos/${id}`)}
+                    textColor={Colors.primary}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                    disabled={!hasPendingChanges || isSubmitting}
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 <div className="flex flex-col md:flex-row md:space-x-4">
                   <div className="md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
@@ -184,7 +231,7 @@ export default function EditPromoPage() {
                       className={`mt-1 w-full rounded-md border ${
                         errors.name ? 'border-red-500' : 'border-gray-300'
                       } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      value={name}
+                      value={tempName}
                       onChange={handleChange}
                     />
                     {errors.name && (
@@ -202,7 +249,7 @@ export default function EditPromoPage() {
                       className={`mt-1 w-full rounded-md border ${
                         errors.discount ? 'border-red-500' : 'border-gray-300'
                       } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      value={discount}
+                      value={tempDiscount}
                       onChange={handleChange}
                       min="1"
                       max="100"
@@ -215,33 +262,37 @@ export default function EditPromoPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Fecha de finalización
-                  </label>
-                  <DatePicker
-                    selected={expiredAt}
-                    onChange={handleDateChange}
-                    dateFormat="dd/MM/yyyy"
-                    className={`mt-1 w-full rounded-md border ${
-                      errors.expiredAt ? 'border-red-500' : 'border-gray-300'
-                    } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                    placeholderText="DD/MM/AAAA"
-                    minDate={new Date()}
-                    showTimeSelect={false}
-                  />
-                  {errors.expiredAt && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.expiredAt}
-                    </p>
-                  )}
+                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Fecha de inicio
+                    </label>
+                    <DatePicker1 onDateSelect={handleStartSelect} />
+                    {errors.startAt && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.startAt}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Fecha de finalización
+                    </label>
+                    <DatePicker1 onDateSelect={handleExpiredSelect} />
+                    {errors.expiredAt && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.expiredAt}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </form>
             </div>
           </main>
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer autoClose={5000} />
     </>
   );
 }

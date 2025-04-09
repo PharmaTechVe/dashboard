@@ -1,15 +1,23 @@
 import { z } from 'zod';
 
-export const promoSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'El nombre debe tener al menos 3 caracteres')
-    .max(50, 'El nombre no puede exceder los 50 caracteres'),
-  discount: z
-    .number()
-    .min(1, 'El descuento mínimo es 1%')
-    .max(100, 'El descuento máximo es 100%'),
-  expiredAt: z
-    .date()
-    .min(new Date(), 'La fecha de finalización no puede ser en el pasado'),
-});
+export const promoSchema = z
+  .object({
+    name: z.string().min(1, 'El nombre es requerido'),
+    discount: z
+      .number()
+      .min(1, 'Debe ser al menos 1%')
+      .max(100, 'No puede exceder 100%'),
+    startAt: z.date({ required_error: 'La fecha de inicio es requerida' }),
+    expiredAt: z.date({
+      required_error: 'La fecha de finalización es requerida',
+    }),
+  })
+  .superRefine((data: { startAt: Date; expiredAt: Date }, ctx) => {
+    if (data.expiredAt <= data.startAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['expiredAt'],
+        message: 'La fecha de finalización debe ser posterior a la de inicio',
+      });
+    }
+  });

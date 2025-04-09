@@ -9,30 +9,33 @@ import Button from '@/components/Button';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
-import { promoSchema } from '@/lib/validations/promoSchema';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { couponSchema } from '@/lib/validations/couponsSchema';
 
-type PromoCreatePayload = {
-  name: string;
+type CouponCreatePayload = {
+  code: string;
   discount: number;
-  startAt: Date;
-  expiredAt: Date;
+  minPurchase: number;
+  maxUses: number;
+  expirationDate: Date;
 };
 
 type ErrorsType = {
-  name?: string;
+  code?: string;
   discount?: string;
-  startAt?: string;
-  expiredAt?: string;
+  minPurchase?: string;
+  maxUses?: string;
+  expirationDate?: string;
 };
 
-export default function NewPromotionPage() {
+export default function NewCouponPage() {
   const router = useRouter();
-  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
-  const [startAt, setStartAt] = useState<Date | null>(new Date());
-  const [expiredAt, setExpiredAt] = useState<Date | null>(new Date());
+  const [minPurchase, setMinPurchase] = useState<number | ''>('');
+  const [maxUses, setMaxUses] = useState<number | ''>('');
+  const [expirationDate, setExpirationDate] = useState<Date | null>(new Date());
   const [errors, setErrors] = useState<ErrorsType>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,50 +52,41 @@ export default function NewPromotionPage() {
   ) => {
     const { name: rawName, value } = e.target;
     const name = rawName as keyof ErrorsType;
+
     switch (name) {
-      case 'name':
-        setName(value.trimStart());
+      case 'code':
+        setCode(value.trimStart());
         break;
       case 'discount':
         setDiscount(value === '' ? '' : Number(value));
         break;
+      case 'minPurchase':
+        setMinPurchase(value === '' ? '' : Number(value));
+        break;
+      case 'maxUses':
+        setMaxUses(value === '' ? '' : Number(value));
+        break;
     }
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleStartDateChange = (date: Date | null) => {
-    setStartAt(date);
-    if (errors.startAt) {
-      setErrors((prev) => ({ ...prev, startAt: '' }));
-    }
-    if (date && expiredAt && date > expiredAt) {
-      setExpiredAt(date);
-    }
-  };
-
-  const handleExpiredDateChange = (date: Date | null) => {
-    setExpiredAt(date);
-    if (errors.expiredAt) {
-      setErrors((prev) => ({ ...prev, expiredAt: '' }));
+  const handleDateChange = (date: Date | null) => {
+    setExpirationDate(date);
+    if (errors.expirationDate) {
+      setErrors((prev) => ({ ...prev, expirationDate: '' }));
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setErrors({});
-    if (!startAt || !expiredAt) {
+
+    if (!expirationDate) {
       setErrors({
-        startAt: !startAt ? 'La fecha de inicio es requerida' : '',
-        expiredAt: !expiredAt ? 'La fecha de finalización es requerida' : '',
-      });
-      setIsSubmitting(false);
-      return;
-    }
-    if (startAt >= expiredAt) {
-      setErrors({
-        expiredAt: 'La fecha de finalización debe ser posterior a la de inicio',
+        expirationDate: 'La fecha de finalización es requerida',
       });
       setIsSubmitting(false);
       return;
@@ -100,19 +94,22 @@ export default function NewPromotionPage() {
 
     try {
       const validationData = {
-        name: name.trim(),
+        code: code.trim(),
         discount: Number(discount),
-        startAt,
-        expiredAt,
+        minPurchase: Number(minPurchase),
+        maxUses: Number(maxUses),
+        expirationDate,
       };
-      const validationResult = promoSchema.safeParse(validationData);
+
+      const validationResult = couponSchema.safeParse(validationData);
       if (!validationResult.success) {
         const { fieldErrors } = validationResult.error.flatten();
         setErrors({
-          name: fieldErrors.name?.[0] ?? '',
-          discount: fieldErrors.discount?.[0] ?? 'Debe ser entre 1 y 100',
-          startAt: fieldErrors.startAt?.[0] ?? '',
-          expiredAt: fieldErrors.expiredAt?.[0] ?? '',
+          code: fieldErrors.code?.[0] ?? '',
+          discount: fieldErrors.discount?.[0] ?? '',
+          minPurchase: fieldErrors.minPurchase?.[0] ?? '',
+          maxUses: fieldErrors.maxUses?.[0] ?? '',
+          expirationDate: fieldErrors.expirationDate?.[0] ?? '',
         });
         setIsSubmitting(false);
         return;
@@ -125,19 +122,20 @@ export default function NewPromotionPage() {
         return;
       }
 
-      const promoData: PromoCreatePayload = {
-        name: name.trim(),
+      const couponData: CouponCreatePayload = {
+        code: code.trim(),
         discount: Number(discount),
-        startAt: startAt as Date,
-        expiredAt: expiredAt as Date,
+        minPurchase: Number(minPurchase),
+        maxUses: Number(maxUses),
+        expirationDate: expirationDate as Date,
       };
 
-      await api.promo.create(promoData, token);
-      toast.success('Promoción creada exitosamente');
-      setTimeout(() => router.push('/promos'), 1500);
+      await api.coupon.create(couponData, token);
+      toast.success('Cupón creado exitosamente');
+      setTimeout(() => router.push('/coupons'), 1500);
     } catch (error: any) {
-      console.error('Error al crear la promoción:', error);
-      let errorMessage = 'Ocurrió un error al crear la promoción';
+      console.error('Error al crear el cupón:', error);
+      let errorMessage = 'Ocurrió un error al crear el cupón';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
@@ -158,15 +156,15 @@ export default function NewPromotionPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Promociones', href: '/promos' },
-                  { label: 'Nueva Promoción', href: '' },
+                  { label: 'Cupones', href: '/coupons' },
+                  { label: 'Nuevo Cupón', href: '' },
                 ]}
               />
             </div>
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Nueva Promoción
+                  Nuevo Cupón
                 </h1>
                 <div className="flex gap-4">
                   <Button
@@ -176,7 +174,7 @@ export default function NewPromotionPage() {
                     textSize="16"
                     width="120px"
                     height="44px"
-                    onClick={() => router.push('/promos')}
+                    onClick={() => router.push('/coupons')}
                     textColor={Colors.primary}
                   >
                     Cancelar
@@ -192,34 +190,88 @@ export default function NewPromotionPage() {
                     textColor={Colors.textWhite}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Creando...' : 'Agregar Promoción'}
+                    {isSubmitting ? 'Creando...' : 'Agregar Cupón'}
                   </Button>
                 </div>
               </div>
               <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                 <p className="text-[16px] font-medium text-gray-600">
-                  Agrega la información de la Promoción
+                  Agrega la información del cupón
                 </p>
-                <div className="flex flex-col md:flex-row md:space-x-4">
-                  <div className="md:w-1/2">
+
+                {/* Código del cupón */}
+                <div>
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Código del cupón
+                  </label>
+                  <input
+                    type="text"
+                    name="code"
+                    className={`mt-1 w-full rounded-md border ${
+                      errors.code ? 'border-red-500' : 'border-gray-300'
+                    } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                    placeholder="Agrega el código del cupón"
+                    value={code}
+                    onChange={handleChange}
+                  />
+                  {errors.code && (
+                    <p className="mt-1 text-sm text-red-500">{errors.code}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                  {/* Fecha de finalización */}
+                  <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
-                      Nombre de la Promoción
+                      Fecha de finalización
                     </label>
-                    <input
-                      type="text"
-                      name="name"
+                    <DatePicker
+                      selected={expirationDate}
+                      onChange={handleDateChange}
+                      dateFormat="dd/MM/yyyy"
                       className={`mt-1 w-full rounded-md border ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
+                        errors.expirationDate
+                          ? 'border-red-500'
+                          : 'border-gray-300'
                       } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholder="Agrega el nombre de la Promoción"
-                      value={name}
-                      onChange={handleChange}
+                      placeholderText="DD/MM/AAAA"
+                      minDate={new Date()}
+                      showTimeSelect={false}
                     />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    {errors.expirationDate && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.expirationDate}
+                      </p>
                     )}
                   </div>
-                  <div className="mt-4 md:mt-0 md:w-1/2">
+
+                  {/* Usos máximos */}
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Usos máximos
+                    </label>
+                    <input
+                      type="number"
+                      name="maxUses"
+                      className={`mt-1 w-full rounded-md border ${
+                        errors.maxUses ? 'border-red-500' : 'border-gray-300'
+                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                      placeholder="Agrega los usos máximos"
+                      value={maxUses}
+                      onChange={handleChange}
+                      min="1"
+                    />
+                    {errors.maxUses && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.maxUses}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                  {/* Porcentaje de descuento */}
+                  <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
                       Porcentaje de descuento
                     </label>
@@ -241,47 +293,29 @@ export default function NewPromotionPage() {
                       </p>
                     )}
                   </div>
-                </div>
-                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+
+                  {/* Compra mínima */}
                   <div className="w-full md:w-1/2">
                     <label className="block text-[16px] font-medium text-gray-600">
-                      Fecha de inicio
+                      Compra mínima
                     </label>
-                    <DatePicker
-                      selected={startAt}
-                      onChange={handleStartDateChange}
-                      dateFormat="dd/MM/yyyy"
+                    <input
+                      type="number"
+                      name="minPurchase"
                       className={`mt-1 w-full rounded-md border ${
-                        errors.startAt ? 'border-red-500' : 'border-gray-300'
+                        errors.minPurchase
+                          ? 'border-red-500'
+                          : 'border-gray-300'
                       } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholderText="DD/MM/AAAA"
-                      minDate={new Date()}
-                      showTimeSelect={false}
+                      placeholder="Agrega la compra mínima"
+                      value={minPurchase}
+                      onChange={handleChange}
+                      min="0"
+                      step="1" 
                     />
-                    {errors.startAt && (
+                    {errors.minPurchase && (
                       <p className="mt-1 text-sm text-red-500">
-                        {errors.startAt}
-                      </p>
-                    )}
-                  </div>
-                  <div className="w-full md:w-1/2">
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Fecha de finalización
-                    </label>
-                    <DatePicker
-                      selected={expiredAt}
-                      onChange={handleExpiredDateChange}
-                      dateFormat="dd/MM/yyyy"
-                      className={`mt-1 w-full rounded-md border ${
-                        errors.expiredAt ? 'border-red-500' : 'border-gray-300'
-                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholderText="DD/MM/AAAA"
-                      minDate={startAt || new Date()}
-                      showTimeSelect={false}
-                    />
-                    {errors.expiredAt && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {errors.expiredAt}
+                        {errors.minPurchase}
                       </p>
                     )}
                   </div>

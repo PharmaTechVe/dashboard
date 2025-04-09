@@ -9,31 +9,37 @@ import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
-import { Promo } from '@pharmatech/sdk/types';
 
-type PromoStatus = 'Activa' | 'Finalizada';
+type CouponStatus = 'Activa' | 'Finalizada';
 
-interface PromoItem {
+interface CouponItem {
   id: string;
   originalId: string;
-  name: string;
+  code: string;
   discount: number;
-  status: PromoStatus;
-  startAt: string;
-  expiredAt: string;
+  minPurchase: number;
+  status: CouponStatus;
+  expirationDate: string;
+  maxUses: number;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
 }
 
-export default function PromosPage() {
-  const [promos, setPromos] = useState<PromoItem[]>([]);
+export default function CouponsPage() {
+  const [coupons, setCoupons] = useState<CouponItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
-  const calculateStatus = (startAt: Date, expiredAt: Date): PromoStatus => {
+  const calculateStatus = (expirationDate: Date): CouponStatus => {
     const today = new Date();
-    return today >= startAt && today <= expiredAt ? 'Activa' : 'Finalizada';
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(expirationDate);
+    exp.setHours(0, 0, 0, 0);
+    return exp >= today ? 'Activa' : 'Finalizada';
   };
 
   const formatDate = (input: Date | string): string => {
@@ -47,7 +53,7 @@ export default function PromosPage() {
 
   const formatDateForBackend = (input: Date | string): string => {
     const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toISOString().split('T')[0];
+    return date.toISOString();
   };
 
   const getToken = () => {
@@ -59,7 +65,7 @@ export default function PromosPage() {
   };
 
   useEffect(() => {
-    const fetchPromos = async () => {
+    const fetchCoupons = async () => {
       try {
         const token = getToken();
         if (!token) {
@@ -67,81 +73,70 @@ export default function PromosPage() {
           return;
         }
 
-        const response = await api.promo.findAll(
+        const response = await api.coupon.findAll(
           { page: currentPage, limit: itemsPerPage },
           token,
         );
+
+        // Calcular el índice inicial basado en la página actual
         const startIndex = (currentPage - 1) * itemsPerPage + 1;
 
-        const mapped = response.results.map((promo, index) => ({
+        const mapped = response.results.map((coupon: any, index: number) => ({
           id: (startIndex + index).toString(),
-          originalId: promo.id,
-          name: promo.name,
-          discount: promo.discount,
-          status: calculateStatus(
-            new Date(promo.startAt),
-            new Date(promo.expiredAt),
-          ),
-          startAt: formatDate(promo.startAt),
-          expiredAt: formatDate(promo.expiredAt),
+          originalId: coupon.id,
+          code: coupon.code,
+          discount: coupon.discount,
+          minPurchase: coupon.minPurchase,
+          status: calculateStatus(new Date(coupon.expirationDate)),
+          expirationDate: formatDate(coupon.expirationDate),
+          maxUses: coupon.maxUses,
+          createdAt: coupon.createdAt,
+          updatedAt: coupon.updatedAt,
+          deletedAt: coupon.deletedAt,
         }));
 
         const filtered = searchQuery
-          ? mapped.filter((p) =>
-              p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ? mapped.filter((c) =>
+              c.code.toLowerCase().includes(searchQuery.toLowerCase()),
             )
           : mapped;
 
-        setPromos(filtered);
+        setCoupons(filtered);
         setTotalItems(response.count);
       } catch (error: any) {
-        console.error('Error al obtener promociones:', error);
-        toast.error('Error al cargar las promociones');
+        console.error('Error al obtener cupones:', error);
+        toast.error('Error al cargar los cupones');
       }
     };
 
-    fetchPromos();
+    fetchCoupons();
   }, [currentPage, itemsPerPage, searchQuery, router]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPromos((prevPromos) =>
-        prevPromos.map((promo) => ({
-          ...promo,
-          status: calculateStatus(
-            new Date(promo.startAt),
-            new Date(promo.expiredAt),
-          ),
-        })),
-      );
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const columns: Column<PromoItem>[] = [
-    {
-      key: 'id',
-      label: 'ID',
-      render: (item) => item.id,
-    },
-    {
-      key: 'name',
-      label: 'Nombre',
-      render: (item) => item.name,
-    },
+  const columns: Column<CouponItem>[] = [
+    { key: 'id', label: 'ID', render: (item) => item.id },
+    { key: 'code', label: 'Código', render: (item) => item.code },
     {
       key: 'discount',
       label: '% Descuento',
       render: (item) => `${item.discount}%`,
     },
     {
+      key: 'minPurchase',
+      label: 'Compra min.',
+      render: (item) => `$${item.minPurchase.toFixed(2)}`,
+    },
+    {
+      key: 'maxUses',
+      label: 'Máx. usos',
+      render: (item) => item.maxUses,
+    },
+    {
       key: 'status',
-      label: 'Estado',
+      label: 'Status',
       render: (item) => (
         <Badge
           variant="filled"
-          color={item.status === 'Activa' ? 'success' : 'danger'}
+          color={item.status === 'Activa' ? 'success' : 'info'}
           size="small"
           borderRadius="rounded"
         >
@@ -150,27 +145,22 @@ export default function PromosPage() {
       ),
     },
     {
-      key: 'startAt',
-      label: 'Fecha de inicio',
-      render: (item) => item.startAt,
-    },
-    {
-      key: 'expiredAt',
+      key: 'expirationDate',
       label: 'Fecha de finalización',
-      render: (item) => item.expiredAt,
+      render: (item) => item.expirationDate,
     },
   ];
 
-  const handleAddPromo = () => {
-    router.push('/promos/new');
+  const handleAddCoupon = () => {
+    router.push('/coupons/new');
   };
 
-  const handleViewPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.originalId}`);
+  const handleViewCoupon = (item: CouponItem) => {
+    router.push(`/coupons/${item.originalId}`);
   };
 
-  const handleEditPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.originalId}/edit`);
+  const handleEditCoupon = (item: CouponItem) => {
+    router.push(`/coupons/${item.originalId}/edit`);
   };
 
   const handleSearch = (query: string) => {
@@ -178,8 +168,8 @@ export default function PromosPage() {
     setCurrentPage(1);
   };
 
-  const handleCreatePromo = async (
-    newPromo: Omit<PromoItem, 'id' | 'originalId' | 'status'>,
+  const handleCreateCoupon = async (
+    newCoupon: Omit<CouponItem, 'id' | 'status'>,
   ) => {
     try {
       const token = getToken();
@@ -189,18 +179,19 @@ export default function PromosPage() {
       }
 
       const payload = {
-        name: newPromo.name,
-        discount: newPromo.discount,
-        startAt: formatDateForBackend(newPromo.startAt),
-        expiredAt: formatDateForBackend(newPromo.expiredAt),
+        code: newCoupon.code,
+        discount: newCoupon.discount,
+        minPurchase: newCoupon.minPurchase,
+        expirationDate: new Date(newCoupon.expirationDate),
+        maxUses: newCoupon.maxUses,
       };
 
-      await api.promo.create(payload as unknown as Promo, token);
-      toast.success('Promoción creada exitosamente');
-      router.push('/promos');
+      await api.coupon.create(payload, token);
+      toast.success('Cupón creado exitosamente');
+      router.push('/cupones');
     } catch (error: any) {
-      console.error('Error al crear promoción:', error);
-      toast.error('Error al crear la promoción');
+      console.error('Error al crear cupón:', error);
+      toast.error('Error al crear el cupón');
     }
   };
 
@@ -215,13 +206,13 @@ export default function PromosPage() {
             style={{ maxHeight: 'calc(100vh - 150px)' }}
           >
             <TableContainer
-              title="Promociones"
-              tableData={promos}
+              title="Cupones"
+              tableData={coupons}
               tableColumns={columns}
-              onAddClick={handleAddPromo}
-              onEdit={handleEditPromo}
-              onView={handleViewPromo}
-              addButtonText="Agregar Promo"
+              onAddClick={handleAddCoupon}
+              onEdit={handleEditCoupon}
+              onView={handleViewCoupon}
+              addButtonText="Agregar Cupón"
               onSearch={handleSearch}
               pagination={{
                 currentPage,

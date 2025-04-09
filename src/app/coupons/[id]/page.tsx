@@ -12,16 +12,19 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
 
-export default function PromoDetailsPage() {
+interface CouponDetails {
+  id: string;
+  code: string;
+  discount: number;
+  minPurchase: number;
+  maxUses: number;
+  expirationDate: string;
+}
+
+export default function CouponDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [promo, setPromo] = useState<{
-    id: string;
-    name: string;
-    discount: number;
-    startAt: string;
-    expiredAt: string;
-  } | null>(null);
+  const [coupon, setCoupon] = useState<CouponDetails | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,7 +37,7 @@ export default function PromoDetailsPage() {
   };
 
   useEffect(() => {
-    const fetchPromo = async () => {
+    const fetchCoupon = async () => {
       const token = getToken();
       if (!token || typeof id !== 'string') {
         setIsLoading(false);
@@ -43,41 +46,49 @@ export default function PromoDetailsPage() {
 
       try {
         setIsLoading(true);
-        const response = await api.promo.getById(id, token);
 
-        if (
-          typeof response.startAt !== 'string' ||
-          typeof response.expiredAt !== 'string'
-        ) {
+        const allCoupons = await api.coupon.findAll(
+          { page: 1, limit: 100 },
+          token,
+        );
+
+        const foundCoupon = allCoupons.results.find((c: any) => c.id === id);
+
+        if (!foundCoupon) {
+          throw new Error('Cupón no encontrado');
+        }
+
+        if (typeof foundCoupon.expirationDate !== 'string') {
           throw new Error('El formato de fecha no es válido');
         }
 
-        setPromo({
-          id: response.id,
-          name: response.name,
-          discount: response.discount,
-          startAt: response.startAt,
-          expiredAt: response.expiredAt,
+        setCoupon({
+          id: foundCoupon.id,
+          code: foundCoupon.code,
+          discount: foundCoupon.discount,
+          minPurchase: foundCoupon.minPurchase,
+          maxUses: foundCoupon.maxUses,
+          expirationDate: foundCoupon.expirationDate,
         });
       } catch (error) {
-        console.error('Error al obtener la promoción:', error);
-        toast.error('Error al cargar la promoción');
+        console.error('Error al obtener el cupón:', error);
+        toast.error('Error al cargar el cupón');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPromo();
+    fetchCoupon();
   }, [id]);
 
   const handleEdit = () => {
-    if (promo && typeof id === 'string') {
-      router.push(`/promos/${id}/edit`);
+    if (coupon && typeof id === 'string') {
+      router.push(`/coupons/${id}/edit`);
     }
   };
 
   const handleDelete = async () => {
-    if (!promo || typeof id !== 'string') return;
+    if (!coupon || typeof coupon.code !== 'string') return;
 
     const token = getToken();
     if (!token) {
@@ -86,12 +97,12 @@ export default function PromoDetailsPage() {
     }
 
     try {
-      await api.promo.delete(id, token);
-      toast.success('Promoción eliminada exitosamente');
-      router.push('/promos');
+      await api.coupon.delete(coupon.code, token);
+      toast.success('Cupón eliminado exitosamente');
+      router.push('/coupons');
     } catch (error) {
-      console.error('Error al eliminar la promoción:', error);
-      toast.error('Error al eliminar la promoción');
+      console.error('Error al eliminar el cupón:', error);
+      toast.error('Error al eliminar el cupón');
     } finally {
       setShowDeleteModal(false);
     }
@@ -114,14 +125,14 @@ export default function PromoDetailsPage() {
         <div className="flex flex-1 flex-col">
           <Navbar />
           <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
-            <p className="text-center text-[16px]">Cargando promoción...</p>
+            <p className="text-center text-[16px]">Cargando cupón...</p>
           </main>
         </div>
       </div>
     );
   }
 
-  if (!promo) {
+  if (!coupon) {
     return (
       <div className="flex min-h-screen">
         <Sidebar />
@@ -129,7 +140,7 @@ export default function PromoDetailsPage() {
           <Navbar />
           <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
             <p className="text-center text-[16px] text-red-500">
-              No se pudo cargar la promoción
+              No se pudo cargar el cupón
             </p>
           </main>
         </div>
@@ -147,9 +158,9 @@ export default function PromoDetailsPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Promociones', href: '/promos' },
+                  { label: 'Cupones', href: '/coupons' },
                   {
-                    label: `Promoción #${promo.id.slice(0, 3)}`,
+                    label: `Cupón #${coupon.id.slice(0, 3)}`,
                     href: '',
                   },
                 ]}
@@ -160,8 +171,8 @@ export default function PromoDetailsPage() {
               isOpen={showDeleteModal}
               onClose={handleCancelDelete}
               onConfirm={handleDelete}
-              title="Eliminar Promoción"
-              description="¿Deseas eliminar esta Promoción? Esta acción hará que la Promoción deje de estar disponible para su selección en el sistema."
+              title="Eliminar Cupón"
+              description="¿Deseas eliminar esta Cupón? Esta acción hará que el cupón deje de estar disponible para su selección en el sistema"
               cancelText="Cancelar"
               confirmText="Eliminar"
               width="512px"
@@ -171,7 +182,7 @@ export default function PromoDetailsPage() {
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Promoción #{promo.id.slice(0, 3)}
+                  Cupón #{coupon.id.slice(0, 3)}
                 </h1>
                 <div className="flex gap-6">
                   <Button
@@ -185,7 +196,7 @@ export default function PromoDetailsPage() {
                     className="border-red-600 hover:border-red-600 hover:bg-red-50"
                     textColor={Colors.semanticDanger}
                   >
-                    Eliminar Promoción
+                    Eliminar Cupón
                   </Button>
                   <Button
                     color={Colors.primary}
@@ -197,7 +208,7 @@ export default function PromoDetailsPage() {
                     onClick={handleEdit}
                     textColor={Colors.textWhite}
                   >
-                    Editar Promoción
+                    Editar Cupón
                   </Button>
                 </div>
               </div>
@@ -205,47 +216,63 @@ export default function PromoDetailsPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
-                    Nombre de la Promoción
+                    Código del cupón
                   </label>
                   <input
                     className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                    value={promo.name}
+                    value={coupon.code}
                     readOnly
                   />
                 </div>
 
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
-                    Porcentaje de descuento
+                    Fecha de finalización
                   </label>
                   <input
                     className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                    value={`${promo.discount}%`}
+                    value={formatDate(coupon.expirationDate)}
                     readOnly
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Fecha de inicio
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                      value={formatDate(promo.startAt)}
-                      readOnly
-                    />
-                  </div>
+                <div>
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Usos máximos
+                  </label>
+                  <input
+                    className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+                    value={coupon.maxUses}
+                    readOnly
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-[16px] font-medium text-gray-600">
-                      Fecha de finalización
-                    </label>
-                    <input
-                      className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                      value={formatDate(promo.expiredAt)}
-                      readOnly
-                    />
+                <div className="border-t pt-4">
+                  <h2 className="text-[20px] font-medium text-gray-800">
+                    Detalles del descuento
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                      <label className="block text-[16px] font-medium text-gray-600">
+                        Porcentaje de descuento
+                      </label>
+                      <input
+                        className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+                        value={`${coupon.discount}%`}
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[16px] font-medium text-gray-600">
+                        Compra mínima
+                      </label>
+                      <input
+                        className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+                        value={`$${coupon.minPurchase.toFixed(2)}`}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
