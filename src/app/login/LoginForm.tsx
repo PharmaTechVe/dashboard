@@ -1,20 +1,17 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { toast } from 'react-toastify';
+//import { toast } from 'react-toastify';//
 import { loginSchema } from '@/lib/validations/loginSchema';
 import Button from '@/components/Button';
 import Input from '@/components/Input/Input';
 import CheckButton from '@/components/CheckButton';
 import theme from '@/styles/styles';
-import { useRouter } from 'next/navigation';
 import { api } from '@/lib/sdkConfig';
-import { useAuth } from '@/context/AuthContext'; // 👈 importamos el contexto
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginForm() {
-  const { login } = useAuth(); // 👈 usamos login del contexto
-  const router = useRouter();
-
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -42,17 +39,10 @@ export default function LoginForm() {
       setPasswordError('');
 
       try {
-        loginSchema.parse({ email, password });
-
         const response = await api.auth.login({ email, password });
-
-        login(response.accessToken, remember); // 👈 usamos login del contexto
-        toast.success('Inicio de sesión exitoso');
-
+        login(response.accessToken, remember); // Aquí se valida el rol dentro del context
         setEmail('');
         setPassword('');
-
-        router.push('/products'); // 👈 o la ruta que necesites después del login
       } catch (err) {
         console.error('Error en el login:', err);
         setGeneralError('Error al iniciar sesión. Verifica tus credenciales.');
@@ -60,7 +50,7 @@ export default function LoginForm() {
         setLoading(false);
       }
     },
-    [email, password, remember, router, login],
+    [email, password, remember, login],
   );
 
   return (

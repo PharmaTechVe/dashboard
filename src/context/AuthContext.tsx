@@ -6,93 +6,132 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+import { api } from '@/lib/sdkConfig';
 
 export interface JwtPayload {
   sub: string;
-  email?: string;
-  name?: string;
-  role?: string;
   exp?: number;
+}
+
+interface User {
+  id: string;
+  sub: string; // compatibilidad con lógica que usa user.sub
+  name: string;
+  email: string;
+  role: string;
+  isValidated: boolean;
 }
 
 interface AuthContextType {
   token: string | null;
-  user: JwtPayload | null;
-  login: (token: string, remember: boolean) => void;
+  user: User | null;
+  login: (token: string, remember: boolean) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
   user: null,
-  login: () => {},
+  login: async () => {},
   logout: () => {},
 });
 
-const decodeToken = (rawToken: string): JwtPayload | null => {
+const decodeToken = (token: string): JwtPayload | null => {
   try {
-    const decoded = jwtDecode<JwtPayload>(rawToken);
+    const decoded = jwtDecode<JwtPayload>(token);
     if (decoded.exp && decoded.exp * 1000 < Date.now()) {
       console.warn('Token expirado');
       return null;
     }
     return decoded;
-  } catch (error) {
-    console.error('Error decodificando token:', error);
+  } catch (err) {
+    console.error('Error al decodificar token:', err);
     return null;
   }
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<JwtPayload | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const storedToken =
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken');
+  const logout = useCallback(() => {
+    localStorage.removeItem('pharmatechToken');
+    sessionStorage.removeItem('pharmatechToken');
+    setToken(null);
+    setUser(null);
+    router.push('/login');
+  }, [router]);
 
-    if (storedToken) {
-      setToken(storedToken);
-      const decoded = decodeToken(storedToken);
-      setUser(decoded);
+  const getProfileFromToken = async (token: string): Promise<User | null> => {
+    const decoded = decodeToken(token);
+    if (!decoded) return null;
+
+    try {
+      const profile = await api.user.getProfile(decoded.sub, token);
+
+      if (profile.role?.toLowerCase() !== 'admin') {
+        toast.error('Acceso denegado: no tienes permisos de administrador');
+        return null;
+      }
+
+      return {
+        id: profile.id,
+        sub: decoded.sub,
+        name: `${profile.firstName} ${profile.lastName}`,
+        email: profile.email,
+        role: profile.role,
+        isValidated: profile.isValidated ?? false,
+      };
+    } catch (error) {
+      console.error('Error al obtener perfil del usuario:', error);
+      return null;
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    const syncLogout = () => {
-      const storedToken = localStorage.getItem('pharmatechToken');
-      setToken(storedToken);
-      setUser(storedToken ? decodeToken(storedToken) : null);
-    };
+  const login = async (newToken: string, remember: boolean) => {
+    const profile = await getProfileFromToken(newToken);
+    if (!profile) {
+      logout();
+      return;
+    }
 
-    window.addEventListener('storage', syncLogout);
-    return () => window.removeEventListener('storage', syncLogout);
-  }, []);
-
-  const login = (newToken: string, remember: boolean) => {
     sessionStorage.setItem('pharmatechToken', newToken);
     if (remember) {
       localStorage.setItem('pharmatechToken', newToken);
     }
 
     setToken(newToken);
-    const decoded = decodeToken(newToken);
-    setUser(decoded);
-    router.push('/');
+    setUser(profile);
+    toast.success('Inicio de sesión exitoso');
+    router.push('/products');
   };
 
-  const logout = () => {
-    localStorage.removeItem('pharmatechToken');
-    sessionStorage.removeItem('pharmatechToken');
-    setToken(null);
-    setUser(null);
-    router.push('/login');
-  };
+  useEffect(() => {
+    const restoreSession = async () => {
+      const storedToken =
+        sessionStorage.getItem('pharmatechToken') ||
+        localStorage.getItem('pharmatechToken');
+
+      if (!storedToken) return;
+
+      const profile = await getProfileFromToken(storedToken);
+      if (!profile) {
+        logout();
+        return;
+      }
+
+      setToken(storedToken);
+      setUser(profile);
+    };
+
+    restoreSession();
+  }, [logout]);
 
   return (
     <AuthContext.Provider value={{ token, user, login, logout }}>
