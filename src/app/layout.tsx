@@ -15,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={theme.poppins.variable}>
       <body className="m-0 min-h-screen p-0">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

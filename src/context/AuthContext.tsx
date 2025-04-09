@@ -20,16 +20,18 @@ export interface JwtPayload {
 
 interface User {
   id: string;
-  sub: string; // compatibilidad con lógica que usa user.sub
+  sub: string;
   name: string;
   email: string;
   role: string;
   isValidated: boolean;
+  profilePicture?: string; 
 }
 
 interface AuthContextType {
   token: string | null;
   user: User | null;
+  loading: boolean; // 👈 nuevo
   login: (token: string, remember: boolean) => Promise<void>;
   logout: () => void;
 }
@@ -37,6 +39,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   token: null,
   user: null,
+  loading: true,
   login: async () => {},
   logout: () => {},
 });
@@ -58,6 +61,7 @@ const decodeToken = (token: string): JwtPayload | null => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const logout = useCallback(() => {
@@ -65,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.removeItem('pharmatechToken');
     setToken(null);
     setUser(null);
+    setLoading(false);
     router.push('/login');
   }, [router]);
 
@@ -95,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (newToken: string, remember: boolean) => {
+    setLoading(true);
     const profile = await getProfileFromToken(newToken);
     if (!profile) {
       logout();
@@ -109,6 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(newToken);
     setUser(profile);
     toast.success('Inicio de sesión exitoso');
+    setLoading(false);
     router.push('/products');
   };
 
@@ -118,7 +125,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         sessionStorage.getItem('pharmatechToken') ||
         localStorage.getItem('pharmatechToken');
 
-      if (!storedToken) return;
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
 
       const profile = await getProfileFromToken(storedToken);
       if (!profile) {
@@ -128,13 +138,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       setToken(storedToken);
       setUser(profile);
+      setLoading(false);
     };
 
     restoreSession();
   }, [logout]);
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
