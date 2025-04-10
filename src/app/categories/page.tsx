@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
-//import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 
@@ -21,37 +21,43 @@ export default function CategoriesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const router = useRouter();
+  const [loadingData, setLoadingData] = useState(true);
 
-  const getToken = () => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
+  const { token, user, loading } = useAuth();
+  const router = useRouter();
+  const tokenChecked = useRef(false);
 
   useEffect(() => {
-    const fetchCategories = async (page: number, limit: number) => {
+    if (!loading && (!token || !user?.sub)) {
+      if (!tokenChecked.current) {
+        router.replace('/login');
+        tokenChecked.current = true;
+      }
+    }
+  }, [token, user, loading, router]);
+
+  const fetchCategories = useCallback(
+    async (page: number, limit: number) => {
       try {
-        const token = getToken();
         if (!token) return;
 
-        const response = await api.category.findAll({
-          page,
-          limit,
-        });
-
-        const filteredResults = response.results;
-        setCategories(filteredResults);
+        const response = await api.category.findAll({ page, limit });
+        setCategories(response.results);
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error al obtener categorías:', error);
         toast.error('Error al cargar las categorías');
+      } finally {
+        setLoadingData(false);
       }
-    };
+    },
+    [token],
+  );
 
+  useEffect(() => {
+    if (!token || !user?.sub) return;
     fetchCategories(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+  }, [fetchCategories, currentPage, itemsPerPage, token, user]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -83,6 +89,10 @@ export default function CategoriesPage() {
     router.push(`/categories/${item.id}/edit`);
   };
 
+  if (loading || !token || !user?.sub || loadingData) {
+    return <h1 className="p-4 text-lg">Cargando categorías...</h1>;
+  }
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -93,7 +103,6 @@ export default function CategoriesPage() {
             className="overflow-y-auto"
             style={{ maxHeight: 'calc(100vh - 150px)' }}
           >
-            {}
             <TableContainer
               title="Categorías"
               tableData={categories}
@@ -102,7 +111,7 @@ export default function CategoriesPage() {
               onEdit={handleEditCategory}
               onView={handleViewCategory}
               addButtonText="Agregar Categoria"
-              onSearch={(query) => console.log('Buscando sucursal:', query)}
+              onSearch={(query) => console.log('Buscando categoría:', query)}
               pagination={{
                 currentPage,
                 totalPages,
