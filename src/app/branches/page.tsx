@@ -1,15 +1,14 @@
-//Ver sucursales
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
-import { Column } from '@/components/Table';
-//import { Colors } from '@/styles/styles';
 import Dropdown from '@/components/Dropdown';
-import { useRouter } from 'next/navigation';
+import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface BranchItem {
   id: string;
@@ -41,56 +40,68 @@ export default function BranchesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [loadingData, setLoadingData] = useState(true);
+
+  const { token, user, loading } = useAuth();
   const router = useRouter();
+  const tokenChecked = useRef(false);
 
-  const fetchBranches = async (page: number, limit: number) => {
-    try {
-      const token =
-        sessionStorage.getItem('pharmatechToken') ||
-        localStorage.getItem('pharmatechToken');
-      if (!token) return;
-      const response: BranchResponse = await api.branch.findAll(
-        { page, limit },
-        token,
-      );
-      setBranches(response.results);
-      setTotalItems(response.count);
-    } catch (error) {
-      console.error('Error al obtener sucursales:', error);
+  useEffect(() => {
+    if (!loading && (!token || !user?.sub)) {
+      if (!tokenChecked.current) {
+        router.replace('/login');
+        tokenChecked.current = true;
+      }
     }
-  };
+  }, [token, user, loading, router]);
 
-  const fetchStates = async () => {
+  const fetchBranches = useCallback(
+    async (page: number, limit: number) => {
+      try {
+        if (!token) return;
+
+        const response: BranchResponse = await api.branch.findAll(
+          { page, limit },
+          token,
+        );
+        setBranches(response.results);
+        setTotalItems(response.count);
+      } catch (error) {
+        console.error('Error al obtener sucursales:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    },
+    [token],
+  );
+
+  const fetchStates = useCallback(async () => {
     try {
-      const token =
-        sessionStorage.getItem('pharmatechToken') ||
-        localStorage.getItem('pharmatechToken');
       if (!token) return;
+
       const response = await api.state.findAll({
         page: 1,
         limit: 24,
         countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
       });
+
       const stateNames = response.results.map((state: StateItem) => state.name);
       setStates(['Todos', ...stateNames]);
     } catch (error) {
       console.error('Error al obtener estados:', error);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
+    if (!token || !user?.sub) return;
+
     fetchBranches(currentPage, itemsPerPage);
     fetchStates();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, token, user, fetchBranches, fetchStates]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const columns: Column<BranchItem>[] = [
-    /* {
-      key: 'id',
-      label: 'ID',
-      render: (item) => item.id.slice(0, 6),
-    }, */
     {
       key: 'name',
       label: 'Nombre',
@@ -106,35 +117,23 @@ export default function BranchesPage() {
       label: 'Ciudad',
       render: (item) => item.city.name,
     },
-    /* {
-      key: 'status',
-      label: 'Status',
-      render: () => (
-        <span
-          className="items-center justify-center rounded-md px-3 py-1 text-xs font-semibold"
-          style={{
-            backgroundColor: Colors.secondaryLight,
-            color: Colors.textMain,
-          }}
-        >
-          Disponible
-        </span>
-      ),
-    }, */
   ];
+
   const handleAddBranch = () => {
     router.push('/branches/new');
   };
 
   const handleView = (item: BranchItem) => {
     router.push(`/branches/${item.id}`);
-    console.log('Ver sucursal:', item);
   };
 
   const handleEdit = (item: BranchItem) => {
     router.push(`/branches/${item.id}/edit`);
-    console.log('Editar sucursal:', item);
   };
+
+  if (loading || !token || !user?.sub || loadingData) {
+    return <h1 className="p-4 text-lg">Cargando Sucursales..</h1>;
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -153,7 +152,6 @@ export default function BranchesPage() {
                     onChange={(val) => console.log('Filtrar por estado:', val)}
                   />
                 }
-                //onAddClick={() => console.log('Agregar nueva sucursal')}
                 addButtonText="Agregar Sucursal"
                 onAddClick={handleAddBranch}
                 onSearch={(query) => console.log('Buscando sucursal:', query)}

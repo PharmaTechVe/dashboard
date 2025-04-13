@@ -1,12 +1,14 @@
 'use client';
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
-import { Column } from '@/components/Table';
 import Dropdown from '@/components/Dropdown';
+import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-import { useRouter } from 'next/navigation';
 
 interface Manufacturer {
   id: string;
@@ -35,39 +37,53 @@ type GenericProductItem = GenericProductResponse;
 
 export default function GenericProductListPage() {
   const [products, setProducts] = useState<GenericProductItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [categories, setCategories] = useState<string[]>([]);
-  const router = useRouter();
+  const [loadingData, setLoadingData] = useState(true);
 
-  const fetchProducts = async (page: number, limit: number) => {
+  const { token, user, loading } = useAuth();
+  const router = useRouter();
+  const tokenChecked = useRef(false);
+
+  useEffect(() => {
+    if (!loading && (!token || !user?.sub)) {
+      if (!tokenChecked.current) {
+        router.replace('/login');
+        tokenChecked.current = true;
+      }
+    }
+  }, [token, user, loading, router]);
+
+  const fetchProducts = useCallback(async (page: number, limit: number) => {
     try {
       const response = await api.genericProduct.findAll({ page, limit });
       setProducts(response.results);
       setTotalItems(response.count);
     } catch (error) {
       console.error('Error fetching generic products:', error);
+    } finally {
+      setLoadingData(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    api.category
-      .findAll({ page: 1, limit: 20 })
-      .then((resp: { results: Category[] }) => {
-        if (resp && resp.results) {
-          const catNames = resp.results.map((cat: Category) => cat.name);
-          setCategories(catNames);
-        }
-      })
-      .catch((err: unknown) => {
-        console.error('Error al cargar categorías:', err);
-      });
+  const fetchCategories = useCallback(async () => {
+    try {
+      const resp = await api.category.findAll({ page: 1, limit: 20 });
+      const catNames = resp.results.map((cat: Category) => cat.name);
+      setCategories(catNames);
+    } catch (err) {
+      console.error('Error al cargar categorías:', err);
+    }
   }, []);
 
   useEffect(() => {
+    if (!token || !user?.sub) return;
+
     fetchProducts(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+    fetchCategories();
+  }, [currentPage, itemsPerPage, token, user, fetchProducts, fetchCategories]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -106,6 +122,11 @@ export default function GenericProductListPage() {
     router.push(`/products/new`);
   };
 
+  // ⏳ Esperamos a que cargue sesión o datos
+  if (loading || !token || !user?.sub || loadingData) {
+    return <h1 className="p-4 text-lg">Cargando productos...</h1>;
+  }
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -120,13 +141,13 @@ export default function GenericProductListPage() {
               title="Productos genéricos"
               dropdownComponent={
                 <Dropdown
-                  title="Categorias"
+                  title="Categorías"
                   items={categories}
-                  onChange={(val) => console.log('Filter by:', val)}
+                  onChange={(val) => console.log('Filtrar por categoría:', val)}
                 />
               }
               onAddClick={handleAdd}
-              onSearch={(query) => console.log('Searching:', query)}
+              onSearch={(query) => console.log('Buscando producto:', query)}
               tableData={products}
               tableColumns={columns}
               onEdit={handleEdit}

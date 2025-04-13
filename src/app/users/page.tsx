@@ -1,13 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
+import { useAuth } from '@/context/AuthContext';
 
 interface UserItem {
   id: string;
@@ -33,9 +34,8 @@ const roleTranslations: Record<string, string> = {
   branch_admin: 'Administrador de Sucursal',
   customer: 'Cliente',
   delivery: 'Repartidor',
-} as const;
+};
 
-// Objeto inverso para mapear de español a inglés.
 const roleReverse: Record<string, string> = {
   Administrador: 'admin',
   'Administrador de Sucursal': 'branch_admin',
@@ -45,11 +45,10 @@ const roleReverse: Record<string, string> = {
 
 export default function UsersPage() {
   const router = useRouter();
+  const { token, user, loading } = useAuth();
+  const tokenChecked = useRef(false);
 
-  // Estado para la lista de usuarios
   const [users, setUsers] = useState<UserItem[]>([]);
-
-  // Roles en español para el dropdown (incluye "Todos")
   const roles = [
     'Todos',
     'Administrador',
@@ -57,37 +56,45 @@ export default function UsersPage() {
     'Cliente',
     'Repartidor',
   ];
-
-  // Estado para el rol seleccionado (internamente en inglés, excepto "Todos")
   const [selectedRole, setSelectedRole] = useState<string>('Todos');
-
-  // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [loadingData, setLoadingData] = useState(true); // solo para datos
 
-  // Función para traer usuarios de la API
-  const fetchUsers = async (page: number, limit: number) => {
-    try {
-      const token =
-        sessionStorage.getItem('pharmatechToken') ||
-        localStorage.getItem('pharmatechToken');
-      if (!token) return;
-
-      const response: UserResponse = await api.user.findAll(
-        { page, limit },
-        token,
-      );
-      setUsers(response.results);
-      setTotalItems(response.count);
-    } catch (error) {
-      console.error('Error al obtener usuarios:', error);
+  // 🔐 Protección de ruta segura
+  useEffect(() => {
+    if (!loading && (!token || !user?.sub)) {
+      if (!tokenChecked.current) {
+        router.replace('/login');
+        tokenChecked.current = true;
+      }
     }
-  };
+  }, [token, user, loading, router]);
+
+  const fetchUsers = useCallback(
+    async (page: number, limit: number) => {
+      try {
+        if (!token) return;
+        const response: UserResponse = await api.user.findAll(
+          { page, limit },
+          token,
+        );
+        setUsers(response.results);
+        setTotalItems(response.count);
+      } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    },
+    [token],
+  );
 
   useEffect(() => {
+    if (!token || !user?.sub) return;
     fetchUsers(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+  }, [fetchUsers, currentPage, itemsPerPage, token, user]);
 
   const filteredUsers =
     selectedRole === 'Todos'
@@ -138,22 +145,24 @@ export default function UsersPage() {
 
   const handleView = (item: UserItem) => {
     router.push(`/users/${item.id}`);
-    console.log('Ver usuario:', item);
   };
 
   const handleEdit = (item: UserItem) => {
     router.push(`/users/${item.id}/edit`);
-    console.log('Editar usuario:', item);
   };
 
   const handleRoleChange = (val: string) => {
     setSelectedRole(val === 'Todos' ? 'Todos' : roleReverse[val]);
-    console.log('Filtrar por rol:', val);
   };
 
   const handleSearch = (query: string) => {
     console.log('Buscando usuario:', query);
   };
+
+  // ⏳ Esperamos sesión o datos
+  if (loading || !token || !user?.sub || loadingData) {
+    return <h1 className="p-4 text-lg">Cargando usuarios...</h1>;
+  }
 
   return (
     <div className="flex min-h-screen">
