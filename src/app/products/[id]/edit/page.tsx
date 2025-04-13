@@ -9,6 +9,7 @@ import Dropdown from '@/components/Dropdown';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface Manufacturer {
   id: string;
@@ -118,7 +119,7 @@ export default function EditProductPage() {
       toast.success('Product updated successfully');
       setTimeout(() => {
         router.push('/products');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Ocurrió un error al actualizar el producto:', error);
       toast.error('Ocurrió un error al actualizar el producto');

@@ -10,6 +10,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { registerSchema } from '@/lib/validations/registerSchema';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 enum UserGender {
   MALE = 'm',
@@ -151,7 +152,7 @@ export default function EditUserPage() {
       toast.success('Usuario actualizado exitosamente');
       setTimeout(() => {
         router.push('/users');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
       toast.error('Ocurrió un error al actualizar el usuario');

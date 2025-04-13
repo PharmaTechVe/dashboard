@@ -12,6 +12,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 //import Dropdown from '@/components/Dropdown';
 import { toast, ToastContainer } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface BranchItem {
   id: string;
@@ -76,7 +77,7 @@ export default function BranchDetailsPage() {
 
       setTimeout(() => {
         router.push('/branches');
-      }, 2000); // Espera 2 segundos antes de redirigir
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al eliminar la sucursal:', error);
       toast.error('Error al eliminar la sucursal');

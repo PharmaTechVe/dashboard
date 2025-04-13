@@ -10,6 +10,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { categorySchema } from '@/lib/validations/categorySchema';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 export default function EditCategoryPage() {
   const { id } = useParams();
@@ -85,7 +86,7 @@ export default function EditCategoryPage() {
 
       setTimeout(() => {
         router.push(`/categories/`);
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al actualizar la categoría:', error);
       toast.error('Ocurrió un error al actualizar la categoría');

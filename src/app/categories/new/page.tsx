@@ -10,6 +10,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { categorySchema } from '@/lib/validations/categorySchema';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 export default function NewCategoryPage() {
   const router = useRouter();
@@ -68,7 +69,7 @@ export default function NewCategoryPage() {
 
       setTimeout(() => {
         router.push('/categories');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al crear la categoría:', error);
       toast.error('Ocurrió un error al crear la categoría');

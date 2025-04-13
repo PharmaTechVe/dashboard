@@ -13,6 +13,7 @@ import { api } from '@/lib/sdkConfig';
 import { newBranchSchema } from '@/lib/validations/newBranchSchema';
 import { toast, ToastContainer } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface StateItem {
   id: string;
@@ -158,7 +159,7 @@ export default function EditBranchPage() {
       toast.success('Sucursal actualizada exitosamente');
       setTimeout(() => {
         router.push('/branches');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al actualizar la sucursal:', error);
       toast.error('Ocurrió un error al actualizar la sucursal');
