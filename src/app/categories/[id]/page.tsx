@@ -10,6 +10,7 @@ import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface CategoryItem {
   id: string;
@@ -71,10 +72,9 @@ export default function CategoryDetailsPage() {
       await api.category.delete(id, token);
       toast.success(`Categoría eliminada exitosamente`);
 
-      router.push('/categories');
       setTimeout(() => {
-        router.push('/branches');
-      }, 2000);
+        router.push('/categories');
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al eliminar la categoría:', error);
       toast.error('Error al eliminar la categoría');

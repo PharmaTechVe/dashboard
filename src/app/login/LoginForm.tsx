@@ -35,12 +35,9 @@ export default function LoginForm() {
         return;
       }
 
-      setEmailError('');
-      setPasswordError('');
-
       try {
         const response = await api.auth.login({ email, password });
-        login(response.accessToken, remember); // Aquí se valida el rol dentro del context
+        login(response.accessToken, remember);
         setEmail('');
         setPassword('');
       } catch (err) {

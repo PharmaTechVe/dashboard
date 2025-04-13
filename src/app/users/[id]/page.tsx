@@ -11,6 +11,7 @@ import { Colors } from '@/styles/styles';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 enum UserRole {
   ADMIN = 'admin',
@@ -140,10 +141,10 @@ export default function UserDetailsPage() {
       setShowModal(false);
       setTimeout(() => {
         router.push('/users');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
-      console.error('Error al eliminar el usuario:', error);
-      toast.error('Error al eliminar el usuario');
+      console.error('Ocurrio un error al eliminar el usuario:', error);
+      toast.error('Ocurrio un error al eliminar el usuario');
     }
   };
 

@@ -1,0 +1,1 @@
+export const REDIRECTION_TIMEOUT = 2000;

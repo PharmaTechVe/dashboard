@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const profile = await api.user.getProfile(decoded.sub, token);
 
-      if (profile.role?.toLowerCase() !== 'admin') {
+      if (!['admin', 'branch_admin'].includes(profile.role.toLowerCase())) {
         toast.error('Acceso denegado: no tienes permisos de administrador');
         return null;
       }
