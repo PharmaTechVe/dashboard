@@ -10,6 +10,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { registerSchema } from '@/lib/validations/registerSchema';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 enum UserGender {
   MALE = 'm',
@@ -23,7 +24,7 @@ enum UserRole {
   DELIVERY = 'delivery',
 }
 
-const roleLabels = {
+const roleLabels: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
@@ -40,14 +41,15 @@ const formatDate = (dateStr: string): string => {
 export default function EditUserPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [firstName, setFirstName] = useState('Santiago');
-  const [lastName, setLastName] = useState('Perdamo');
-  const [documentId, setDocumentId] = useState('10234567');
-  const [birthDate, setBirthDate] = useState('28-07-1986');
-  const [phoneNumber, setPhoneNumber] = useState('0414-1234567');
-  const [email, setEmail] = useState('santipppl@gmail.com');
-  const [role, setRole] = useState<UserRole>(UserRole.ADMIN);
-  const [gender, setGender] = useState<UserGender>(UserGender.MALE);
+
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [gender, setGender] = useState<UserGender | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const getToken = useCallback(() => {
@@ -63,25 +65,27 @@ export default function EditUserPage() {
 
     try {
       const user = await api.user.getProfile(id, token);
-      setFirstName(user.firstName || 'Santiago');
-      setLastName(user.lastName || 'Perdamo');
-      setDocumentId(user.documentId || '10234567');
+      setFirstName(user.firstName);
+      setLastName(user.lastName);
+      setDocumentId(user.documentId);
       setBirthDate(
         user.profile.birthDate
           ? new Date(user.profile.birthDate).toISOString().split('T')[0]
-          : '28-07-1986',
+          : null,
       );
-      setPhoneNumber(user.phoneNumber || '0414-1234567');
-      setEmail(user.email || 'santipppl@gmail.com');
+      setPhoneNumber(user.phoneNumber);
+      setEmail(user.email);
       setRole(
         user.role
           ? UserRole[user.role.toUpperCase() as keyof typeof UserRole]
-          : UserRole.ADMIN,
+          : null,
       );
       setGender(
-        (user.profile.gender as 'm' | 'f') === 'm'
+        user.profile.gender === 'm'
           ? UserGender.MALE
-          : UserGender.FEMALE,
+          : user.profile.gender === 'f'
+            ? UserGender.FEMALE
+            : null,
       );
     } catch (error) {
       console.error('Error al cargar el usuario:', error);
@@ -106,12 +110,12 @@ export default function EditUserPage() {
       email,
       cedula: documentId,
       telefono: phoneNumber,
-      fechaNacimiento: formatDate(birthDate),
+      fechaNacimiento: birthDate ? formatDate(birthDate) : null,
       genero,
     });
 
     if (!result.success) {
-      const { fieldErrors } = result.error.flatten();
+      const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
         firstName: fieldErrors.nombre?.[0] || '',
         lastName: fieldErrors.apellido?.[0] || '',
@@ -123,6 +127,8 @@ export default function EditUserPage() {
       });
       toast.error('Por favor, revisa los errores en el formulario');
       return;
+    } else {
+      setErrors({});
     }
 
     try {
@@ -133,12 +139,12 @@ export default function EditUserPage() {
       }
 
       const payload = {
-        firstName,
-        lastName,
-        phoneNumber,
-        birthDate: formatDate(birthDate),
+        firstName: firstName ?? undefined,
+        lastName: lastName ?? undefined,
+        phoneNumber: phoneNumber ?? undefined,
+        birthDate: birthDate ? formatDate(birthDate) : undefined,
         gender,
-        role,
+        role: role ?? undefined,
       };
 
       console.log('Datos a actualizar:', payload);
@@ -146,7 +152,7 @@ export default function EditUserPage() {
       toast.success('Usuario actualizado exitosamente');
       setTimeout(() => {
         router.push('/users');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
       toast.error('Ocurrió un error al actualizar el usuario');
@@ -205,7 +211,7 @@ export default function EditUserPage() {
                     </label>
                     <input
                       type="text"
-                      value={firstName}
+                      value={firstName ?? ''}
                       onChange={(e) => setFirstName(e.target.value)}
                       className="h-10 w-full rounded-[6px] border border-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
@@ -220,11 +226,16 @@ export default function EditUserPage() {
                     </label>
                     <input
                       type="text"
-                      value={documentId}
+                      value={documentId ?? ''}
                       onChange={(e) => setDocumentId(e.target.value)}
                       className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       disabled
                     />
+                    {errors.documentId && (
+                      <p className="text-sm text-red-500">
+                        {errors.documentId}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex w-[249px] flex-col">
@@ -234,10 +245,15 @@ export default function EditUserPage() {
                     <div className="relative">
                       <input
                         type="text"
-                        value={birthDate}
+                        value={birthDate ?? ''}
                         onChange={(e) => setBirthDate(e.target.value)}
                         className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       />
+                      {errors.birthDate && (
+                        <p className="text-sm text-red-500">
+                          {errors.birthDate}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -247,10 +263,16 @@ export default function EditUserPage() {
                     </label>
                     <input
                       type="text"
-                      value={phoneNumber}
+                      placeholder="Agrega número de teléfono"
+                      value={phoneNumber ?? ''}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
+                    {errors.phoneNumber && (
+                      <p className="text-sm text-red-500">
+                        {errors.phoneNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -262,10 +284,13 @@ export default function EditUserPage() {
                     </label>
                     <input
                       type="text"
-                      value={lastName}
+                      value={lastName ?? ''}
                       onChange={(e) => setLastName(e.target.value)}
                       className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                     />
+                    {errors.lastName && (
+                      <p className="text-sm text-red-500">{errors.lastName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -293,6 +318,9 @@ export default function EditUserPage() {
                         />
                         Mujer
                       </label>
+                      {errors.gender && (
+                        <p className="text-sm text-red-500">{errors.gender}</p>
+                      )}
                     </div>
                   </div>
 
@@ -302,7 +330,7 @@ export default function EditUserPage() {
                     </label>
                     <div className="relative">
                       <select
-                        value={role}
+                        value={role ?? ''}
                         onChange={(e) => setRole(e.target.value as UserRole)}
                         className="h-10 w-full appearance-none rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       >
@@ -312,14 +340,6 @@ export default function EditUserPage() {
                           </option>
                         ))}
                       </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg
-                          className="h-4 w-4 fill-current text-[#6E6D6C]"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
 
@@ -329,11 +349,14 @@ export default function EditUserPage() {
                     </label>
                     <input
                       type="email"
-                      value={email}
+                      value={email ?? ''}
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
                       disabled
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
                 </div>
               </div>

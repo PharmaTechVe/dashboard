@@ -66,10 +66,14 @@ const Dropdown: React.FC<DropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onToggle]);
 
+  // Anotamos explícitamente el objeto de estilos
+  const listStyle: React.CSSProperties =
+    items.length > 10 ? { maxHeight: '500px', overflowY: 'auto' } : {};
+
   return (
     <div
       ref={dropdownRef}
-      className="relative w-64"
+      className="relative"
       style={{
         width,
         height,
@@ -101,7 +105,10 @@ const Dropdown: React.FC<DropdownProps> = ({
       </button>
 
       {isOpen && (
-        <ul className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
+        <ul
+          className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
+          style={listStyle}
+        >
           {items.map((item, index) => (
             <li
               key={typeof item === 'string' ? index : item.value}

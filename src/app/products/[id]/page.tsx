@@ -9,6 +9,7 @@ import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface Manufacturer {
   id: string;
@@ -66,7 +67,7 @@ export default function GenericProductDetailPage() {
   const handleDelete = async () => {
     const token = getToken();
     if (!token || typeof id !== 'string') {
-      toast.error('Error: token or id invalid');
+      toast.error('Error: token el token es invalido');
       return;
     }
     try {
@@ -74,10 +75,10 @@ export default function GenericProductDetailPage() {
       toast.success('Producto eliminado exitosamente');
       setTimeout(() => {
         router.push('/products/');
-      }, 2000);
+      }, REDIRECTION_TIMEOUT);
     } catch (err) {
-      console.error('Error deleting product:', err);
-      toast.error('Error deleting product');
+      console.error('Error al borrar el producto:', err);
+      toast.error('Error al borrar el producto');
     }
   };
 
