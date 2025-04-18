@@ -39,7 +39,8 @@ const formatDate = (dateStr: string): string => {
 };
 
 export default function EditUserPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [firstName, setFirstName] = useState<string | null>(null);

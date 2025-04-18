@@ -30,7 +30,8 @@ interface BranchItem {
 }
 
 export default function BranchDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [branch, setBranch] = useState<BranchItem | null>(null);
   const [showModal, setShowModal] = useState(false);
