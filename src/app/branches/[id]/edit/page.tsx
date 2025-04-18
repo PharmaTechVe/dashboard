@@ -26,8 +26,8 @@ interface CityItem {
 }
 
 export default function EditBranchPage() {
-  const { id } = useParams();
-
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('');

@@ -13,7 +13,8 @@ import { promoSchema } from '@/lib/validations/promoSchema';
 import DatePicker1 from '@/components/Calendar';
 
 export default function EditPromoPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const router = useRouter();
 
   const [name, setName] = useState('');

@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Colors } from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/sdkConfig';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type UploadedImage = {
   id: string;
@@ -106,6 +108,7 @@ export default function UploadedImages({ productId }: UploadedImagesProps) {
               </p>
             </div>
 
+            {/* Acciones */}
             <div className="flex items-center gap-6 text-gray-500">
               <a
                 href={img.url}
@@ -116,14 +119,32 @@ export default function UploadedImages({ productId }: UploadedImagesProps) {
                 <EyeIcon className="h-5 w-5" />
                 <span>Ver</span>
               </a>
-              <a
-                href={img.url}
-                download
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch(img.url);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = img.name ?? `imagen-${img.id}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+
+                    toast.success('Descarga iniciada con éxito');
+                  } catch (error) {
+                    console.error('Error descargando la imagen:', error);
+                    toast.error('No se pudo descargar la imagen');
+                  }
+                }}
                 className="flex items-center gap-1 hover:text-gray-700"
               >
                 <InboxArrowDownIcon className="h-5 w-5" />
                 <span>Descargar</span>
-              </a>
+              </button>
             </div>
           </div>
         ))}
