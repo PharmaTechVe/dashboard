@@ -16,10 +16,11 @@ interface FileWithProgress {
   uploadedUrl: string | null;
 }
 
-const CLOUDINARY_UPLOAD_PRESET = 'your_unsigned_preset';
-const CLOUDINARY_CLOUD_NAME = 'your_cloud_name';
+interface ImageUploadProps {
+  productId: string;
+}
 
-export default function ImageUpload() {
+export default function ImageUpload({ productId }: ImageUploadProps) {
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,42 +64,55 @@ export default function ImageUpload() {
     filesToAdd.forEach((file) => uploadToCloudinary(file));
   };
 
-  const uploadToCloudinary = (fileObj: FileWithProgress) => {
-    const formData = new FormData();
-    formData.append('file', fileObj.file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  const uploadToCloudinary = async (fileObj: FileWithProgress) => {
+    try {
+      const res = await fetch(`/api/sign-cloudinary?productId=${productId}`);
+      const { signature, timestamp, apiKey, cloudName, folder } =
+        await res.json();
 
-    const xhr = new XMLHttpRequest();
-    xhr.open(
-      'POST',
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
-    );
+      const formData = new FormData();
+      formData.append('file', fileObj.file);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', timestamp.toString());
+      formData.append('signature', signature);
+      formData.append('folder', folder);
 
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const progress = (e.loaded / e.total) * 100;
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileObj.id ? { ...f, progress: progress } : f,
-          ),
-        );
-      }
-    });
+      const xhr = new XMLHttpRequest();
+      xhr.open(
+        'POST',
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      );
 
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        const res = JSON.parse(xhr.responseText);
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileObj.id
-              ? { ...f, progress: 100, uploadedUrl: res.secure_url }
-              : f,
-          ),
-        );
-      }
-    };
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 100;
+          setFiles((prev) =>
+            prev.map((f) => (f.id === fileObj.id ? { ...f, progress } : f)),
+          );
+        }
+      });
 
-    xhr.send(formData);
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            setFiles((prev) =>
+              prev.map((f) =>
+                f.id === fileObj.id
+                  ? { ...f, progress: 100, uploadedUrl: response.secure_url }
+                  : f,
+              ),
+            );
+          } else {
+            console.error('Upload failed:', xhr.responseText);
+          }
+        }
+      };
+
+      xhr.send(formData);
+    } catch (error) {
+      console.error('Error during upload:', error);
+    }
   };
 
   const handleRemoveFile = (id: string) => {
@@ -117,7 +131,7 @@ export default function ImageUpload() {
   };
 
   return (
-    <div className="mx-auto h-[522px] w-[843px] rounded-lg bg-white p-6">
+    <div className="mx-auto max-h-[600px] w-[843px] overflow-y-auto rounded-lg bg-white p-6">
       <div
         className={`mx-auto flex h-[230px] w-[747px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
           isDragging
@@ -148,6 +162,7 @@ export default function ImageUpload() {
         />
       </div>
 
+      {/* Progress & Previews */}
       <div className="mt-6 space-y-4">
         {files.map((file) => (
           <div key={file.id} className="mb-4">
@@ -181,50 +196,42 @@ export default function ImageUpload() {
                   : 'Completado'}
               </span>
             </div>
+
+            {file.uploadedUrl && (
+              <div className="mt-4 flex items-center border-t pt-4">
+                <div className="mr-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded bg-gray-100">
+                  <img
+                    src={file.uploadedUrl}
+                    alt={file.file.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-gray-700">{file.file.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatBytes(file.file.size)}
+                  </p>
+                </div>
+                <div className="flex space-x-3">
+                  <a
+                    href={file.uploadedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <EyeIcon className="h-5 w-5" />
+                  </a>
+                  <button
+                    className="text-gray-500 hover:text-red-500"
+                    onClick={() => handleRemoveFile(file.id)}
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
-      </div>
-
-      {/* Previews */}
-      <div className="mt-6 space-y-4">
-        {files
-          .filter((file) => file.uploadedUrl)
-          .map((file) => (
-            <div
-              key={`preview-${file.id}`}
-              className="flex items-center border-t pt-4"
-            >
-              <div className="mr-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded bg-gray-100">
-                <img
-                  src={file.uploadedUrl ?? '/placeholder.svg'}
-                  alt={file.file.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-700">{file.file.name}</p>
-                <p className="text-sm text-gray-500">
-                  {formatBytes(file.file.size)}
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <a
-                  href={file.uploadedUrl ?? '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <EyeIcon className="h-5 w-5" />
-                </a>
-                <button
-                  className="text-gray-500 hover:text-red-500"
-                  onClick={() => handleRemoveFile(file.id)}
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          ))}
       </div>
     </div>
   );

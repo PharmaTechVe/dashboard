@@ -17,8 +17,9 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "date-fns": "^4.1.0",
     "@pharmatech/sdk": "^0.4.1",
+    "cloudinary": "^2.6.0",
+    "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.479.0",
     "next": "15.1.7",

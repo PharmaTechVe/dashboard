@@ -1,34 +1,78 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { EyeIcon, InboxArrowDownIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import { Colors } from '@/styles/styles';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/sdkConfig';
 
 type UploadedImage = {
   id: string;
-  name: string;
-  size: number;
   url: string;
+  name?: string;
+  size?: number;
 };
 
-const formatBytes = (bytes: number) => {
+interface UploadedImagesProps {
+  productId: string;
+}
+
+const formatBytes = (bytes: number = 0) => {
   if (bytes === 0) return '0 B';
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 };
 
-const images: UploadedImage[] = Array.from({ length: 5 }, (_, i) => ({
-  id: `${i + 1}`,
-  name: `IMG_389${i + 1}.jpg`,
-  size: 6820000,
-  url: 'https://via.placeholder.com/100x100.png?text=Imagen',
-}));
+const getImageSize = async (url: string): Promise<number | null> => {
+  try {
+    const res = await fetch(url, { method: 'HEAD' });
+    const size = res.headers.get('content-length');
+    return size ? parseInt(size, 10) : null;
+  } catch {
+    return null;
+  }
+};
 
-export default function UploadedImages() {
+export default function UploadedImages({ productId }: UploadedImagesProps) {
+  const { token } = useAuth();
+  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (!token) return;
+
+      try {
+        const response = await api.productImage.getByProductId(productId);
+
+        const enrichedImages = await Promise.all(
+          response.map(async (img: UploadedImage) => {
+            const size = await getImageSize(img.url);
+            return { ...img, size: size ?? undefined };
+          }),
+        );
+
+        setImages(enrichedImages);
+      } catch (err) {
+        console.error('Error fetching product images:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImages();
+  }, [productId, token]);
+
+  if (loading) return <p className="text-gray-500">Cargando imágenes...</p>;
+
   return (
-    <div className="mx-auto h-[516px] w-[843px] overflow-auto rounded-lg bg-white p-4">
-      <h2 className="mb-4 flex items-center gap-2 text-[16px] font-semibold text-purple-600">
+    <div className="mx-auto h-auto max-h-[516px] w-[843px] overflow-auto rounded-lg bg-white p-4">
+      <h2
+        className="mb-4 flex items-center gap-2 text-[16px] font-semibold"
+        style={{ color: Colors.primaryVariant }}
+      >
         <span>🔹</span> Imágenes cargadas
       </h2>
 
@@ -42,7 +86,7 @@ export default function UploadedImages() {
             <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded bg-white">
               <Image
                 src={img.url}
-                alt={img.name}
+                alt={img.name ?? `Imagen ${img.id}`}
                 width={100}
                 height={100}
                 className="h-full w-full object-contain"
@@ -55,21 +99,31 @@ export default function UploadedImages() {
                 className="text-[16px] font-medium"
                 style={{ color: Colors.textMain }}
               >
-                {img.name}
+                {img.name ?? 'Sin nombre'}
               </p>
-              <p className="text-sm text-gray-500">{formatBytes(img.size)}</p>
+              <p className="text-sm text-gray-500">
+                {img.size ? formatBytes(img.size) : 'Tamaño no disponible'}
+              </p>
             </div>
 
-            {/* Acciones */}
             <div className="flex items-center gap-6 text-gray-500">
-              <button className="flex items-center gap-1 hover:text-gray-700">
+              <a
+                href={img.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-gray-700"
+              >
                 <EyeIcon className="h-5 w-5" />
                 <span>Ver</span>
-              </button>
-              <button className="flex items-center gap-1 hover:text-gray-700">
+              </a>
+              <a
+                href={img.url}
+                download
+                className="flex items-center gap-1 hover:text-gray-700"
+              >
                 <InboxArrowDownIcon className="h-5 w-5" />
                 <span>Descargar</span>
-              </button>
+              </a>
             </div>
           </div>
         ))}

@@ -27,7 +27,8 @@ interface GenericProduct {
 }
 
 export default function EditProductPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [genericName, setGenericName] = useState('');
