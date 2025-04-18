@@ -228,6 +228,18 @@ export default function EditProductPage() {
                   onChange={(e) => setPriority(e.target.value)}
                 />
               </div>
+              <Button
+                color={Colors.primary}
+                paddingX={4}
+                paddingY={4}
+                textSize="16"
+                width="177px"
+                height="44px"
+                onClick={() => router.push(`/products/${id}/product-images`)}
+                textColor={Colors.textWhite}
+              >
+                Cargar Imágenes
+              </Button>
             </div>
           </main>
         </div>
