@@ -18,7 +18,7 @@ interface FileWithProgress {
   progress: number;
   uploadedUrl: string | null;
   publicId?: string;
-  fromBackend?: boolean; // <- Identificador de imágenes del backend
+  fromBackend?: boolean;
 }
 
 interface ImageUploadProps {
@@ -38,7 +38,8 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Obtener imágenes desde el backend
+  //Se maneja asi para separar o identificar las que estan cargadas desde backend
+  // y las que se estan subiendo
   useEffect(() => {
     const fetchExistingImages = async () => {
       try {

@@ -21,7 +21,6 @@ type Data =
   | { result: string }
   | { message: string; error?: unknown };
 
-// Handler
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -60,7 +59,7 @@ export default async function handler(
 
     return res.status(200).json({ result: 'Imagen eliminada exitosamente' });
   } catch (error) {
-    console.error('💥 Error eliminando en Cloudinary:', error);
+    console.error('Error eliminando en Cloudinary:', error);
     return res.status(500).json({
       message: 'Error eliminando la imagen en Cloudinary.',
       error,
