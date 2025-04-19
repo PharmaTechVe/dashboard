@@ -32,6 +32,7 @@ interface TableContainerProps<T> {
   };
   expandableRows?: boolean;
   rowDropdownComponent?: (item: T, index: number) => React.ReactNode;
+  addButtonText?: string;
 }
 
 export default function TableContainer<T>({
@@ -48,6 +49,7 @@ export default function TableContainer<T>({
   customColors,
   expandableRows,
   rowDropdownComponent,
+  addButtonText = 'Agregar Producto',
 }: TableContainerProps<T>) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
@@ -61,7 +63,7 @@ export default function TableContainer<T>({
       {/* Title + Dropdown */}
       <div className="mb-8 mt-[24px] flex items-center justify-between">
         <h2
-          className="mb-4 text-[24px] font-normal"
+          className="mb-4 ml-6 text-[24px] font-normal"
           style={{ color: Colors.textMain }}
         >
           {title}
@@ -72,7 +74,7 @@ export default function TableContainer<T>({
       {/* Container for ActionsTable */}
       <div className="mb-4">
         <ActionsTable
-          addButtonText="Agregar Producto"
+          addButtonText={addButtonText}
           onAddClick={onAddClick}
           onSearch={onSearch}
         />

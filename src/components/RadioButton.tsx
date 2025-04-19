@@ -1,33 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Colors } from '@/styles/styles';
+
 type RadioButtonProps = {
   text: string;
+  selected: boolean;
+  onSelect: () => void;
 };
 
-const RadioButton: React.FC<RadioButtonProps> = ({ text }) => {
-  const [isChecked, setIsChecked] = useState(false);
-
-  const handleCheckboxChange = () => {
-    setIsChecked(!isChecked);
-  };
-
+const RadioButton: React.FC<RadioButtonProps> = ({
+  text,
+  selected,
+  onSelect,
+}) => {
   return (
-    <label className="text-dark flex cursor-pointer select-none items-center dark:text-white">
+    <label
+      className="text-dark flex cursor-pointer select-none items-center dark:text-white"
+      onClick={onSelect}
+    >
       <div className="relative">
-        <input
-          type="checkbox"
-          checked={isChecked}
-          onChange={handleCheckboxChange}
-          className="sr-only"
-        />
+        <input type="radio" checked={selected} readOnly className="sr-only" />
         <div
           className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border`}
           style={{
             borderColor: Colors.primary,
-            backgroundColor: isChecked ? Colors.primary : 'transparent',
+            backgroundColor: selected ? Colors.primary : 'transparent',
           }}
         >
-          <span className="h-[10px] w-[10px] rounded-full bg-white"></span>
+          {selected && (
+            <span className="h-[10px] w-[10px] rounded-full bg-white"></span>
+          )}
         </div>
       </div>
       <span style={{ color: Colors.textMain }}>{text}</span>

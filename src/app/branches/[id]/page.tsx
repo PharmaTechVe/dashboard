@@ -12,6 +12,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 //import Dropdown from '@/components/Dropdown';
 import { toast, ToastContainer } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 interface BranchItem {
   id: string;
@@ -59,7 +60,7 @@ export default function BranchDetailsPage() {
   }, [id]);
 
   const handleEdit = () => {
-    if (typeof id === 'string') router.push(`/home/${id}/edit`);
+    if (typeof id === 'string') router.push(`/branches/${id}/edit`);
   };
 
   const handleDelete = async () => {
@@ -75,8 +76,8 @@ export default function BranchDetailsPage() {
       setShowModal(false);
 
       setTimeout(() => {
-        router.push('/home');
-      }, 2000); // Espera 2 segundos antes de redirigir
+        router.push('/branches');
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error al eliminar la sucursal:', error);
       toast.error('Error al eliminar la sucursal');
@@ -95,7 +96,7 @@ export default function BranchDetailsPage() {
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb
                 items={[
-                  { label: 'Sucursales', href: '/home' },
+                  { label: 'Sucursales', href: '/branches' },
                   {
                     label: `Sucursal #${id?.toString().slice(0, 3)}`,
                     href: '',

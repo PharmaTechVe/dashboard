@@ -1,0 +1,396 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Sidebar from '@/components/SideBar';
+import Navbar from '@/components/Navbar';
+import Breadcrumb from '@/components/Breadcrumb';
+import Button from '@/components/Button';
+import { Colors } from '@/styles/styles';
+import { api } from '@/lib/sdkConfig';
+import { toast, ToastContainer } from 'react-toastify';
+import { couponSchema } from '@/lib/validations/couponsSchema';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
+export default function EditCouponPage() {
+  const { id } = useParams();
+  const router = useRouter();
+
+  const [code, setCode] = useState('');
+  const [discount, setDiscount] = useState<number | ''>('');
+  const [minPurchase, setMinPurchase] = useState<number | ''>('');
+  const [maxUses, setMaxUses] = useState<number | ''>('');
+  const [expirationDate, setExpirationDate] = useState<Date | null>(null);
+
+  const [tempCode, setTempCode] = useState('');
+  const [tempDiscount, setTempDiscount] = useState<number | ''>('');
+  const [tempMinPurchase, setTempMinPurchase] = useState<number | ''>('');
+  const [tempMaxUses, setTempMaxUses] = useState<number | ''>('');
+  const [tempExpirationDate, setTempExpirationDate] = useState<Date | null>(
+    null,
+  );
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+  const getToken = () => {
+    if (typeof window === 'undefined') return '';
+    return (
+      sessionStorage.getItem('pharmatechToken') ||
+      localStorage.getItem('pharmatechToken') ||
+      ''
+    );
+  };
+
+  interface Coupon {
+    id: string;
+    code: string;
+    discount: number;
+    minPurchase: number;
+    maxUses: number;
+    expirationDate: Date;
+  }
+
+  useEffect(() => {
+    const fetchCoupon = async () => {
+      const token = getToken();
+      if (!token || typeof id !== 'string') return;
+
+      try {
+        const allCoupons = await api.coupon.findAll(
+          { page: 1, limit: 100 },
+          token,
+        );
+
+        const coupon = allCoupons.results.find((c: Coupon) => c.id === id) as
+          | Coupon
+          | undefined;
+
+        if (!coupon) {
+          throw new Error('Cupón no encontrado');
+        }
+
+        setCode(coupon.code);
+        setDiscount(coupon.discount);
+        setMinPurchase(coupon.minPurchase);
+        setMaxUses(coupon.maxUses);
+        setExpirationDate(new Date(coupon.expirationDate));
+
+        setTempCode(coupon.code);
+        setTempDiscount(coupon.discount);
+        setTempMinPurchase(coupon.minPurchase);
+        setTempMaxUses(coupon.maxUses);
+        setTempExpirationDate(new Date(coupon.expirationDate));
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error al cargar el cupón:', error.message);
+          toast.error('Error al cargar los datos del cupón');
+        } else {
+          console.error('Error desconocido al cargar el cupón:', error);
+          toast.error('Error desconocido al cargar los datos del cupón');
+        }
+        router.push('/coupons');
+      }
+    };
+
+    fetchCoupon();
+  }, [id, router]);
+
+  useEffect(() => {
+    const hasChanges =
+      tempCode !== code ||
+      tempDiscount !== discount ||
+      tempMinPurchase !== minPurchase ||
+      tempMaxUses !== maxUses ||
+      tempExpirationDate?.toISOString() !== expirationDate?.toISOString();
+
+    setHasPendingChanges(hasChanges);
+  }, [
+    tempCode,
+    tempDiscount,
+    tempMinPurchase,
+    tempMaxUses,
+    tempExpirationDate,
+    code,
+    discount,
+    minPurchase,
+    maxUses,
+    expirationDate,
+  ]);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setErrors({});
+
+    if (!tempExpirationDate) {
+      setErrors({ expirationDate: 'La fecha de finalización es requerida' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const validationData = {
+      code: tempCode.trim(),
+      discount: Number(tempDiscount),
+      minPurchase: Number(tempMinPurchase),
+      maxUses: Number(tempMaxUses),
+      expirationDate: tempExpirationDate,
+    };
+
+    const validationResult = couponSchema.safeParse(validationData);
+
+    if (!validationResult.success) {
+      const { fieldErrors } = validationResult.error.flatten();
+      setErrors({
+        code: fieldErrors.code?.[0] ?? '',
+        discount: fieldErrors.discount?.[0] ?? '',
+        minPurchase: fieldErrors.minPurchase?.[0] ?? '',
+        maxUses: fieldErrors.maxUses?.[0] ?? '',
+        expirationDate: fieldErrors.expirationDate?.[0] ?? '',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const token = getToken();
+      if (!token || typeof id !== 'string') {
+        toast.error('Token o ID inválido');
+        setIsSubmitting(false);
+        return;
+      }
+      const allCoupons = await api.coupon.findAll(
+        { page: 1, limit: 100 },
+        token,
+      );
+      const coupon = allCoupons.results.find((c: Coupon) => c.id === id);
+
+      if (!coupon) {
+        throw new Error('Cupón no encontrado');
+      }
+
+      await api.coupon.update(
+        coupon.code,
+        {
+          code: tempCode.trim(),
+          discount: Number(tempDiscount),
+          minPurchase: Number(tempMinPurchase),
+          maxUses: Number(tempMaxUses),
+          expirationDate: tempExpirationDate,
+        },
+        token,
+      );
+
+      toast.success('Cupón actualizado exitosamente');
+      setTimeout(() => router.push(`/coupons/${id}`), 1500);
+    } catch (error: unknown) {
+      console.error('Error al actualizar el cupón:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(errorMessage);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name: fieldName, value } = e.target;
+
+    if (fieldName === 'code') {
+      setTempCode(value.trimStart());
+    } else if (fieldName === 'discount') {
+      setTempDiscount(value === '' ? '' : Number(value));
+    } else if (fieldName === 'minPurchase') {
+      setTempMinPurchase(value === '' ? '' : Number(value));
+    } else if (fieldName === 'maxUses') {
+      setTempMaxUses(value === '' ? '' : Number(value));
+    }
+
+    setErrors((prev) => ({ ...prev, [fieldName]: '' }));
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    setTempExpirationDate(date);
+    setErrors((prev) => ({ ...prev, expirationDate: '' }));
+  };
+
+  return (
+    <>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex flex-1 flex-col">
+          <Navbar />
+          <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
+            <div className="mx-auto mb-4 max-w-[904px]">
+              <Breadcrumb
+                items={[
+                  { label: 'Cupones', href: '/coupons' },
+                  {
+                    label: `Cupón #${typeof id === 'string' ? id.slice(0, 3) : ''}`,
+                    href: `/coupons/${id}`,
+                  },
+                  { label: 'Editar', href: '' },
+                ]}
+              />
+            </div>
+
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
+              <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+                  Editar Cupón #{typeof id === 'string' ? id.slice(0, 3) : ''}
+                </h1>
+                <div className="flex gap-4">
+                  <Button
+                    color={Colors.secondaryWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="120px"
+                    height="44px"
+                    onClick={() => router.push(`/coupons/${id}`)}
+                    textColor={Colors.primary}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                    disabled={!hasPendingChanges || isSubmitting}
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </div>
+              </div>
+
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+                <p className="text-[16px] font-medium text-gray-600">
+                  Edita la información del cupón
+                </p>
+
+                <div>
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Código del cupón
+                  </label>
+                  <input
+                    type="text"
+                    name="code"
+                    className={`mt-1 w-full rounded-md border ${
+                      errors.code ? 'border-red-500' : 'border-gray-300'
+                    } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                    value={tempCode}
+                    onChange={handleChange}
+                  />
+                  {errors.code && (
+                    <p className="mt-1 text-sm text-red-500">{errors.code}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Fecha de finalización
+                    </label>
+                    <DatePicker
+                      selected={tempExpirationDate}
+                      onChange={handleDateChange}
+                      dateFormat="dd/MM/yyyy"
+                      className={`mt-1 w-full rounded-md border ${
+                        errors.expirationDate
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                      placeholderText="DD/MM/AAAA"
+                      minDate={new Date()}
+                      showTimeSelect={false}
+                    />
+                    {errors.expirationDate && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.expirationDate}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Usos máximos
+                    </label>
+                    <input
+                      type="number"
+                      name="maxUses"
+                      className={`mt-1 w-full rounded-md border ${
+                        errors.maxUses ? 'border-red-500' : 'border-gray-300'
+                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                      value={tempMaxUses}
+                      onChange={handleChange}
+                      min="1"
+                    />
+                    {errors.maxUses && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.maxUses}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Porcentaje de descuento
+                    </label>
+                    <input
+                      type="number"
+                      name="discount"
+                      className={`mt-1 w-full rounded-md border ${
+                        errors.discount ? 'border-red-500' : 'border-gray-300'
+                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                      value={tempDiscount}
+                      onChange={handleChange}
+                      min="1"
+                      max="100"
+                    />
+                    {errors.discount && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.discount}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="w-full md:w-1/2">
+                    <label className="block text-[16px] font-medium text-gray-600">
+                      Compra mínima
+                    </label>
+                    <input
+                      type="number"
+                      name="minPurchase"
+                      className={`mt-1 w-full rounded-md border ${
+                        errors.minPurchase
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
+                      value={tempMinPurchase}
+                      onChange={handleChange}
+                      min="0"
+                      step="1"
+                    />
+                    {errors.minPurchase && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.minPurchase}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </form>
+            </div>
+          </main>
+        </div>
+      </div>
+      <ToastContainer autoClose={5000} />
+    </>
+  );
+}
