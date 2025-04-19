@@ -8,6 +8,7 @@ export const Colors = {
   disabled: '#D3D3D3',
   primaryTransparent: 'rgb(28, 33, 67, .75)',
   primaryVariant: '#2D397B',
+  primary50: '#F1F5FD',
 
   textMain: '#393938',
   textWhite: '#FFFFFF',
