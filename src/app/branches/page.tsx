@@ -60,10 +60,10 @@ export default function BranchesPage() {
       try {
         if (!token) return;
 
-        const response: BranchResponse = await api.branch.findAll(
-          { page, limit },
-          token,
-        );
+        const response: BranchResponse = await api.branch.findAll({
+          page,
+          limit,
+        });
         setBranches(response.results);
         setTotalItems(response.count);
       } catch (error) {
