@@ -30,7 +30,7 @@ export default function EditProductPage() {
   const [manufacturerId, setManufacturerId] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  //const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -92,12 +92,12 @@ export default function EditProductPage() {
     const selected = manufacturers.find((m) => m.name === selectedManufacturer);
     setManufacturerId(selected ? selected.id : '');
   }, [selectedManufacturer, manufacturers]);
-  /*
+
   useEffect(() => {
     const selected = categories.find((c) => c.name === selectedCategory);
     setCategoryId(selected ? selected.id : '');
   }, [selectedCategory, categories]);
-*/
+
   const handleSubmit = async () => {
     if (!genericName || !name) {
       setErrors({
@@ -119,12 +119,12 @@ export default function EditProductPage() {
       description,
       priority: parseInt(priority),
       manufacturerId,
-      //categoryId,
     };
 
     try {
       await api.genericProduct.update(id, payload, token);
-      toast.success('Product updated successfully');
+      toast.success('Producto actualizado con exito');
+      await api.productCategory.create(id, categoryId);
       setTimeout(() => {
         router.push('/products');
       }, REDIRECTION_TIMEOUT);
