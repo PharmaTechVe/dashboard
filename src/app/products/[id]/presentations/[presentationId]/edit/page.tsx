@@ -145,18 +145,32 @@ export default function EditProductPresentationPage() {
             <Breadcrumb items={breadcrumbItems} />
             <div className="mb-6 flex items-center justify-between">
               <h1 className="text-[28px] font-normal">Editar presentación</h1>
-              <Button
-                color={Colors.primary}
-                paddingX={4}
-                paddingY={4}
-                textSize="16"
-                width="196px"
-                height="44px"
-                onClick={handleSubmit}
-                textColor={Colors.textWhite}
-              >
-                Guardar Cambios
-              </Button>
+              <div className="flex space-x-4">
+                <Button
+                  color={Colors.textWhite}
+                  paddingX={4}
+                  paddingY={4}
+                  textSize="16"
+                  width="196px"
+                  height="44px"
+                  onClick={() => router.back()} // Navega hacia atrás
+                  textColor={Colors.textMain}
+                >
+                  Volver
+                </Button>
+                <Button
+                  color={Colors.primary}
+                  paddingX={4}
+                  paddingY={4}
+                  textSize="16"
+                  width="196px"
+                  height="44px"
+                  onClick={handleSubmit}
+                  textColor={Colors.textWhite}
+                >
+                  Guardar Cambios
+                </Button>
+              </div>
             </div>
           </div>
 
