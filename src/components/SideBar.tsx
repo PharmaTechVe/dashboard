@@ -77,6 +77,7 @@ const Sidebar = () => {
       route: '/inventory',
       subItems: [
         { name: 'Productos', route: '/products' },
+        { name: 'Presentaciones', route: '/presentations' },
         { name: 'Categorías', route: '/categories' },
       ],
     },
@@ -94,6 +95,10 @@ const Sidebar = () => {
       name: 'Promos y cupones',
       icon: <TagIcon className="h-6 w-6" />,
       route: '/promos',
+      subItems: [
+        { name: 'Promos', route: '/promos' },
+        { name: 'Cupones', route: '/coupons' },
+      ],
     },
     {
       name: 'Sucursales',
