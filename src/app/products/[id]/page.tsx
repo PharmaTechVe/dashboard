@@ -151,11 +151,11 @@ export default function GenericProductDetailPage() {
     return <p className="p-4 text-lg">{error || 'Product not found.'}</p>;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex h-full flex-1 flex-col">
         <Navbar />
-        <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
+        <main className="flex-1 overflow-y-auto bg-[#F1F5FD] p-6 text-[#393938]">
           <div className="mx-auto mb-4 max-w-[904px]">
             <Breadcrumb items={breadcrumbItems} />
             <div className="mb-6 flex items-center justify-between">

@@ -122,17 +122,16 @@ export default function GenericProductListPage() {
     router.push(`/products/new`);
   };
 
-  // ⏳ Esperamos a que cargue sesión o datos
   if (loading || !token || !user?.sub || loadingData) {
     return <h1 className="p-4 text-lg">Cargando productos...</h1>;
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex h-full flex-1 flex-col">
         <Navbar />
-        <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
+        <main className="flex-1 overflow-y-auto bg-[#F1F5FD] p-6 text-[#393938]">
           <div
             className="overflow-y-auto"
             style={{ maxHeight: 'calc(100vh - 150px)' }}
