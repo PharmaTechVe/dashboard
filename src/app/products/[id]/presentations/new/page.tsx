@@ -13,7 +13,9 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 
 export default function AddProductPresentationPage() {
-  const { id: productId } = useParams();
+  const params = useParams();
+  const productId =
+    params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [presentations, setPresentations] = useState<PresentationResponse[]>(
