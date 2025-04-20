@@ -7,8 +7,10 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import type { PresentationResponse, PromoResponse } from '@pharmatech/sdk';
+import { newProductPresentationSchema } from '@/lib/validations/newProductPresentationSchema';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 
@@ -74,10 +76,18 @@ export default function AddProductPresentationPage() {
   }, [selectedPromo, promos]);
 
   const handleSubmit = async () => {
-    if (!selectedPresentation || !price) {
+    const result = newProductPresentationSchema.safeParse({
+      presentationId,
+      price: parseFloat(price),
+      promoId: promoId || undefined, // Aseguramos que promoId sea undefined si no se selecciona
+    });
+
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
       setErrors({
-        presentation: !selectedPresentation ? 'Presentación requerida' : '',
-        price: !price ? 'Precio requerido' : '',
+        presentation: fieldErrors.presentationId?.[0] || '',
+        price: fieldErrors.price?.[0] || '',
+        promo: fieldErrors.promoId?.[0] || '',
       });
       return;
     }
@@ -88,11 +98,7 @@ export default function AddProductPresentationPage() {
       return;
     }
 
-    const payload = {
-      presentationId,
-      price: parseFloat(price),
-      promoId: promoId || undefined,
-    };
+    const payload = result.data;
 
     try {
       console.log('Payload:', payload);
@@ -177,22 +183,19 @@ export default function AddProductPresentationPage() {
                   onChange={setSelectedPromo}
                 />
               </div>
-
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Precio
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                <Input
+                  label="Precio"
                   placeholder="Agrega el precio de esta presentación"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPrice(e.target.value)
+                  }
+                  helperText={errors.price}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
+                  type="number"
                 />
-                {errors.price && (
-                  <p className="mt-1 text-sm text-red-500">{errors.price}</p>
-                )}
               </div>
             </div>
           </main>
