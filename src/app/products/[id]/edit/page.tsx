@@ -97,6 +97,7 @@ export default function EditProductPage() {
       setSelectedManufacturer(product.manufacturer.name);
       setSelectedCategory(product?.categories[0]?.name);
       setSelectedCategoryBeforeEdit(product?.categories[0]?.name);
+      console.log(product);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Error fetching product details.');
@@ -156,11 +157,12 @@ export default function EditProductPage() {
       for (const url of imageUrls) {
         await api.productImage.create(id, { url });
       }
-      toast.success('Producto actualizado con exito');
-      if (currentCategory && currentCategory.id !== categoryId) {
+      console.log('Category ID:', categoryId, categoryId);
+      if (currentCategory) {
         await api.productCategory.delete(id, currentCategory.id);
-        await api.productCategory.create(id, categoryId);
       }
+      await api.productCategory.create(id, categoryId);
+      toast.success('Producto actualizado con exito');
       setTimeout(() => {
         router.push('/products');
       }, REDIRECTION_TIMEOUT);
