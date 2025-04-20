@@ -13,7 +13,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
 
 export default function PromoDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [promo, setPromo] = useState<{
     id: string;

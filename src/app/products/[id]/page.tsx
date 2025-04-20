@@ -19,7 +19,8 @@ import TableContainer from '@/components/TableContainer';
 
 type ProductPresentationItem = ProductPresentationResponse;
 export default function GenericProductDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);

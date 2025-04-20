@@ -13,7 +13,8 @@ import { categorySchema } from '@/lib/validations/categorySchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 export default function EditCategoryPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const router = useRouter();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

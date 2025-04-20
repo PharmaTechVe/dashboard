@@ -19,7 +19,8 @@ interface CategoryItem {
 }
 
 export default function CategoryDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [category, setCategory] = useState<CategoryItem | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
