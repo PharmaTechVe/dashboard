@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import ImageUpload from '@/components/Image/ImageUpload';
 import { Colors } from '@/styles/styles';
 import type {
   ManufacturerResponse,
@@ -33,6 +34,12 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategoryBeforeEdit, setSelectedCategoryBeforeEdit] =
+    useState('');
+  const currentCategory = categories.find(
+    (c) => c.name === selectedCategoryBeforeEdit,
+  );
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const getToken = useCallback(() => {
@@ -41,6 +48,10 @@ export default function EditProductPage() {
       sessionStorage.getItem('pharmatechToken') ||
       localStorage.getItem('pharmatechToken')
     );
+  }, []);
+
+  const handleUploadedImagesChange = useCallback((urls: string[]) => {
+    setImageUrls(urls);
   }, []);
 
   useEffect(() => {
@@ -83,6 +94,7 @@ export default function EditProductPage() {
       setPriority(product.priority.toString());
       setSelectedManufacturer(product.manufacturer.name);
       setSelectedCategory(product?.categories[0]?.name);
+      setSelectedCategoryBeforeEdit(product?.categories[0]?.name);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Error fetching product details.');
@@ -128,8 +140,14 @@ export default function EditProductPage() {
 
     try {
       await api.genericProduct.update(id, payload, token);
+      for (const url of imageUrls) {
+        await api.productImage.create(id, { url });
+      }
       toast.success('Producto actualizado con exito');
-      await api.productCategory.create(id, categoryId);
+      if (currentCategory && currentCategory.id !== categoryId) {
+        await api.productCategory.delete(id, currentCategory.id);
+        await api.productCategory.create(id, categoryId);
+      }
       setTimeout(() => {
         router.push('/products');
       }, REDIRECTION_TIMEOUT);
@@ -255,7 +273,7 @@ export default function EditProductPage() {
                 Agrega la información básica del producto
               </p>
             </div>
-            <div className="mx-auto max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
+            <div className="mx-auto mb-8 max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
               <div className="w-full">
                 <Dropdown
                   title="Categoría"
@@ -275,18 +293,17 @@ export default function EditProductPage() {
                   </p>
                 )}
               </div>
-              <Button
-                color={Colors.primary}
-                paddingX={4}
-                paddingY={4}
-                textSize="16"
-                width="177px"
-                height="44px"
-                onClick={() => router.push(`/products/${id}/product-images`)}
-                textColor={Colors.textWhite}
-              >
-                Cargar Imágenes
-              </Button>
+            </div>
+            <div className="mx-auto max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
+              <div className="my-8">
+                <h2 className="my-4 text-lg font-medium text-[#393938]">
+                  Imágenes del producto
+                </h2>
+                <ImageUpload
+                  productId={id}
+                  onUploadedImagesChange={handleUploadedImagesChange}
+                />
+              </div>
             </div>
           </main>
         </div>

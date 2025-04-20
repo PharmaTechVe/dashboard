@@ -70,19 +70,19 @@ export default function UploadedImages({ productId }: UploadedImagesProps) {
   if (loading) return <p className="text-gray-500">Cargando imágenes...</p>;
 
   return (
-    <div className="mx-auto h-auto max-h-[516px] w-[843px] overflow-auto rounded-lg bg-white p-4">
+    <div className="mx-auto h-auto w-[904px] overflow-auto rounded-lg bg-white p-8">
       <h2
         className="mb-4 flex items-center gap-2 text-[16px] font-semibold"
-        style={{ color: Colors.primaryVariant }}
+        style={{ color: Colors.textMain }}
       >
-        <span>🔹</span> Imágenes cargadas
+        Imágenes cargadas
       </h2>
 
-      <div className="space-y-[4%]">
+      <div className="space-y-[2%]">
         {images.map((img) => (
           <div
             key={img.id}
-            className="mx-auto flex h-[230px] w-[747px] items-center justify-between rounded-lg bg-gray-50 px-6"
+            className="mx-auto flex h-[150px] w-[747px] items-center justify-between rounded-lg bg-gray-50 px-6"
           >
             {/* Imagen */}
             <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded bg-white">

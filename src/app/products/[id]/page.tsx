@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import ModalConfirm from '@/components/ModalConfirm';
+import UploadedImage from '@/components/Image/UploadedImage';
 import { Colors } from '@/styles/styles';
 import type {
   GenericProductResponse,
@@ -278,6 +279,9 @@ export default function GenericProductDetailPage() {
             </div>
           </div>
 
+          <div className="mx-auto my-8 max-w-[904px]">
+            <UploadedImage productId={id} />
+          </div>
           <div className="mx-auto max-w-[904px] rounded-xl py-8">
             <TableContainer
               title="Presentaciones"
