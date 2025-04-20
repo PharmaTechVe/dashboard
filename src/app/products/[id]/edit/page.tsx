@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import Input from '@/components/Input/Input';
 import ImageUpload from '@/components/Image/ImageUpload';
 import { Colors } from '@/styles/styles';
 import type {
@@ -13,6 +14,7 @@ import type {
   GenericProductResponse,
   CategoryResponse,
 } from '@pharmatech/sdk';
+import { newGenericProductSchema } from '@/lib/validations/newGenericProductSchema';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
@@ -116,14 +118,25 @@ export default function EditProductPage() {
   }, [selectedCategory, categories]);
 
   const handleSubmit = async () => {
-    if (!genericName || !name) {
+    const result = newGenericProductSchema.safeParse({
+      name,
+      genericName,
+      description,
+      priority,
+      manufacturerId,
+    });
+
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
       setErrors({
-        genericName: !genericName ? 'Required' : '',
-        name: !name ? 'Required' : '',
+        name: fieldErrors.name?.[0] || '',
+        genericName: fieldErrors.genericName?.[0] || '',
+        description: fieldErrors.description?.[0] || '',
+        priority: fieldErrors.priority?.[0] || '',
+        manufacturerId: fieldErrors.manufacturerId?.[0] || '',
       });
       return;
     }
-
     const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Token or ID invalid');
@@ -195,25 +208,23 @@ export default function EditProductPage() {
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="flex space-x-4">
                 <div className="w-1/2">
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Nombre genérico
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    placeholder="Generic Name"
+                  <Input
+                    label="Nombre Genérico"
+                    placeholder="Ingresa el nombre genérico"
                     value={genericName}
-                    onChange={(e) => setGenericName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setGenericName(e.target.value)
+                    }
+                    helperText={errors.genericName}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
                   />
-                  {errors.genericName && (
-                    <p className="text-sm text-red-500">{errors.genericName}</p>
-                  )}
                 </div>
                 <div className="w-1/2">
                   <Dropdown
                     title="Fabricante"
-                    width="100%"
-                    height="42px"
                     placeholder="Selecciona el fabricante"
+                    width="100%"
                     items={manufacturers.map((m) => ({
                       label: m.name,
                       value: m.id,
@@ -230,41 +241,45 @@ export default function EditProductPage() {
               </div>
               <div className="mt-4 flex space-x-4">
                 <div className="w-1/2">
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Nombre
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    placeholder="Product Name"
+                  <Input
+                    label="Nombre"
+                    placeholder="Ingresa el nombre del producto"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setName(e.target.value)
+                    }
+                    helperText={errors.name}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
                   />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">{errors.name}</p>
-                  )}
                 </div>
                 <div className="w-1/2">
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Prioridad
-                  </label>
-                  <input
-                    type="number"
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    placeholder="Priority"
+                  <Input
+                    label="Prioridad"
+                    placeholder="Ingresa la prioridad"
                     value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setPriority(e.target.value)
+                    }
+                    helperText={errors.priority}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
+                    type="number"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Descripción
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Product Description"
+                <Input
+                  label="Descripción"
+                  placeholder="Ingresa la descripción del producto"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setDescription(e.target.value)
+                  }
+                  helperText={errors.description}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
+                  type="text"
                 />
               </div>
             </div>
