@@ -11,14 +11,16 @@ import {
 import { toast } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
+import { uploadImageToCloudinary } from '@/lib/utils/uploadImage';
+import ModalConfirm from '@/components/ModalConfirm';
 
 interface FileWithProgress {
   id: string;
   file: File;
   progress: number;
   uploadedUrl: string | null;
-  publicId?: string;
   fromBackend?: boolean;
+  previewUrl?: string;
 }
 
 interface ImageUploadProps {
@@ -37,9 +39,11 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<FileWithProgress | null>(
+    null,
+  );
 
-  //Se maneja asi para separar o identificar las que estan cargadas desde backend
-  // y las que se estan subiendo
   useEffect(() => {
     const fetchExistingImages = async () => {
       try {
@@ -69,34 +73,21 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
           }),
         );
 
-        setFiles((prev) => [...enriched, ...prev]);
+        setFiles((prev) => {
+          const onlyFrontend = prev.filter((f) => !f.fromBackend);
+          return [...enriched, ...onlyFrontend];
+        });
       } catch (err) {
         console.error('Error al traer imágenes existentes:', err);
       }
     };
 
-    if (token) {
-      fetchExistingImages();
-    }
+    if (token) fetchExistingImages();
   }, [productId, token]);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => setIsDragging(false);
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) handleFiles(e.target.files);
   };
-
-  const handleBrowseClick = () => fileInputRef.current?.click();
 
   const handleFiles = (fileList: FileList) => {
     const currentCount = files.length;
@@ -107,6 +98,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
       file,
       progress: 0,
       uploadedUrl: null,
+      previewUrl: URL.createObjectURL(file),
     }));
 
     setFiles((prev) => [...prev, ...filesToAdd]);
@@ -115,88 +107,42 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
 
   const uploadToCloudinary = async (fileObj: FileWithProgress) => {
     try {
-      toast.info(`Subiendo "${fileObj.file.name}"...`, { autoClose: 1000 });
+      toast.info(`Subiendo "${fileObj.file.name}"...`);
 
-      const res = await fetch(`/api/sign-cloudinary?productId=${productId}`);
-      const { signature, timestamp, apiKey, cloudName, folder } =
-        await res.json();
-
-      const formData = new FormData();
-      formData.append('file', fileObj.file);
-      formData.append('api_key', apiKey);
-      formData.append('timestamp', timestamp.toString());
-      formData.append('signature', signature);
-      formData.append('folder', folder);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open(
-        'POST',
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      );
-
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const progress = (e.loaded / e.total) * 100;
+      const uploadedUrl = await uploadImageToCloudinary(
+        fileObj.file,
+        productId,
+        (progress) => {
           setFiles((prev) =>
             prev.map((f) => (f.id === fileObj.id ? { ...f, progress } : f)),
           );
-        }
-      });
+        },
+      );
 
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileObj.id ? { ...f, uploadedUrl, progress: 100 } : f,
+        ),
+      );
 
-          // Mostrar progreso completado antes de mostrar imagen
-          setFiles((prev) =>
-            prev.map((f) =>
-              f.id === fileObj.id ? { ...f, progress: 100 } : f,
-            ),
-          );
-
-          setTimeout(() => {
-            setFiles((prev) =>
-              prev.map((f) =>
-                f.id === fileObj.id
-                  ? {
-                      ...f,
-                      uploadedUrl: response.secure_url,
-                      publicId: response.public_id,
-                    }
-                  : f,
-              ),
-            );
-            toast.success(`"${fileObj.file.name}" subida con éxito`);
-          }, 600);
-        }
-      };
-
-      xhr.send(formData);
+      toast.success(`"${fileObj.file.name}" subida con éxito`);
     } catch (error) {
       console.error('Error durante la subida:', error);
-      toast.error('Error inesperado en la subida');
+      toast.error('No se pudo subir la imagen');
     }
   };
 
   const handleRemoveFile = async (file: FileWithProgress) => {
     try {
-      if (file.publicId) {
-        const res = await fetch('/api/delete-cloudinary', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ publicId: file.publicId }),
-        });
-
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || 'Error al eliminar en Cloudinary');
-        }
+      if (file.fromBackend) {
+        await api.productImage.delete(productId, file.id);
+        toast.success('Imagen eliminada del backend');
       } else {
-        console.log('Eliminar desde backend:', file.id);
+        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+        toast.info('Imagen eliminada del preview');
       }
 
       setFiles((prev) => prev.filter((f) => f.id !== file.id));
-      toast.success('Imagen eliminada');
     } catch (error) {
       console.error('Error al eliminar la imagen:', error);
       toast.error('No se pudo eliminar la imagen');
@@ -210,8 +156,29 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
   };
 
+  const handleBrowseClick = () => fileInputRef.current?.click();
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = () => setIsDragging(false);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  };
+
+  useEffect(() => {
+    return () => {
+      files.forEach((file) => {
+        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+      });
+    };
+  }, [files]);
+
   return (
     <div className="mx-auto max-h-[600px] w-[843px] overflow-y-auto rounded-lg bg-white p-6">
+      {/* Drop area */}
       <div
         className={`mx-auto flex h-[230px] w-[747px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
           isDragging
@@ -227,8 +194,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
           <DocumentPlusIcon className="h-6 w-6 text-[#374CBE]" />
         </div>
         <p className="text-center text-gray-600">
-          Arrastra y suelta las fotos del
-          <br />
+          Arrastra y suelta las fotos del <br />
           producto o{' '}
           <button className="font-medium text-[#374CBE]">búscalas</button>
         </p>
@@ -242,10 +208,11 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
         />
       </div>
 
+      {/* Preview */}
       <div className="mt-6 space-y-4">
         {files.map((file) => (
           <div key={file.id} className="mb-4">
-            {/* Cabecera con nombre y acciones */}
+            {/* Nombre para preview */}
             {!file.fromBackend && (
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center">
@@ -263,14 +230,14 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
               </div>
             )}
 
-            {/* Barra de progreso carga de imagenes */}
+            {/* Progreso de carga */}
             {!file.fromBackend && !file.uploadedUrl && (
               <>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
                   <div
                     className="h-full rounded-full bg-[#374CBE]"
                     style={{ width: `${file.progress}%` }}
-                  ></div>
+                  />
                 </div>
                 <div className="mt-1 flex justify-between text-sm">
                   <span className="text-gray-600">
@@ -285,12 +252,12 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
               </>
             )}
 
-            {/* Vista previa de la imagen */}
-            {file.uploadedUrl && (
+            {/* Vista previa */}
+            {(file.previewUrl || file.uploadedUrl) && (
               <div className="mt-4 flex items-center border-t pt-4">
                 <div className="mr-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded bg-gray-100">
                   <img
-                    src={file.uploadedUrl}
+                    src={file.uploadedUrl ?? file.previewUrl}
                     alt={file.file.name}
                     className="h-full w-full object-cover"
                   />
@@ -299,26 +266,53 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
                   <p className="text-gray-700">{file.file.name}</p>
                 </div>
                 <div className="flex space-x-3">
-                  <a
-                    href={file.uploadedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </a>
-                  <button
-                    className="text-gray-500 hover:text-red-500"
-                    onClick={() => handleRemoveFile(file)}
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                  {file.uploadedUrl && (
+                    <a
+                      href={file.uploadedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </a>
+                  )}
+                  {file.fromBackend && (
+                    <button
+                      className="text-gray-500 hover:text-red-500"
+                      onClick={() => {
+                        setFileToDelete(file);
+                        setShowConfirmModal(true);
+                      }}
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  )}
                 </div>
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Modal de confirmación */}
+      {fileToDelete && (
+        <ModalConfirm
+          isOpen={showConfirmModal}
+          title="Eliminar imagen"
+          description="¿Estás seguro de que deseas eliminar esta imagen?"
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          onClose={() => {
+            setShowConfirmModal(false);
+            setFileToDelete(null);
+          }}
+          onConfirm={async () => {
+            await handleRemoveFile(fileToDelete);
+            setShowConfirmModal(false);
+            setFileToDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 }
