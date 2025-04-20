@@ -55,10 +55,7 @@ export default function EditProductPage() {
           sessionStorage.getItem('pharmatechToken') ||
           localStorage.getItem('pharmatechToken');
         if (!token) return;
-        const response = await api.manufacturer.findAll(
-          { page: 1, limit: 50 },
-          token,
-        );
+        const response = await api.manufacturer.findAll({ page: 1, limit: 50 });
         setManufacturers(response.results);
       } catch (error) {
         console.error('Error fetching manufacturers:', error);
