@@ -25,14 +25,14 @@ const Button: React.FC<ButtonProps> = ({
   paddingY = 2,
   textSize = 'base',
   width = '100%',
-  height = 'auto',
+  height = '48px',
   onClick,
   disabled = false,
   className = '',
   variant = 'submit',
   textColor = 'white',
 }) => {
-  const baseStyles = `font-medium transition duration-200 rounded-md shadow-sm border-transparent px-${paddingX} py-${paddingY} text-${textSize}`;
+  const baseStyles = `inline-flex items-center justify-center font-medium transition duration-200 rounded-md shadow-sm border-transparent px-${paddingX} py-${paddingY} text-${textSize}`;
 
   const variantStyles =
     variant === 'white'

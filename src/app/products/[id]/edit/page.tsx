@@ -50,14 +50,7 @@ export default function EditProductPage() {
   useEffect(() => {
     async function fetchManufacturers() {
       try {
-        const token =
-          sessionStorage.getItem('pharmatechToken') ||
-          localStorage.getItem('pharmatechToken');
-        if (!token) return;
-        const response = await api.manufacturer.findAll(
-          { page: 1, limit: 50 },
-          token,
-        );
+        const response = await api.manufacturer.findAll({ page: 1, limit: 50 });
         setManufacturers(response.results);
       } catch (error) {
         console.error('Error fetching manufacturers:', error);
@@ -141,69 +134,88 @@ export default function EditProductPage() {
           <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb items={breadcrumbItems} />
-            </div>
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
-              <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Editar Producto
-                </h1>
+              <div className="mb-4 flex items-center justify-end">
                 <Button
                   color={Colors.primary}
                   paddingX={4}
                   paddingY={4}
                   textSize="16"
-                  width="177px"
-                  height="44px"
+                  width="auto"
                   onClick={handleSubmit}
                   textColor={Colors.textWhite}
                 >
                   Guardar Cambios
                 </Button>
               </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre genérico
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Generic Name"
-                  value={genericName}
-                  onChange={(e) => setGenericName(e.target.value)}
-                />
-                {errors.genericName && (
-                  <p className="text-sm text-red-500">{errors.genericName}</p>
-                )}
+            </div>
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
+              <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+                  Editar Producto
+                </h1>
               </div>
-              <div>
-                <Dropdown
-                  title="Fabricante"
-                  placeholder="Selecciona el fabricante"
-                  items={manufacturers.map((m) => ({
-                    label: m.name,
-                    value: m.id,
-                  }))}
-                  selected={selectedManufacturer}
-                  onChange={setSelectedManufacturer}
-                />
-                {errors.manufacturerId && (
-                  <p className="text-sm text-red-500">
-                    {errors.manufacturerId}
-                  </p>
-                )}
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Nombre genérico
+                  </label>
+                  <input
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                    placeholder="Generic Name"
+                    value={genericName}
+                    onChange={(e) => setGenericName(e.target.value)}
+                  />
+                  {errors.genericName && (
+                    <p className="text-sm text-red-500">{errors.genericName}</p>
+                  )}
+                </div>
+                <div className="w-1/2">
+                  <Dropdown
+                    title="Fabricante"
+                    width="100%"
+                    height="42px"
+                    placeholder="Selecciona el fabricante"
+                    items={manufacturers.map((m) => ({
+                      label: m.name,
+                      value: m.id,
+                    }))}
+                    selected={selectedManufacturer}
+                    onChange={setSelectedManufacturer}
+                  />
+                  {errors.manufacturerId && (
+                    <p className="text-sm text-red-500">
+                      {errors.manufacturerId}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Product Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
+              <div className="mt-4 flex space-x-4">
+                <div className="w-1/2">
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Nombre
+                  </label>
+                  <input
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                    placeholder="Product Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
+                </div>
+                <div className="w-1/2">
+                  <label className="block text-[16px] font-medium text-gray-600">
+                    Prioridad
+                  </label>
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                    placeholder="Priority"
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-[16px] font-medium text-gray-600">
@@ -214,18 +226,6 @@ export default function EditProductPage() {
                   placeholder="Product Description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Prioridad
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Priority"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
                 />
               </div>
             </div>
