@@ -7,11 +7,13 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { newPresentationSchema } from '@/lib/validations/newPresentationSchema';
 
 const UNITS = [
   { label: 'mg', value: 'mg' },
@@ -61,11 +63,19 @@ export default function EditPresentationPage() {
   }, [fetchPresentation]);
 
   const handleSubmit = async () => {
-    if (!name || !measurementUnit || !quantity) {
+    const result = newPresentationSchema.safeParse({
+      name,
+      measurementUnit,
+      quantity,
+      description,
+    });
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
       setErrors({
-        name: !name ? 'El nombre es requerido' : '',
-        measurementUnit: !measurementUnit ? 'La unidad es requerida' : '',
-        quantity: !quantity ? 'La cantidad es requerida' : '',
+        name: fieldErrors.name?.[0] || '',
+        measurementUnit: fieldErrors.measurementUnit?.[0] || '',
+        quantity: fieldErrors.quantity?.[0] || '',
+        description: fieldErrors.description?.[0] || '',
       });
       return;
     }
@@ -77,10 +87,8 @@ export default function EditPresentationPage() {
     }
 
     const payload = {
-      name,
-      measurementUnit,
-      quantity: parseFloat(quantity),
-      description,
+      ...result.data,
+      description: result.data.description || '',
     };
 
     try {
@@ -112,17 +120,32 @@ export default function EditPresentationPage() {
               <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                 Editar Presentación
               </h1>
-              <Button
-                color={Colors.primary}
-                paddingX={4}
-                paddingY={4}
-                textSize="16"
-                width="auto"
-                onClick={handleSubmit}
-                textColor={Colors.textWhite}
-              >
-                Guardar Cambios
-              </Button>
+              <div className="flex space-x-4">
+                <Button
+                  color={Colors.textWhite}
+                  paddingX={4}
+                  paddingY={4}
+                  textSize="16"
+                  width="196px"
+                  height="44px"
+                  onClick={() => router.back()} // Botón para volver
+                  textColor={Colors.textMain}
+                >
+                  Volver
+                </Button>
+                <Button
+                  color={Colors.primary}
+                  paddingX={4}
+                  paddingY={4}
+                  textSize="16"
+                  width="196px"
+                  height="44px"
+                  onClick={handleSubmit}
+                  textColor={Colors.textWhite}
+                >
+                  Guardar Cambios
+                </Button>
+              </div>
             </div>
             <p className="text-[16px] font-normal leading-6 text-[#393938]">
               Modifica los datos de la presentación
@@ -130,18 +153,17 @@ export default function EditPresentationPage() {
           </div>
           <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Nombre
-              </label>
-              <input
-                className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+              <Input
+                label="Nombre"
                 placeholder="Nombre de la presentación"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setName(e.target.value)
+                }
+                helperText={errors.name}
+                helperTextColor="#E10000"
+                borderColor="#d1d5db"
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
             </div>
             <div className="flex space-x-4">
               <div className="w-1/2">
@@ -161,30 +183,32 @@ export default function EditPresentationPage() {
                 )}
               </div>
               <div className="w-1/2">
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Cantidad del producto
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                <Input
+                  label="Cantidad del producto"
                   placeholder="Cantidad por unidad"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setQuantity(e.target.value)
+                  }
+                  helperText={errors.quantity}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
+                  type="number"
                 />
-                {errors.quantity && (
-                  <p className="mt-1 text-sm text-red-500">{errors.quantity}</p>
-                )}
               </div>
             </div>
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Descripción
-              </label>
-              <textarea
-                className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+              <Input
+                label="Descripción"
                 placeholder="Descripción de la presentación"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDescription(e.target.value)
+                }
+                helperText={errors.description}
+                helperTextColor="#E10000"
+                borderColor="#d1d5db"
+                type="text"
               />
             </div>
           </div>
