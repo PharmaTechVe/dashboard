@@ -7,24 +7,14 @@ import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
 import { Colors } from '@/styles/styles';
+import type {
+  ManufacturerResponse,
+  GenericProductResponse,
+  CategoryResponse,
+} from '@pharmatech/sdk';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
-
-interface Manufacturer {
-  id: string;
-  name: string;
-}
-
-interface GenericProduct {
-  id: string;
-  name: string;
-  genericName: string;
-  description?: string;
-  priority: number;
-  manufacturer: Manufacturer;
-  categories: { id: string; name: string }[];
-}
 
 export default function EditProductPage() {
   const { id } = useParams();
@@ -34,9 +24,14 @@ export default function EditProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [manufacturers, setManufacturers] = useState<ManufacturerResponse[]>(
+    [],
+  );
   const [manufacturerId, setManufacturerId] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  //const [categoryId, setCategoryId] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const getToken = useCallback(() => {
@@ -59,16 +54,30 @@ export default function EditProductPage() {
     fetchManufacturers();
   }, []);
 
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await api.category.findAll({ page: 1, limit: 50 });
+        setCategories(response.results);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    }
+    fetchCategories();
+  }, []);
+
   const fetchProduct = useCallback(async () => {
     const token = getToken();
     if (!token || typeof id !== 'string') return;
     try {
-      const product: GenericProduct = await api.genericProduct.getById(id);
+      const product: GenericProductResponse =
+        await api.genericProduct.getById(id);
       setGenericName(product.genericName);
       setName(product.name);
       setDescription(product.description || '');
       setPriority(product.priority.toString());
       setSelectedManufacturer(product.manufacturer.name);
+      setSelectedCategory(product?.categories[0]?.name);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Error fetching product details.');
@@ -83,7 +92,12 @@ export default function EditProductPage() {
     const selected = manufacturers.find((m) => m.name === selectedManufacturer);
     setManufacturerId(selected ? selected.id : '');
   }, [selectedManufacturer, manufacturers]);
-
+  /*
+  useEffect(() => {
+    const selected = categories.find((c) => c.name === selectedCategory);
+    setCategoryId(selected ? selected.id : '');
+  }, [selectedCategory, categories]);
+*/
   const handleSubmit = async () => {
     if (!genericName || !name) {
       setErrors({
@@ -105,6 +119,7 @@ export default function EditProductPage() {
       description,
       priority: parseInt(priority),
       manufacturerId,
+      //categoryId,
     };
 
     try {
@@ -134,7 +149,10 @@ export default function EditProductPage() {
           <main className="flex-1 bg-[#F1F5FD] p-6 text-[#393938]">
             <div className="mx-auto mb-4 max-w-[904px]">
               <Breadcrumb items={breadcrumbItems} />
-              <div className="mb-4 flex items-center justify-end">
+              <div className="mb-4 flex items-center justify-between">
+                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+                  Editar Producto
+                </h1>
                 <Button
                   color={Colors.primary}
                   paddingX={4}
@@ -147,13 +165,11 @@ export default function EditProductPage() {
                   Guardar Cambios
                 </Button>
               </div>
+              <p className="text-[16px] font-normal leading-6 text-[#393938]">
+                Agrega la información básica del producto
+              </p>
             </div>
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
-              <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Editar Producto
-                </h1>
-              </div>
               <div className="flex space-x-4">
                 <div className="w-1/2">
                   <label className="block text-[16px] font-medium text-gray-600">
@@ -227,6 +243,32 @@ export default function EditProductPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
+              </div>
+            </div>
+            <div className="mx-auto my-8 mb-4 max-w-[904px]">
+              <p className="text-[16px] font-normal leading-6 text-[#393938]">
+                Agrega la información básica del producto
+              </p>
+            </div>
+            <div className="mx-auto max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
+              <div className="w-full">
+                <Dropdown
+                  title="Categoría"
+                  width="100%"
+                  height="42px"
+                  placeholder="Selecciona la categoría"
+                  items={categories.map((c) => ({
+                    label: c.name,
+                    value: c.id,
+                  }))}
+                  selected={selectedCategory}
+                  onChange={setSelectedCategory}
+                />
+                {errors.categoryId && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.categoryId}
+                  </p>
+                )}
               </div>
             </div>
           </main>
