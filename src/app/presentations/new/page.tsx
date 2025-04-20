@@ -9,6 +9,9 @@ import Dropdown from '@/components/Dropdown';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import Input from '@/components/Input/Input';
+import { newPresentationSchema } from '@/lib/validations/newPresentationSchema';
+import { useRouter } from 'next/navigation';
 
 const UNITS = [
   { label: 'mg', value: 'mg' },
@@ -19,6 +22,7 @@ const UNITS = [
 ];
 
 export default function NewPresentationPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [measurementUnit, setMeasurementUnit] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -26,15 +30,23 @@ export default function NewPresentationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async () => {
-    if (!name || !measurementUnit || !quantity) {
+    const result = newPresentationSchema.safeParse({
+      name,
+      measurementUnit,
+      quantity,
+      description,
+    });
+
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
       setErrors({
-        name: !name ? 'El nombre es requerido' : '',
-        measurementUnit: !measurementUnit ? 'La unidad es requerida' : '',
-        quantity: !quantity ? 'La cantidad es requerida' : '',
+        name: fieldErrors.name?.[0] || '',
+        measurementUnit: fieldErrors.measurementUnit?.[0] || '',
+        quantity: fieldErrors.quantity?.[0] || '',
+        description: fieldErrors.description?.[0] || '',
       });
       return;
     }
-
     try {
       const token =
         sessionStorage.getItem('pharmatechToken') ||
@@ -45,10 +57,8 @@ export default function NewPresentationPage() {
       }
 
       const payload = {
-        name,
-        measurementUnit,
-        quantity: parseFloat(quantity),
-        description,
+        ...result.data,
+        description: result.data.description || '',
       };
 
       await api.presentation.create(payload, token);
@@ -85,35 +95,48 @@ export default function NewPresentationPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Nueva presentación
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={handleSubmit}
-                  textColor={Colors.textWhite}
-                >
-                  Crear Presentación
-                </Button>
+                <div className="flex space-x-4">
+                  <Button
+                    color={Colors.textWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => router.back()} // Botón para volver
+                    textColor={Colors.textMain}
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                  >
+                    Crear Presentación
+                  </Button>
+                </div>
               </div>
               <p className="text-[16px] font-normal leading-6 text-[#393938]">
                 Agrega la información de la presentación
               </p>
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                <Input
+                  label="Nombre"
                   placeholder="Agrega el nombre de la presentación"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setName(e.target.value)
+                  }
+                  helperText={errors.name}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
               </div>
               <div className="flex space-x-4">
                 <div className="w-1/2">
@@ -133,32 +156,32 @@ export default function NewPresentationPage() {
                   )}
                 </div>
                 <div className="w-1/2">
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Cantidad del producto
-                  </label>
-                  <input
-                    type="number"
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                  <Input
+                    label="Cantidad del producto"
                     placeholder="Agrega la cantidad de producto por unidad"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setQuantity(e.target.value)
+                    }
+                    helperText={errors.quantity}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
+                    type="number"
                   />
-                  {errors.quantity && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.quantity}
-                    </p>
-                  )}
                 </div>
               </div>
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Descripción
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                <Input
+                  label="Descripción"
                   placeholder="Agrega la descripción de la presentación"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setDescription(e.target.value)
+                  }
+                  helperText={errors.description}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
+                  type="text"
                 />
               </div>
             </div>
