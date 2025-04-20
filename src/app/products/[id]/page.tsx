@@ -46,6 +46,11 @@ export default function GenericProductDetailPage() {
       render: (item) => `$${item.price.toFixed(2)}`,
     },
     {
+      key: 'promo',
+      label: 'Promo',
+      render: (item) => item.promo?.name,
+    },
+    {
       key: 'Cant',
       label: 'Cantidad',
       render: (item) => item.presentation.quantity,
@@ -58,17 +63,16 @@ export default function GenericProductDetailPage() {
   ];
 
   const handleEditPresentation = (item: ProductPresentationItem) => {
-    router.push(`/products/${item.id}/edit`);
+    router.push(`/products/${id}/presentations/${item.presentation.id}/edit`);
   };
 
   const handleView = (item: ProductPresentationItem) => {
-    router.push(`/products/${item.id}`);
+    router.push(`/products/${id}/presentations/${item.presentation.id}`);
   };
 
   const handleAdd = () => {
-    router.push(`/products/new`);
+    router.push(`/products/${id}/presentations/new`);
   };
-
   const getToken = () => {
     if (typeof window === 'undefined') return null;
     return (
