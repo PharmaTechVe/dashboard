@@ -22,7 +22,8 @@ const UNITS = [
 ];
 
 export default function EditPresentationPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [name, setName] = useState('');

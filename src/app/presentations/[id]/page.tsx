@@ -14,7 +14,8 @@ import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 export default function PresentationDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);

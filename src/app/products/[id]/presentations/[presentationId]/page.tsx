@@ -14,7 +14,15 @@ import { ToastContainer, toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 
 export default function ViewProductPresentationPage() {
-  const { id: productId, presentationId: presentationId } = useParams();
+  const params = useParams();
+  const productId =
+    params?.id && typeof params.id === 'string' ? params.id : '';
+  const presentationId =
+    params?.presentationId &&
+    typeof params.presentationId === 'string' &&
+    params.presentationId !== 'undefined'
+      ? params.presentationId
+      : '';
   const router = useRouter();
 
   const [presentation, setPresentation] =
