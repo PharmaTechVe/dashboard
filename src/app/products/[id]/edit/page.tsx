@@ -189,17 +189,30 @@ export default function EditProductPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Editar Producto
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="auto"
-                  onClick={handleSubmit}
-                  textColor={Colors.textWhite}
-                >
-                  Guardar Cambios
-                </Button>
+                <div className="flex space-x-4">
+                  <Button
+                    color={Colors.textWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="auto"
+                    onClick={() => router.back()}
+                    textColor={Colors.textMain}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="auto"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                  >
+                    Guardar Cambios
+                  </Button>
+                </div>
               </div>
               <p className="text-[16px] font-normal leading-6 text-[#393938]">
                 Agrega la información básica del producto
