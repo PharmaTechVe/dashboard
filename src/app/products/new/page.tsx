@@ -11,8 +11,9 @@ import { newGenericProductSchema } from '@/lib/validations/newGenericProductSche
 import type { ManufacturerResponse } from '@pharmatech/sdk';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
-
+import { useRouter } from 'next/navigation';
 export default function NewGenericProductPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [genericName, setGenericName] = useState('');
   const [description, setDescription] = useState('');
@@ -119,18 +120,32 @@ export default function NewGenericProductPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Nuevo Producto
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={handleSubmit}
-                  textColor={Colors.textWhite}
-                >
-                  Agregar Producto
-                </Button>
+                <div className="flex space-x-4">
+                  <Button
+                    color={Colors.textWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => router.back()} // Navega hacia atrás
+                    textColor={Colors.textMain}
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                  >
+                    Agregar Producto
+                  </Button>
+                </div>
               </div>
               <div className="flex space-x-4">
                 <div className="w-1/2">
