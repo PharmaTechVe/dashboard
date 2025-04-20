@@ -11,16 +11,16 @@ import {
 import { toast } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
-import { uploadImageToCloudinary } from '@/lib/utils/uploadImage';
 import ModalConfirm from '@/components/ModalConfirm';
 
 interface FileWithProgress {
   id: string;
   file: File;
-  progress: number;
-  uploadedUrl: string | null;
+  previewUrl: string;
+  progress?: number;
+  uploadedUrl?: string;
   fromBackend?: boolean;
-  previewUrl?: string;
+  completed?: boolean; // indica que ya puede mostrarse la preview
 }
 
 interface ImageUploadProps {
@@ -34,6 +34,8 @@ type UploadedImage = {
   size?: number;
 };
 
+const LOCAL_KEY = (productId: string) => `image-upload-buffer-${productId}`;
+
 export default function ImageUpload({ productId }: ImageUploadProps) {
   const { token } = useAuth();
   const [files, setFiles] = useState<FileWithProgress[]>([]);
@@ -45,45 +47,85 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
   );
 
   useEffect(() => {
-    const fetchExistingImages = async () => {
+    const fetchImages = async () => {
       try {
         const response: UploadedImage[] =
           await api.productImage.getByProductId(productId);
-
-        const enriched = await Promise.all(
-          response.map(async (img) => {
-            let size = img.size;
-            if (!size) {
-              try {
-                const res = await fetch(img.url, { method: 'HEAD' });
-                const sizeStr = res.headers.get('content-length');
-                size = sizeStr ? parseInt(sizeStr, 10) : undefined;
-              } catch {
-                console.warn('No se pudo obtener el tamaño para', img.url);
-              }
-            }
-
-            return {
-              id: img.id,
-              file: new File([], img.name ?? `imagen-${img.id}`),
-              uploadedUrl: img.url,
-              progress: 100,
-              fromBackend: true,
-            } as FileWithProgress;
-          }),
-        );
-
+        const enriched = response.map((img) => ({
+          id: img.id,
+          file: new File([], img.name ?? `imagen-${img.id}`),
+          previewUrl: img.url,
+          uploadedUrl: img.url,
+          fromBackend: true,
+        }));
         setFiles((prev) => {
-          const onlyFrontend = prev.filter((f) => !f.fromBackend);
-          return [...enriched, ...onlyFrontend];
+          const local = prev.filter((f) => !f.fromBackend);
+          return [...enriched, ...local];
         });
       } catch (err) {
-        console.error('Error al traer imágenes existentes:', err);
+        console.error('Error al cargar las imágenes:', err);
       }
     };
+    if (token) fetchImages();
+  }, [token, productId]);
 
-    if (token) fetchExistingImages();
-  }, [productId, token]);
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_KEY(productId));
+    if (saved) {
+      const parsed: { id: string; name: string; previewUrl: string }[] =
+        JSON.parse(saved);
+      const restored: FileWithProgress[] = parsed.map((f) => ({
+        id: f.id,
+        file: new File([], f.name),
+        previewUrl: f.previewUrl,
+        progress: 100,
+        completed: true,
+      }));
+      setFiles((prev) => [...prev, ...restored]);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    const toSave = files
+      .filter((f) => !f.fromBackend && !f.uploadedUrl)
+      .map((f) => ({
+        id: f.id,
+        name: f.file.name,
+        previewUrl: f.previewUrl,
+      }));
+    localStorage.setItem(LOCAL_KEY(productId), JSON.stringify(toSave));
+  }, [files, productId]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.fromBackend || f.uploadedUrl || f.completed
+            ? f
+            : {
+                ...f,
+                progress:
+                  f.progress !== undefined && f.progress < 100
+                    ? f.progress + 10
+                    : 100,
+              },
+        ),
+      );
+    }, 300);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    files.forEach((file) => {
+      if (file.progress === 100 && !file.completed) {
+        setTimeout(() => {
+          setFiles((prev) =>
+            prev.map((f) => (f.id === file.id ? { ...f, completed: true } : f)),
+          );
+        }, 2000);
+      }
+    });
+  }, [files]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) handleFiles(e.target.files);
@@ -92,60 +134,38 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
   const handleFiles = (fileList: FileList) => {
     const currentCount = files.length;
     const incomingFiles = Array.from(fileList).slice(0, 5 - currentCount);
-
-    const filesToAdd: FileWithProgress[] = incomingFiles.map((file) => ({
+    const newFiles: FileWithProgress[] = incomingFiles.map((file) => ({
       id: Math.random().toString(36).substring(2, 9),
       file,
-      progress: 0,
-      uploadedUrl: null,
       previewUrl: URL.createObjectURL(file),
+      progress: 0,
+      completed: false,
     }));
-
-    setFiles((prev) => [...prev, ...filesToAdd]);
-    filesToAdd.forEach((file) => uploadToCloudinary(file));
+    setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  const uploadToCloudinary = async (fileObj: FileWithProgress) => {
-    try {
-      toast.info(`Subiendo "${fileObj.file.name}"...`);
-
-      const uploadedUrl = await uploadImageToCloudinary(
-        fileObj.file,
-        productId,
-        (progress) => {
-          setFiles((prev) =>
-            prev.map((f) => (f.id === fileObj.id ? { ...f, progress } : f)),
-          );
-        },
-      );
-
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === fileObj.id ? { ...f, uploadedUrl, progress: 100 } : f,
-        ),
-      );
-
-      toast.success(`"${fileObj.file.name}" subida con éxito`);
-    } catch (error) {
-      console.error('Error durante la subida:', error);
-      toast.error('No se pudo subir la imagen');
+  const handleRemoveFile = (file: FileWithProgress) => {
+    if (file.fromBackend) {
+      setFileToDelete(file);
+      setShowConfirmModal(true);
+    } else {
+      if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+      setFiles((prev) => prev.filter((f) => f.id !== file.id));
+      toast.info('Imagen eliminada del preview');
     }
   };
 
-  const handleRemoveFile = async (file: FileWithProgress) => {
+  const confirmRemoveBackend = async () => {
+    if (!fileToDelete) return;
     try {
-      if (file.fromBackend) {
-        await api.productImage.delete(productId, file.id);
-        toast.success('Imagen eliminada del backend');
-      } else {
-        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
-        toast.info('Imagen eliminada del preview');
-      }
-
-      setFiles((prev) => prev.filter((f) => f.id !== file.id));
-    } catch (error) {
-      console.error('Error al eliminar la imagen:', error);
+      await api.productImage.delete(productId, fileToDelete.id);
+      setFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
+      toast.success('Imagen eliminada');
+    } catch {
       toast.error('No se pudo eliminar la imagen');
+    } finally {
+      setShowConfirmModal(false);
+      setFileToDelete(null);
     }
   };
 
@@ -168,34 +188,23 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   };
 
-  useEffect(() => {
-    return () => {
-      files.forEach((file) => {
-        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
-      });
-    };
-  }, [files]);
-
   return (
     <div className="mx-auto max-h-[600px] w-[843px] overflow-y-auto rounded-lg bg-white p-6">
-      {/* Drop area */}
+      {/* Área de carga */}
       <div
-        className={`mx-auto flex h-[230px] w-[747px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
-          isDragging
-            ? 'border-[#374CBE] bg-[#769CE4]/10'
-            : 'border-[#374CBE] bg-[#769CE4]/10'
-        }`}
+        className={`mx-auto flex h-[230px] w-[747px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed ${
+          isDragging ? 'bg-[#769CE4]/10' : 'bg-[#769CE4]/10'
+        } border-[#374CBE]`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleBrowseClick}
       >
         <div className="relative mb-4 flex h-12 w-12 items-center justify-center rounded border-2 border-[#374CBE] text-[#374CBE]">
-          <DocumentPlusIcon className="h-6 w-6 text-[#374CBE]" />
+          <DocumentPlusIcon className="h-6 w-6" />
         </div>
         <p className="text-center text-gray-600">
-          Arrastra y suelta las fotos del <br />
-          producto o{' '}
+          Arrastra y suelta las fotos o{' '}
           <button className="font-medium text-[#374CBE]">búscalas</button>
         </p>
         <input
@@ -210,107 +219,91 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
 
       {/* Preview */}
       <div className="mt-6 space-y-4">
-        {files.map((file) => (
-          <div key={file.id} className="mb-4">
-            {/* Nombre para preview */}
-            {!file.fromBackend && (
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="mr-3 h-10 w-8 text-gray-400">
-                    <DocumentIcon className="h-6 w-6" />
+        {files.map((file) => {
+          if (
+            !file.completed &&
+            file.progress !== undefined &&
+            file.progress < 100
+          ) {
+            return (
+              <div key={file.id} className="mb-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DocumentIcon className="h-6 w-6 text-gray-400" />
+                    <span className="text-gray-700">{file.file.name}</span>
+                    <span className="text-sm text-gray-500">
+                      {formatBytes(file.file.size || 0)}
+                    </span>
                   </div>
-                  <span className="text-gray-700">{file.file.name}</span>
+                  <button
+                    onClick={() => handleRemoveFile(file)}
+                    className="text-gray-500 hover:text-red-500"
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
                 </div>
-                <button
-                  className="text-gray-500 hover:text-red-500"
-                  onClick={() => handleRemoveFile(file)}
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {/* Progreso de carga */}
-            {!file.fromBackend && !file.uploadedUrl && (
-              <>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
                   <div
                     className="h-full rounded-full bg-[#374CBE]"
                     style={{ width: `${file.progress}%` }}
                   />
                 </div>
-                <div className="mt-1 flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {formatBytes(file.file.size)}
-                  </span>
+                <div className="mt-1 flex justify-end text-sm">
                   <span className="text-[#374CBE]">
-                    {file.progress < 100
-                      ? `Subiendo... ${Math.round(file.progress)}%`
-                      : 'Completado'}
+                    Subiendo... {Math.min(file.progress, 100)}%
                   </span>
-                </div>
-              </>
-            )}
-
-            {/* Vista previa */}
-            {(file.previewUrl || file.uploadedUrl) && (
-              <div className="mt-4 flex items-center border-t pt-4">
-                <div className="mr-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded bg-gray-100">
-                  <img
-                    src={file.uploadedUrl ?? file.previewUrl}
-                    alt={file.file.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-700">{file.file.name}</p>
-                </div>
-                <div className="flex space-x-3">
-                  {file.uploadedUrl && (
-                    <a
-                      href={file.uploadedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <EyeIcon className="h-5 w-5" />
-                    </a>
-                  )}
-                  {file.fromBackend && (
-                    <button
-                      className="text-gray-500 hover:text-red-500"
-                      onClick={() => {
-                        setFileToDelete(file);
-                        setShowConfirmModal(true);
-                      }}
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  )}
                 </div>
               </div>
-            )}
-          </div>
-        ))}
+            );
+          }
+
+          return (
+            <div key={file.id} className="mb-4 flex items-center border-t pt-4">
+              <div className="mr-4 h-16 w-16 overflow-hidden rounded bg-gray-100">
+                <img
+                  src={file.previewUrl}
+                  alt={file.file.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-gray-700">{file.file.name}</p>
+              </div>
+              <div className="flex space-x-3">
+                {file.uploadedUrl && (
+                  <a
+                    href={file.uploadedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <EyeIcon className="h-5 w-5" />
+                  </a>
+                )}
+                <button
+                  onClick={() => handleRemoveFile(file)}
+                  className="text-gray-500 hover:text-red-500"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Modal de confirmación */}
       {fileToDelete && (
         <ModalConfirm
           isOpen={showConfirmModal}
           title="Eliminar imagen"
-          description="¿Estás seguro de que deseas eliminar esta imagen?"
+          description="¿Estás seguro de que deseas eliminar esta imagen del producto?"
           confirmText="Eliminar"
           cancelText="Cancelar"
           onClose={() => {
             setShowConfirmModal(false);
             setFileToDelete(null);
           }}
-          onConfirm={async () => {
-            await handleRemoveFile(fileToDelete);
-            setShowConfirmModal(false);
-            setFileToDelete(null);
-          }}
+          onConfirm={confirmRemoveBackend}
         />
       )}
     </div>

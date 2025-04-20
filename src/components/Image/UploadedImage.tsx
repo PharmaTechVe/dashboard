@@ -71,13 +71,6 @@ export default function UploadedImages({ productId }: UploadedImagesProps) {
 
   return (
     <div className="mx-auto h-auto max-h-[516px] w-[843px] overflow-auto rounded-lg bg-white p-4">
-      <h2
-        className="mb-4 flex items-center gap-2 text-[16px] font-semibold"
-        style={{ color: Colors.primaryVariant }}
-      >
-        <span>🔹</span> Imágenes cargadas
-      </h2>
-
       <div className="space-y-[4%]">
         {images.map((img) => (
           <div
