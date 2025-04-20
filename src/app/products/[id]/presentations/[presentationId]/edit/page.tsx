@@ -7,11 +7,13 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import type {
   PromoResponse,
   ProductPresentationResponse,
 } from '@pharmatech/sdk';
+import { newProductPresentationSchema } from '@/lib/validations/newProductPresentationSchema';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
@@ -83,27 +85,33 @@ export default function EditProductPresentationPage() {
   }, [selectedPromo, promos]);
 
   const handleSubmit = async () => {
-    if (!price) {
-      setErrors({ price: 'Precio requerido' });
+    const result = newProductPresentationSchema.safeParse({
+      presentationId,
+      price: parseFloat(price),
+      promoId: promoId || undefined,
+    });
+
+    if (!result.success) {
+      const { fieldErrors } = result.error.flatten();
+      setErrors({
+        presentationId: fieldErrors.presentationId?.[0] || '',
+        price: fieldErrors.price?.[0] || '',
+        promo: fieldErrors.promoId?.[0] || '',
+      });
       return;
     }
 
     const token = getToken();
-    if (
-      !token ||
-      typeof productId !== 'string' ||
-      typeof presentationId !== 'string'
-    ) {
+    console.log('Token:', presentationId, productId);
+    if (!token || typeof productId !== 'string') {
       toast.error('Token o ID inválido');
       return;
     }
 
-    const payload = {
-      price: parseFloat(price),
-      promoId,
-    };
+    const payload = result.data;
 
     try {
+      console.log('Payload:', payload);
       await api.productPresentation.update(productId, presentationId, payload);
       toast.success('Presentación actualizada exitosamente');
       setTimeout(() => {
@@ -177,20 +185,18 @@ export default function EditProductPresentationPage() {
               />
             </div>
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Precio
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+              <Input
+                label="Precio"
                 placeholder="Agrega el precio de esta presentación"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPrice(e.target.value)
+                }
+                helperText={errors.price}
+                helperTextColor="#E10000"
+                borderColor="#d1d5db"
+                type="number"
               />
-              {errors.price && (
-                <p className="text-sm text-red-500">{errors.price}</p>
-              )}
             </div>
           </div>
         </main>
