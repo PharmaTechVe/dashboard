@@ -22,7 +22,8 @@ interface CouponDetails {
 }
 
 export default function CouponDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [coupon, setCoupon] = useState<CouponDetails | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

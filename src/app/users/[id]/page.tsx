@@ -63,7 +63,8 @@ type UserList = {
 };
 
 export default function UserDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState<UserList | null>(null);

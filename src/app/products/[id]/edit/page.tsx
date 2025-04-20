@@ -27,7 +27,8 @@ interface GenericProduct {
 }
 
 export default function EditProductPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
 
   const [genericName, setGenericName] = useState('');
@@ -54,10 +55,7 @@ export default function EditProductPage() {
           sessionStorage.getItem('pharmatechToken') ||
           localStorage.getItem('pharmatechToken');
         if (!token) return;
-        const response = await api.manufacturer.findAll(
-          { page: 1, limit: 50 },
-          token,
-        );
+        const response = await api.manufacturer.findAll({ page: 1, limit: 50 });
         setManufacturers(response.results);
       } catch (error) {
         console.error('Error fetching manufacturers:', error);
@@ -228,6 +226,18 @@ export default function EditProductPage() {
                   onChange={(e) => setPriority(e.target.value)}
                 />
               </div>
+              <Button
+                color={Colors.primary}
+                paddingX={4}
+                paddingY={4}
+                textSize="16"
+                width="177px"
+                height="44px"
+                onClick={() => router.push(`/products/${id}/product-images`)}
+                textColor={Colors.textWhite}
+              >
+                Cargar Imágenes
+              </Button>
             </div>
           </main>
         </div>
