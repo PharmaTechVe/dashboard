@@ -14,10 +14,14 @@ type PresentationItem = PresentationResponse;
 
 export default function PresentationListPage() {
   const [presentations, setPresentations] = useState<PresentationItem[]>([]);
+  const [filteredPresentations, setFilteredPresentations] = useState<
+    PresentationItem[]
+  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { token, user, loading } = useAuth();
   const router = useRouter();
@@ -37,6 +41,7 @@ export default function PresentationListPage() {
       try {
         const response = await api.presentation.findAll({ page, limit });
         setPresentations(response.results);
+        setFilteredPresentations(response.results); // Inicialmente, los datos filtrados son iguales a los originales
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error fetching presentations:', error);
@@ -51,6 +56,22 @@ export default function PresentationListPage() {
     if (!token || !user?.sub) return;
     fetchPresentations(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage, token, user, fetchPresentations]);
+
+  useEffect(() => {
+    const filtered = searchQuery
+      ? presentations.filter(
+          (presentation) =>
+            presentation.name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            presentation.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+        )
+      : presentations;
+
+    setFilteredPresentations(filtered);
+  }, [searchQuery, presentations]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -89,6 +110,11 @@ export default function PresentationListPage() {
     router.push(`/presentations/new`);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
   if (loading || !token || !user?.sub || loadingData) {
     return <h1 className="p-4 text-lg">Cargando presentaciones...</h1>;
   }
@@ -106,8 +132,8 @@ export default function PresentationListPage() {
             <TableContainer
               title="Presentaciones"
               onAddClick={handleAdd}
-              onSearch={(query) => console.log('Buscando presentación:', query)}
-              tableData={presentations}
+              onSearch={handleSearch} // Añadida la función de búsqueda
+              tableData={filteredPresentations} // Usa los datos filtrados
               tableColumns={columns}
               onEdit={handleEdit}
               onView={handleView}

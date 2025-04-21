@@ -37,11 +37,15 @@ type GenericProductItem = GenericProductResponse;
 
 export default function GenericProductListPage() {
   const [products, setProducts] = useState<GenericProductItem[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<
+    GenericProductItem[]
+  >([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { token, user, loading } = useAuth();
   const router = useRouter();
@@ -60,6 +64,7 @@ export default function GenericProductListPage() {
     try {
       const response = await api.genericProduct.findAll({ page, limit });
       setProducts(response.results);
+      setFilteredProducts(response.results); // Inicialmente, los datos filtrados son iguales a los originales
       setTotalItems(response.count);
     } catch (error) {
       console.error('Error fetching generic products:', error);
@@ -84,6 +89,23 @@ export default function GenericProductListPage() {
     fetchProducts(currentPage, itemsPerPage);
     fetchCategories();
   }, [currentPage, itemsPerPage, token, user, fetchProducts, fetchCategories]);
+
+  useEffect(() => {
+    const filtered = searchQuery
+      ? products.filter(
+          (product) =>
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.genericName
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            product.manufacturer.name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+        )
+      : products;
+
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -122,6 +144,11 @@ export default function GenericProductListPage() {
     router.push(`/products/new`);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
   if (loading || !token || !user?.sub || loadingData) {
     return <h1 className="p-4 text-lg">Cargando productos...</h1>;
   }
@@ -146,8 +173,8 @@ export default function GenericProductListPage() {
                 />
               }
               onAddClick={handleAdd}
-              onSearch={(query) => console.log('Buscando producto:', query)}
-              tableData={products}
+              onSearch={handleSearch} // Añadida la función de búsqueda
+              tableData={filteredProducts} // Usa los datos filtrados
               tableColumns={columns}
               onEdit={handleEdit}
               onView={handleView}

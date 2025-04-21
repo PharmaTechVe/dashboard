@@ -7,21 +7,20 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
+import { CategoryResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 
-interface CategoryItem {
-  id: string;
-  name: string;
-  description: string;
-}
-
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<
+    CategoryResponse[]
+  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [loadingData, setLoadingData] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { token, user, loading } = useAuth();
   const router = useRouter();
@@ -43,6 +42,7 @@ export default function CategoriesPage() {
 
         const response = await api.category.findAll({ page, limit });
         setCategories(response.results);
+        setFilteredCategories(response.results);
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error al obtener categorías:', error);
@@ -59,18 +59,32 @@ export default function CategoriesPage() {
     fetchCategories(currentPage, itemsPerPage);
   }, [fetchCategories, currentPage, itemsPerPage, token, user]);
 
+  useEffect(() => {
+    const filtered = searchQuery
+      ? categories.filter(
+          (category) =>
+            category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            category.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+        )
+      : categories;
+
+    setFilteredCategories(filtered);
+  }, [searchQuery, categories]);
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<CategoryItem>[] = [
+  const columns: Column<CategoryResponse>[] = [
     {
       key: 'name',
       label: 'Nombre',
-      render: (item: CategoryItem) => item.name,
+      render: (item: CategoryResponse) => item.name,
     },
     {
       key: 'description',
       label: 'Descripción',
-      render: (item: CategoryItem) =>
+      render: (item: CategoryResponse) =>
         item.description.length > 50
           ? `${item.description.substring(0, 50)}...`
           : item.description,
@@ -81,12 +95,17 @@ export default function CategoriesPage() {
     router.push('/categories/new');
   };
 
-  const handleViewCategory = (item: CategoryItem) => {
+  const handleViewCategory = (item: CategoryResponse) => {
     router.push(`/categories/${item.id}`);
   };
 
-  const handleEditCategory = (item: CategoryItem) => {
+  const handleEditCategory = (item: CategoryResponse) => {
     router.push(`/categories/${item.id}/edit`);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
   };
 
   if (loading || !token || !user?.sub || loadingData) {
@@ -105,13 +124,13 @@ export default function CategoriesPage() {
           >
             <TableContainer
               title="Categorías"
-              tableData={categories}
+              tableData={filteredCategories} // Usa los datos filtrados
               tableColumns={columns}
               onAddClick={handleAddCategory}
               onEdit={handleEditCategory}
               onView={handleViewCategory}
               addButtonText="Agregar Categoria"
-              onSearch={(query) => console.log('Buscando categoría:', query)}
+              onSearch={handleSearch} // Añadida la función de búsqueda
               pagination={{
                 currentPage,
                 totalPages,
