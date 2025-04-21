@@ -128,24 +128,9 @@ export default function CouponDetailsPage() {
               <Breadcrumb
                 items={[
                   { label: 'Cupones', href: '/coupons' },
-                  { label: `Cupón #${coupon.id.slice(0, 3)}`, href: '' },
+                  { label: `Cupón #${coupon.code}`, href: '' },
                 ]}
               />
-            </div>
-
-            <ModalConfirm
-              isOpen={showDeleteModal}
-              onClose={() => setShowDeleteModal(false)}
-              onConfirm={handleDelete}
-              title="Eliminar Cupón"
-              description="¿Deseas eliminar este cupón? Esta acción hará que el cupón deje de estar disponible para su selección en el sistema."
-              cancelText="Cancelar"
-              confirmText="Eliminar"
-              width="512px"
-              height="200px"
-            />
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Cupón #{coupon.id.slice(0, 3)}
@@ -178,7 +163,21 @@ export default function CouponDetailsPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <ModalConfirm
+              isOpen={showDeleteModal}
+              onClose={() => setShowDeleteModal(false)}
+              onConfirm={handleDelete}
+              title="Eliminar Cupón"
+              description="¿Deseas eliminar este cupón? Esta acción hará que el cupón deje de estar disponible para su selección en el sistema."
+              cancelText="Cancelar"
+              confirmText="Eliminar"
+              width="512px"
+              height="200px"
+            />
+
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="space-y-6">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">

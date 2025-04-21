@@ -191,16 +191,13 @@ export default function EditCouponPage() {
               <Breadcrumb
                 items={[
                   { label: 'Cupones', href: '/coupons' },
-                  { label: `Cupón #${id.slice(0, 3)}`, href: `/coupons/${id}` },
+                  { label: `Cupón #${code}`, href: `/coupons/${code}` },
                   { label: 'Editar', href: '' },
                 ]}
               />
-            </div>
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Editar Cupón #{id.slice(0, 3)}
+                  Editar Cupón {code}
                 </h1>
                 <div className="flex gap-4">
                   <Button
@@ -210,7 +207,7 @@ export default function EditCouponPage() {
                     textSize="16"
                     width="120px"
                     height="44px"
-                    onClick={() => router.push(`/coupons/${id}`)}
+                    onClick={() => router.push(`/coupons/`)}
                     textColor={Colors.primary}
                   >
                     Cancelar
@@ -230,7 +227,9 @@ export default function EditCouponPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 <p className="text-[16px] font-medium text-gray-600">
                   Edita la información del cupón
