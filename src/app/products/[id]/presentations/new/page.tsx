@@ -135,18 +135,32 @@ export default function AddProductPresentationPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Añadir presentación a producto
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={handleSubmit}
-                  textColor={Colors.textWhite}
-                >
-                  Añadir presentación
-                </Button>
+                <div className="flex space-x-4">
+                  <Button
+                    color={Colors.textWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => router.back()} // Botón para volver
+                    textColor={Colors.textMain}
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                  >
+                    Añadir presentación
+                  </Button>
+                </div>
               </div>
               <p className="text-[16px] font-normal leading-6 text-[#393938]">
                 Selecciona la presentación y la promo que deseas agregar
