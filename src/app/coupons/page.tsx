@@ -9,25 +9,12 @@ import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
+import { CouponResponse } from '@pharmatech/sdk/types'; // Usa el tipo exportado
 
 type CouponStatus = 'Activa' | 'Finalizada';
 
-interface CouponItem {
-  id: string;
-  originalId: string;
-  code: string;
-  discount: number;
-  minPurchase: number;
-  status: CouponStatus;
-  expirationDate: string;
-  maxUses: number;
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string | null;
-}
-
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<CouponItem[]>([]);
+  const [coupons, setCoupons] = useState<CouponResponse[]>([]); // Usa CouponResponse
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -73,41 +60,11 @@ export default function CouponsPage() {
           token,
         );
 
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-
-        interface CouponResponse {
-          id: string;
-          code: string;
-          discount: number;
-          minPurchase: number;
-          expirationDate: Date;
-          maxUses: number;
-          createdAt?: string;
-          updatedAt?: string;
-          deletedAt?: string | null;
-        }
-
-        const mapped = response.results.map(
-          (coupon: CouponResponse, index: number) => ({
-            id: (startIndex + index).toString(),
-            originalId: coupon.id,
-            code: coupon.code,
-            discount: coupon.discount,
-            minPurchase: coupon.minPurchase,
-            status: calculateStatus(new Date(coupon.expirationDate)),
-            expirationDate: formatDate(coupon.expirationDate),
-            maxUses: coupon.maxUses,
-            createdAt: coupon.createdAt,
-            updatedAt: coupon.updatedAt,
-            deletedAt: coupon.deletedAt,
-          }),
-        );
-
         const filtered = searchQuery
-          ? mapped.filter((c) =>
-              c.code.toLowerCase().includes(searchQuery.toLowerCase()),
+          ? response.results.filter((coupon) =>
+              coupon.code.toLowerCase().includes(searchQuery.toLowerCase()),
             )
-          : mapped;
+          : response.results;
 
         setCoupons(filtered);
         setTotalItems(response.count);
@@ -124,8 +81,7 @@ export default function CouponsPage() {
     fetchCoupons();
   }, [currentPage, itemsPerPage, searchQuery, router]);
 
-  const columns: Column<CouponItem>[] = [
-    { key: 'id', label: 'ID', render: (item) => item.id },
+  const columns: Column<CouponResponse>[] = [
     { key: 'code', label: 'Código', render: (item) => item.code },
     {
       key: 'discount',
@@ -143,23 +99,27 @@ export default function CouponsPage() {
       render: (item) => item.maxUses,
     },
     {
+      key: 'expirationDate',
+      label: 'Fecha de finalización',
+      render: (item) => formatDate(item.expirationDate),
+    },
+    {
       key: 'status',
       label: 'Status',
       render: (item) => (
         <Badge
           variant="filled"
-          color={item.status === 'Activa' ? 'success' : 'info'}
+          color={
+            calculateStatus(new Date(item.expirationDate)) === 'Activa'
+              ? 'success'
+              : 'info'
+          }
           size="small"
           borderRadius="rounded"
         >
-          {item.status}
+          {calculateStatus(new Date(item.expirationDate))}
         </Badge>
       ),
-    },
-    {
-      key: 'expirationDate',
-      label: 'Fecha de finalización',
-      render: (item) => item.expirationDate,
     },
   ];
 
@@ -167,12 +127,12 @@ export default function CouponsPage() {
     router.push('/coupons/new');
   };
 
-  const handleViewCoupon = (item: CouponItem) => {
-    router.push(`/coupons/${item.originalId}`);
+  const handleViewCoupon = (item: CouponResponse) => {
+    router.push(`/coupons/${item.id}`);
   };
 
-  const handleEditCoupon = (item: CouponItem) => {
-    router.push(`/coupons/${item.originalId}/edit`);
+  const handleEditCoupon = (item: CouponResponse) => {
+    router.push(`/coupons/${item.id}/edit`);
   };
 
   const handleSearch = (query: string) => {
