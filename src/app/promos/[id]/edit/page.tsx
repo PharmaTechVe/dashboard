@@ -190,9 +190,6 @@ export default function EditPromoPage() {
                   { label: 'Editar', href: '' },
                 ]}
               />
-            </div>
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Editar Promoción #
@@ -206,7 +203,7 @@ export default function EditPromoPage() {
                     textSize="16"
                     width="120px"
                     height="44px"
-                    onClick={() => router.push(`/promos/${id}`)}
+                    onClick={() => router.push(`/promos/`)}
                     textColor={Colors.primary}
                   >
                     Cancelar
@@ -226,7 +223,9 @@ export default function EditPromoPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 <div className="flex flex-col md:flex-row md:space-x-4">
                   <div className="md:w-1/2">

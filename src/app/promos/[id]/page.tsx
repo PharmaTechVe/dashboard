@@ -11,18 +11,13 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
+import { PromoResponse } from '@pharmatech/sdk/types';
 
 export default function PromoDetailsPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
-  const [promo, setPromo] = useState<{
-    id: string;
-    name: string;
-    discount: number;
-    startAt: string;
-    expiredAt: string;
-  } | null>(null);
+  const [promo, setPromo] = useState<PromoResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,13 +48,7 @@ export default function PromoDetailsPage() {
           throw new Error('El formato de fecha no es válido');
         }
 
-        setPromo({
-          id: response.id,
-          name: response.name,
-          discount: response.discount,
-          startAt: response.startAt,
-          expiredAt: response.expiredAt,
-        });
+        setPromo(response);
       } catch (error) {
         console.error('Error al obtener la promoción:', error);
         toast.error('Error al cargar la promoción');
@@ -100,11 +89,11 @@ export default function PromoDetailsPage() {
 
   const handleCancelDelete = () => setShowDeleteModal(false);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (date: Date) => {
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
+      return format(date, 'dd/MM/yyyy');
     } catch {
-      return dateString;
+      return date.toString();
     }
   };
 
@@ -155,21 +144,6 @@ export default function PromoDetailsPage() {
                   },
                 ]}
               />
-            </div>
-
-            <ModalConfirm
-              isOpen={showDeleteModal}
-              onClose={handleCancelDelete}
-              onConfirm={handleDelete}
-              title="Eliminar Promoción"
-              description="¿Deseas eliminar esta Promoción? Esta acción hará que la Promoción deje de estar disponible para su selección en el sistema."
-              cancelText="Cancelar"
-              confirmText="Eliminar"
-              width="512px"
-              height="200px"
-            />
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Promoción #{promo.id.slice(0, 3)}
@@ -202,7 +176,21 @@ export default function PromoDetailsPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <ModalConfirm
+              isOpen={showDeleteModal}
+              onClose={handleCancelDelete}
+              onConfirm={handleDelete}
+              title="Eliminar Promoción"
+              description="¿Deseas eliminar esta Promoción? Esta acción hará que la Promoción deje de estar disponible para su selección en el sistema."
+              cancelText="Cancelar"
+              confirmText="Eliminar"
+              width="512px"
+              height="200px"
+            />
+
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="space-y-6">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
