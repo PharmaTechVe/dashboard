@@ -50,10 +50,13 @@ export default function OrdersPage() {
           return;
         }
 
-        const response = await api.deliveryService.findAll({
-          page: 1,
-          limit: 100,
-        });
+        const response = await api.deliveryService.findAll(
+          {
+            page: 1,
+            limit: 100,
+          },
+          token,
+        );
         setOrders(response.results as unknown as OrderItem[]);
 
         setTotalItems(response.count);
@@ -104,7 +107,8 @@ export default function OrdersPage() {
     {
       key: 'totalPrice',
       label: 'Total',
-      render: (item) => `$${item.totalPrice.toFixed(2)}`,
+      render: (item) =>
+        item.totalPrice ? `$${item.totalPrice.toFixed(2)}` : 'N/A',
     },
     {
       key: 'createdAt',
