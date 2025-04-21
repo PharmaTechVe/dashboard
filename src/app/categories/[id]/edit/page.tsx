@@ -6,6 +6,7 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
@@ -151,43 +152,32 @@ export default function EditCategoryPage() {
 
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Nombre de la Categoría
-                  </label>
-                  <input
-                    name="name"
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setErrors({ ...errors, name: '' });
-                    }}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
+                <Input
+                  label="Nombre de la Categoría"
+                  placeholder="Ingresa el nombre de la categoría"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setErrors({ ...errors, name: '' });
+                  }}
+                  helperText={errors.name}
+                  helperTextColor="text-red-500"
+                  borderColor="#d1d5db"
+                />
 
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Descripción
-                  </label>
-                  <textarea
-                    name="description"
-                    className="mt-1 h-[120px] w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    value={description}
-                    onChange={(e) => {
-                      setDescription(e.target.value);
-                      setErrors({ ...errors, description: '' });
-                    }}
-                  />
-                  {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.description}
-                    </p>
-                  )}
-                </div>
+                <Input
+                  label="Descripción"
+                  placeholder="Ingresa la descripción de la categoría"
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    setErrors({ ...errors, description: '' });
+                  }}
+                  helperText={errors.description}
+                  helperTextColor="text-red-500"
+                  borderColor="#d1d5db"
+                  type="text"
+                />
               </form>
             </div>
           </main>
