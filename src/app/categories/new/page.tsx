@@ -98,19 +98,34 @@ export default function NewCategoryPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Nueva Categoría
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={() => handleSubmit()}
-                  textColor={Colors.textWhite}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Creando...' : 'Agregar Categoría'}
-                </Button>
+                <div className="flex gap-6">
+                  <Button
+                    color={Colors.secondaryWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="120px"
+                    height="48px"
+                    onClick={() => router.push('/categories')}
+                    textColor={Colors.primary}
+                    className="border-gray-300 hover:bg-gray-100"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => handleSubmit()}
+                    textColor={Colors.textWhite}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Creando...' : 'Agregar Categoría'}
+                  </Button>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">

@@ -113,29 +113,43 @@ export default function EditCategoryPage() {
                   { label: 'Editar', href: '' },
                 ]}
               />
-            </div>
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Editar Categoría #
                   {typeof id === 'string' ? id.slice(0, 3) : ''}
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={() => handleSubmit()}
-                  textColor={Colors.textWhite}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                </Button>
+                <div className="flex gap-6">
+                  <Button
+                    color={Colors.secondaryWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="120px"
+                    height="48px"
+                    onClick={() => router.push('/categories')}
+                    textColor={Colors.primary}
+                    className="border-gray-300 hover:bg-gray-100"
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => handleSubmit()}
+                    textColor={Colors.textWhite}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </div>
               </div>
+            </div>
 
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
