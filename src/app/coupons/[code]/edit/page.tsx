@@ -6,29 +6,28 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
+import Calendar from '@/components/Calendar'; // Importa el componente Calendar
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { couponSchema } from '@/lib/validations/couponsSchema';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 
 export default function EditCouponPage() {
   const params = useParams();
-  const id = params?.id && typeof params.id === 'string' ? params.id : '';
+  const id = params?.code && typeof params.code === 'string' ? params.code : '';
   const router = useRouter();
 
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
   const [minPurchase, setMinPurchase] = useState<number | ''>('');
   const [maxUses, setMaxUses] = useState<number | ''>('');
-  const [expirationDate, setExpirationDate] = useState<Date | null>(null);
+  const [expirationDate, setExpirationDate] = useState<string | null>(null);
 
   const [tempCode, setTempCode] = useState('');
   const [tempDiscount, setTempDiscount] = useState<number | ''>('');
   const [tempMinPurchase, setTempMinPurchase] = useState<number | ''>('');
   const [tempMaxUses, setTempMaxUses] = useState<number | ''>('');
-  const [tempExpirationDate, setTempExpirationDate] = useState<Date | null>(
+  const [tempExpirationDate, setTempExpirationDate] = useState<string | null>(
     null,
   );
 
@@ -45,53 +44,30 @@ export default function EditCouponPage() {
     );
   };
 
-  interface Coupon {
-    id: string;
-    code: string;
-    discount: number;
-    minPurchase: number;
-    maxUses: number;
-    expirationDate: Date;
-  }
-
   useEffect(() => {
     const fetchCoupon = async () => {
       const token = getToken();
-      if (!token || typeof id !== 'string') return;
+      if (!token || !id) return;
 
       try {
-        const allCoupons = await api.coupon.findAll(
-          { page: 1, limit: 100 },
-          token,
-        );
+        const response = await api.coupon.getByCode(id, token);
 
-        const coupon = allCoupons.results.find((c: Coupon) => c.id === id) as
-          | Coupon
-          | undefined;
+        const expirationDate = new Date(response.expirationDate);
 
-        if (!coupon) {
-          throw new Error('Cupón no encontrado');
-        }
+        setCode(response.code);
+        setDiscount(response.discount);
+        setMinPurchase(response.minPurchase);
+        setMaxUses(response.maxUses);
+        setExpirationDate(expirationDate.toISOString());
 
-        setCode(coupon.code);
-        setDiscount(coupon.discount);
-        setMinPurchase(coupon.minPurchase);
-        setMaxUses(coupon.maxUses);
-        setExpirationDate(new Date(coupon.expirationDate));
-
-        setTempCode(coupon.code);
-        setTempDiscount(coupon.discount);
-        setTempMinPurchase(coupon.minPurchase);
-        setTempMaxUses(coupon.maxUses);
-        setTempExpirationDate(new Date(coupon.expirationDate));
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error al cargar el cupón:', error.message);
-          toast.error('Error al cargar los datos del cupón');
-        } else {
-          console.error('Error desconocido al cargar el cupón:', error);
-          toast.error('Error desconocido al cargar los datos del cupón');
-        }
+        setTempCode(response.code);
+        setTempDiscount(response.discount);
+        setTempMinPurchase(response.minPurchase);
+        setTempMaxUses(response.maxUses);
+        setTempExpirationDate(expirationDate.toISOString());
+      } catch (error) {
+        console.error('Error al cargar el cupón:', error);
+        toast.error('Error al cargar los datos del cupón');
         router.push('/coupons');
       }
     };
@@ -105,7 +81,7 @@ export default function EditCouponPage() {
       tempDiscount !== discount ||
       tempMinPurchase !== minPurchase ||
       tempMaxUses !== maxUses ||
-      tempExpirationDate?.toISOString() !== expirationDate?.toISOString();
+      tempExpirationDate !== expirationDate;
 
     setHasPendingChanges(hasChanges);
   }, [
@@ -136,7 +112,7 @@ export default function EditCouponPage() {
       discount: Number(tempDiscount),
       minPurchase: Number(tempMinPurchase),
       maxUses: Number(tempMaxUses),
-      expirationDate: tempExpirationDate,
+      expirationDate: new Date(tempExpirationDate),
     };
 
     const validationResult = couponSchema.safeParse(validationData);
@@ -156,40 +132,29 @@ export default function EditCouponPage() {
 
     try {
       const token = getToken();
-      if (!token || typeof id !== 'string') {
+      if (!token || !id) {
         toast.error('Token o ID inválido');
         setIsSubmitting(false);
         return;
       }
-      const allCoupons = await api.coupon.findAll(
-        { page: 1, limit: 100 },
-        token,
-      );
-      const coupon = allCoupons.results.find((c: Coupon) => c.id === id);
-
-      if (!coupon) {
-        throw new Error('Cupón no encontrado');
-      }
 
       await api.coupon.update(
-        coupon.code,
+        id,
         {
           code: tempCode.trim(),
           discount: Number(tempDiscount),
           minPurchase: Number(tempMinPurchase),
           maxUses: Number(tempMaxUses),
-          expirationDate: tempExpirationDate,
+          expirationDate: new Date(tempExpirationDate),
         },
         token,
       );
 
       toast.success('Cupón actualizado exitosamente');
       setTimeout(() => router.push(`/coupons/${id}`), 1500);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error al actualizar el cupón:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido';
-      toast.error(errorMessage);
+      toast.error('Error al actualizar el cupón');
       setIsSubmitting(false);
     }
   };
@@ -210,7 +175,7 @@ export default function EditCouponPage() {
     setErrors((prev) => ({ ...prev, [fieldName]: '' }));
   };
 
-  const handleDateChange = (date: Date | null) => {
+  const handleDateChange = (date: string) => {
     setTempExpirationDate(date);
     setErrors((prev) => ({ ...prev, expirationDate: '' }));
   };
@@ -226,10 +191,7 @@ export default function EditCouponPage() {
               <Breadcrumb
                 items={[
                   { label: 'Cupones', href: '/coupons' },
-                  {
-                    label: `Cupón #${typeof id === 'string' ? id.slice(0, 3) : ''}`,
-                    href: `/coupons/${id}`,
-                  },
+                  { label: `Cupón #${id.slice(0, 3)}`, href: `/coupons/${id}` },
                   { label: 'Editar', href: '' },
                 ]}
               />
@@ -238,7 +200,7 @@ export default function EditCouponPage() {
             <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
-                  Editar Cupón #{typeof id === 'string' ? id.slice(0, 3) : ''}
+                  Editar Cupón #{id.slice(0, 3)}
                 </h1>
                 <div className="flex gap-4">
                   <Button
@@ -297,19 +259,7 @@ export default function EditCouponPage() {
                     <label className="block text-[16px] font-medium text-gray-600">
                       Fecha de finalización
                     </label>
-                    <DatePicker
-                      selected={tempExpirationDate}
-                      onChange={handleDateChange}
-                      dateFormat="dd/MM/yyyy"
-                      className={`mt-1 w-full rounded-md border ${
-                        errors.expirationDate
-                          ? 'border-red-500'
-                          : 'border-gray-300'
-                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholderText="DD/MM/AAAA"
-                      minDate={new Date()}
-                      showTimeSelect={false}
-                    />
+                    <Calendar onDateSelect={handleDateChange} />
                     {errors.expirationDate && (
                       <p className="mt-1 text-sm text-red-500">
                         {errors.expirationDate}

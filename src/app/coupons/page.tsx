@@ -128,11 +128,11 @@ export default function CouponsPage() {
   };
 
   const handleViewCoupon = (item: CouponResponse) => {
-    router.push(`/coupons/${item.id}`);
+    router.push(`/coupons/${item.code}`);
   };
 
   const handleEditCoupon = (item: CouponResponse) => {
-    router.push(`/coupons/${item.id}/edit`);
+    router.push(`/coupons/${item.code}/edit`);
   };
 
   const handleSearch = (query: string) => {
