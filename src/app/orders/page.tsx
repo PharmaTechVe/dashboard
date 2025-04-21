@@ -7,17 +7,13 @@ import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
+import { OrderResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
-import { OrderResponse } from '@pharmatech/sdk/types';
-
-type OrderItem = OrderResponse & {
-  user?: { name: string };
-  branch?: { name: string };
-};
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<OrderResponse[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -50,15 +46,18 @@ export default function OrdersPage() {
           return;
         }
 
-        const response = await api.deliveryService.findAll(
+        const response = await api.order.findAll(
           {
-            page: 1,
-            limit: 100,
+            page: currentPage,
+            limit: itemsPerPage,
           },
           token,
         );
-        setOrders(response.results as unknown as OrderItem[]);
 
+        console.log('Response:', response);
+
+        setOrders(response.results);
+        setFilteredOrders(response.results); // Inicialmente, los datos filtrados son iguales a los originales
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error al obtener órdenes:', error);
@@ -67,28 +66,36 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [currentPage, itemsPerPage, searchQuery, router]);
+  }, [currentPage, itemsPerPage, router]);
 
-  const columns: Column<OrderItem>[] = [
+  useEffect(() => {
+    const filtered = searchQuery
+      ? orders.filter(
+          (order) =>
+            order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.type.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
+      : orders;
+
+    setFilteredOrders(filtered);
+  }, [searchQuery, orders]);
+
+  const columns: Column<OrderResponse>[] = [
     {
       key: 'id',
       label: 'ID',
       render: (item) => item.id.slice(0, 8),
     },
     {
-      key: 'user',
-      label: 'Cliente',
-      render: (item) => item.user?.name || 'Sin usuario',
+      key: 'createdAt',
+      label: 'Fecha de creación',
+      render: (item) => formatDate(item.createdAt),
     },
     {
-      key: 'branch',
-      label: 'Sucursal',
-      render: (item) => item.branch?.name || 'N/A',
-    },
-    {
-      key: 'type',
-      label: 'Tipo',
-      render: (item) => item.type,
+      key: 'updatedAt',
+      label: 'Última actualización',
+      render: (item) => formatDate(item.updatedAt),
     },
     {
       key: 'status',
@@ -96,7 +103,13 @@ export default function OrdersPage() {
       render: (item) => (
         <Badge
           variant="filled"
-          color={item.status === 'completed' ? 'success' : 'info'}
+          color={
+            item.status === 'completed'
+              ? 'success'
+              : item.status === 'requested'
+                ? 'warning'
+                : 'info'
+          }
           size="small"
           borderRadius="rounded"
         >
@@ -106,19 +119,26 @@ export default function OrdersPage() {
     },
     {
       key: 'totalPrice',
-      label: 'Total',
-      render: (item) =>
-        item.totalPrice ? `$${item.totalPrice.toFixed(2)}` : 'N/A',
+      label: 'Precio total',
+      render: (item) => `$${item.totalPrice.toFixed(2)}`,
     },
     {
-      key: 'createdAt',
-      label: 'Fecha',
-      render: (item) => formatDate(item.createdAt),
+      key: 'type',
+      label: 'Tipo',
+      render: (item) => item.type,
     },
   ];
 
-  const handleViewOrder = (item: OrderItem) => {
+  const handleAdd = () => {
+    router.push('/orders/new');
+  };
+
+  const handleView = (item: OrderResponse) => {
     router.push(`/orders/${item.id}`);
+  };
+
+  const handleEdit = (item: OrderResponse) => {
+    router.push(`/orders/${item.id}/edit`);
   };
 
   const handleSearch = (query: string) => {
@@ -136,13 +156,15 @@ export default function OrdersPage() {
             className="overflow-y-auto"
             style={{ maxHeight: 'calc(100vh - 150px)' }}
           >
-            <TableContainer
+            <TableContainer<OrderResponse>
               title="Órdenes"
-              tableData={orders}
+              tableData={filteredOrders} // Usa los datos filtrados
               tableColumns={columns}
-              onView={handleViewOrder}
               onSearch={handleSearch}
-              onAddClick={() => {}}
+              onAddClick={handleAdd}
+              onEdit={handleEdit}
+              onView={handleView}
+              addButtonText="Agregar orden"
               pagination={{
                 currentPage,
                 totalPages: Math.ceil(totalItems / itemsPerPage),
