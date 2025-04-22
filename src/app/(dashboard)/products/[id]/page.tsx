@@ -98,7 +98,7 @@ export default function GenericProductDetailPage() {
       if (!token || typeof id !== 'string') return;
       try {
         const res = await api.productPresentation.getByProductId(id);
-        setPresentations(res);
+        setPresentations(res.filter((item) => item.presentation !== null));
         setTotalItems(res.length);
       } catch (err) {
         console.error('Error fetching presentations:', err);
