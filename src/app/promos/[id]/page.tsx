@@ -51,7 +51,7 @@ export default function PromoDetailsPage() {
     };
 
     fetchPromo();
-  }, [id]);
+  }, [id, token]);
 
   const handleEdit = () => {
     if (promo && typeof id === 'string') {
