@@ -15,28 +15,24 @@ import {
   OrderDeliveryStatus,
   OrderDetailedResponse,
 } from '@pharmatech/sdk';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ViewOrderStatusPage() {
   const params = useParams();
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
   const [loading, setLoading] = useState(true);
 
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   const fetchOrderData = useCallback(async () => {
-    const token = getToken();
-    if (!token || !id) return;
+    if (!token || typeof id !== 'string') {
+      toast.error('Error');
+      return;
+    }
 
     try {
       const orderData = await api.order.getById(id, token);
@@ -53,7 +49,7 @@ export default function ViewOrderStatusPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchOrderData();

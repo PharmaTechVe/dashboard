@@ -10,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { OrderResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
+import { useAuth } from '@/context/AuthContext';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([]);
@@ -19,6 +20,7 @@ export default function OrdersPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const { token } = useAuth();
 
   const formatDate = (input: Date | string): string => {
     const date = typeof input === 'string' ? new Date(input) : input;
@@ -29,18 +31,9 @@ export default function OrdersPage() {
     });
   };
 
-  const getToken = () => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = getToken();
         if (!token) {
           router.push('/login');
           return;
@@ -66,7 +59,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [currentPage, itemsPerPage, router]);
+  }, [currentPage, itemsPerPage, router, token]);
 
   useEffect(() => {
     const filtered = searchQuery

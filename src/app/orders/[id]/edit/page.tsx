@@ -17,11 +17,13 @@ import {
   UserList,
   UserRole,
 } from '@pharmatech/sdk';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditOrderStatusPage() {
   const params = useParams();
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
@@ -33,16 +35,7 @@ export default function EditOrderStatusPage() {
   >(null);
   const [loading, setLoading] = useState(true);
 
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   const fetchOrderData = useCallback(async () => {
-    const token = getToken();
     if (!token || !id) return;
 
     try {
@@ -80,14 +73,13 @@ export default function EditOrderStatusPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchOrderData();
   }, [fetchOrderData]);
 
   const handleSubmit = async () => {
-    const token = getToken();
     if (!token || !id) return;
 
     try {
