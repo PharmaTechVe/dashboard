@@ -11,6 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 enum UserGender {
   MALE = 'm',
@@ -42,6 +43,7 @@ export default function EditUserPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
@@ -53,15 +55,7 @@ export default function EditUserPage() {
   const [gender, setGender] = useState<UserGender | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getToken = useCallback(() => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   const fetchUser = useCallback(async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') return;
 
     try {
@@ -92,7 +86,7 @@ export default function EditUserPage() {
       console.error('Error al cargar el usuario:', error);
       toast.error('No se pudo cargar la información del usuario');
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchUser();
@@ -133,7 +127,6 @@ export default function EditUserPage() {
     }
 
     try {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
         toast.error('Token o ID inválido');
         return;

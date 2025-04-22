@@ -12,6 +12,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 enum UserRole {
   ADMIN = 'admin',
@@ -70,17 +71,9 @@ export default function UserDetailsPage() {
   const [user, setUser] = useState<UserList | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
+  const { token } = useAuth();
 
   const fetchUser = useCallback(async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       setError('Token no encontrado o ID inválido');
       setLoading(false);
@@ -118,7 +111,7 @@ export default function UserDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchUser();
@@ -131,7 +124,6 @@ export default function UserDetailsPage() {
   };
 
   const handleDelete = async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Error: Token no encontrado o ID inválido.');
       return;
