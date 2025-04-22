@@ -51,7 +51,7 @@ export default function BranchDetailsPage() {
     };
 
     fetchBranch();
-  }, [id]);
+  }, [id, token]);
 
   const handleEdit = () => {
     if (typeof id === 'string') router.push(`/branches/${id}/edit`);
