@@ -43,7 +43,7 @@ export default function CategoryDetailsPage() {
     };
 
     fetchCategory();
-  }, [id]);
+  }, [id, token]);
 
   const handleEdit = () => {
     if (typeof id === 'string') {

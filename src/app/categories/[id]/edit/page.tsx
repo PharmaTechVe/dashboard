@@ -42,7 +42,7 @@ export default function EditCategoryPage() {
     };
 
     fetchCategory();
-  }, [id, router]);
+  }, [id, router, token]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
