@@ -12,26 +12,19 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
 import { PromoResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PromoDetailsPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
+  const { token } = useAuth();
   const router = useRouter();
   const [promo, setPromo] = useState<PromoResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchPromo = async () => {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
         setIsLoading(false);
         return;
@@ -69,7 +62,6 @@ export default function PromoDetailsPage() {
   const handleDelete = async () => {
     if (!promo || typeof id !== 'string') return;
 
-    const token = getToken();
     if (!token) {
       toast.error('Error de autenticación');
       return;

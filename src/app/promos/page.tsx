@@ -10,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
 import { PromoResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
 type PromoItem = PromoResponse & {
   status: 'Activa' | 'Finalizada';
@@ -21,6 +22,7 @@ export default function PromosPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const { token } = useAuth();
   const router = useRouter();
 
   const calculateStatus = (
@@ -40,18 +42,9 @@ export default function PromosPage() {
     });
   };
 
-  const getToken = () => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchPromos = async () => {
       try {
-        const token = getToken();
         if (!token) {
           router.push('/login');
           return;
@@ -89,7 +82,7 @@ export default function PromosPage() {
     };
 
     fetchPromos();
-  }, [currentPage, itemsPerPage, searchQuery, router]);
+  }, [currentPage, itemsPerPage, searchQuery, router, token]);
 
   useEffect(() => {
     const interval = setInterval(() => {

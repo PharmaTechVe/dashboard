@@ -10,8 +10,8 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import Calendar from '@/components/Calendar';
+import { useAuth } from '@/context/AuthContext';
 
 type PromoCreatePayload = {
   name: string;
@@ -29,20 +29,14 @@ type ErrorsType = {
 
 export default function NewPromotionPage() {
   const router = useRouter();
+  const { token } = useAuth();
+
   const [name, setName] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
   const [startAt, setStartAt] = useState<Date | null>(new Date());
   const [expiredAt, setExpiredAt] = useState<Date | null>(new Date());
   const [errors, setErrors] = useState<ErrorsType>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -118,7 +112,6 @@ export default function NewPromotionPage() {
         return;
       }
 
-      const token = getToken();
       if (!token) {
         toast.error('No se encontró token de autenticación');
         setIsSubmitting(false);
@@ -254,16 +247,10 @@ export default function NewPromotionPage() {
                     <label className="block text-[16px] font-medium text-gray-600">
                       Fecha de inicio
                     </label>
-                    <DatePicker
-                      selected={startAt}
-                      onChange={handleStartDateChange}
-                      dateFormat="dd/MM/yyyy"
-                      className={`mt-1 w-full rounded-md border ${
-                        errors.startAt ? 'border-red-500' : 'border-gray-300'
-                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholderText="DD/MM/AAAA"
-                      minDate={new Date()}
-                      showTimeSelect={false}
+                    <Calendar
+                      onDateSelect={(date) =>
+                        handleStartDateChange(new Date(date))
+                      }
                     />
                     {errors.startAt && (
                       <p className="mt-1 text-sm text-red-500">
@@ -275,16 +262,10 @@ export default function NewPromotionPage() {
                     <label className="block text-[16px] font-medium text-gray-600">
                       Fecha de finalización
                     </label>
-                    <DatePicker
-                      selected={expiredAt}
-                      onChange={handleExpiredDateChange}
-                      dateFormat="dd/MM/yyyy"
-                      className={`mt-1 w-full rounded-md border ${
-                        errors.expiredAt ? 'border-red-500' : 'border-gray-300'
-                      } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                      placeholderText="DD/MM/AAAA"
-                      minDate={startAt || new Date()}
-                      showTimeSelect={false}
+                    <Calendar
+                      onDateSelect={(date) =>
+                        handleExpiredDateChange(new Date(date))
+                      }
                     />
                     {errors.expiredAt && (
                       <p className="mt-1 text-sm text-red-500">

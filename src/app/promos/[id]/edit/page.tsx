@@ -11,11 +11,13 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
 import DatePicker1 from '@/components/Calendar';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditPromoPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const router = useRouter();
+  const { token } = useAuth();
 
   const [name, setName] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
@@ -31,18 +33,8 @@ export default function EditPromoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchPromo = async () => {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
 
       try {
@@ -68,7 +60,7 @@ export default function EditPromoPage() {
     };
 
     fetchPromo();
-  }, [id, router]);
+  }, [id, router, token]);
 
   useEffect(() => {
     const hasChanges =
@@ -115,7 +107,6 @@ export default function EditPromoPage() {
     }
 
     try {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
         toast.error('Token o ID inválido');
         setIsSubmitting(false);
