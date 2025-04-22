@@ -17,11 +17,13 @@ import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { Column } from '@/components/Table';
 import TableContainer from '@/components/TableContainer';
+import { useAuth } from '@/context/AuthContext';
 
 type ProductPresentationItem = ProductPresentationResponse;
 export default function GenericProductDetailPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
+  const { token } = useAuth();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -75,17 +77,9 @@ export default function GenericProductDetailPage() {
   const handleAdd = () => {
     router.push(`/products/${id}/presentations/new`);
   };
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
 
   useEffect(() => {
     async function fetchProduct() {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
       try {
         const data: GenericProductResponse =
@@ -99,11 +93,10 @@ export default function GenericProductDetailPage() {
       }
     }
     if (id) fetchProduct();
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
     async function fetchPresentations() {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
       try {
         const res = await api.productPresentation.getByProductId(id);
@@ -114,14 +107,13 @@ export default function GenericProductDetailPage() {
       }
     }
     if (id) fetchPresentations();
-  }, [id]);
+  }, [id, token]);
 
   const handleEdit = () => {
     if (id) router.push(`/products/${id}/edit`);
   };
 
   const handleDelete = async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Error: token el token es invalido');
       return;

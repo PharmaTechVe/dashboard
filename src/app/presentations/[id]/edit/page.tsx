@@ -14,6 +14,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { newPresentationSchema } from '@/lib/validations/newPresentationSchema';
+import { useAuth } from '@/context/AuthContext';
 
 const UNITS = [
   { label: 'mg', value: 'mg' },
@@ -27,6 +28,7 @@ export default function EditPresentationPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [name, setName] = useState('');
   const [measurementUnit, setMeasurementUnit] = useState('');
@@ -34,16 +36,7 @@ export default function EditPresentationPage() {
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   const fetchPresentation = useCallback(async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') return;
 
     try {
@@ -56,7 +49,7 @@ export default function EditPresentationPage() {
       console.error('Error fetching presentation:', error);
       toast.error('No se pudo cargar la presentación');
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchPresentation();
@@ -80,7 +73,6 @@ export default function EditPresentationPage() {
       return;
     }
 
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Token o ID inválido');
       return;

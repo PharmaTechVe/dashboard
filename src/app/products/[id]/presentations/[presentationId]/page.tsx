@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
@@ -12,6 +12,7 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { ToastContainer, toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ViewProductPresentationPage() {
   const params = useParams();
@@ -24,24 +25,15 @@ export default function ViewProductPresentationPage() {
       ? params.presentationId
       : '';
   const router = useRouter();
-
+  const { token } = useAuth();
   const [presentation, setPresentation] =
     useState<ProductPresentationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   useEffect(() => {
     async function fetchPresentation() {
-      const token = getToken();
       if (
         !token ||
         !productId ||
@@ -66,10 +58,9 @@ export default function ViewProductPresentationPage() {
     }
 
     if (presentationId) fetchPresentation();
-  }, [productId, presentationId, getToken]);
+  }, [productId, presentationId, token]);
 
   const handleDelete = async () => {
-    const token = getToken();
     if (
       !token ||
       typeof productId !== 'string' ||

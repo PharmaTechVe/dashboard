@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
@@ -17,6 +17,7 @@ import { newProductPresentationSchema } from '@/lib/validations/newProductPresen
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditProductPresentationPage() {
   const params = useParams();
@@ -29,6 +30,7 @@ export default function EditProductPresentationPage() {
       ? params.presentationId
       : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [presentationData, setPresentationData] =
     useState<ProductPresentationResponse | null>(null);
@@ -40,17 +42,8 @@ export default function EditProductPresentationPage() {
   const [error, setError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
-
   useEffect(() => {
     async function fetchData() {
-      const token = getToken();
       if (
         !token ||
         typeof productId !== 'string' ||
@@ -77,7 +70,7 @@ export default function EditProductPresentationPage() {
       }
     }
     fetchData();
-  }, [productId, presentationId, getToken]);
+  }, [productId, presentationId, token]);
 
   useEffect(() => {
     const selected = promos.find((promo) => promo.name === selectedPromo);
@@ -101,8 +94,6 @@ export default function EditProductPresentationPage() {
       return;
     }
 
-    const token = getToken();
-    console.log('Token:', presentationId, productId);
     if (!token || typeof productId !== 'string') {
       toast.error('Token o ID inválido');
       return;

@@ -12,27 +12,20 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PresentationDetailPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     async function fetchPresentation() {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
 
       try {
@@ -47,10 +40,9 @@ export default function PresentationDetailPage() {
     }
 
     if (id) fetchPresentation();
-  }, [id]);
+  }, [id, token]);
 
   const handleDelete = async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') return;
 
     try {

@@ -18,6 +18,7 @@ import { newGenericProductSchema } from '@/lib/validations/newGenericProductSche
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditProductPage() {
   const params = useParams();
@@ -31,6 +32,7 @@ export default function EditProductPage() {
   const [manufacturers, setManufacturers] = useState<ManufacturerResponse[]>(
     [],
   );
+  const { token } = useAuth();
   const [manufacturerId, setManufacturerId] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -43,14 +45,6 @@ export default function EditProductPage() {
   );
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const getToken = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  }, []);
 
   const handleUploadedImagesChange = useCallback((urls: string[]) => {
     setImageUrls(urls);
@@ -70,7 +64,7 @@ export default function EditProductPage() {
       }
     }
     fetchManufacturers();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -85,7 +79,6 @@ export default function EditProductPage() {
   }, []);
 
   const fetchProduct = useCallback(async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') return;
     try {
       const product: GenericProductResponse =
@@ -102,7 +95,7 @@ export default function EditProductPage() {
       console.error('Error fetching product:', error);
       toast.error('Error fetching product details.');
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchProduct();
@@ -138,7 +131,6 @@ export default function EditProductPage() {
       });
       return;
     }
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Token or ID invalid');
       return;
