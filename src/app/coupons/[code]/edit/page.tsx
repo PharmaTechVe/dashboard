@@ -11,11 +11,13 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { couponSchema } from '@/lib/validations/couponsSchema';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditCouponPage() {
   const params = useParams();
   const id = params?.code && typeof params.code === 'string' ? params.code : '';
   const router = useRouter();
+  const { token } = useAuth();
 
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
@@ -35,19 +37,12 @@ export default function EditCouponPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchCoupon = async () => {
-      const token = getToken();
-      if (!token || !id) return;
+      if (!token || typeof id !== 'string') {
+        toast.error('Error');
+        return;
+      }
 
       try {
         const response = await api.coupon.getByCode(id, token);
@@ -73,7 +68,7 @@ export default function EditCouponPage() {
     };
 
     fetchCoupon();
-  }, [id, router]);
+  }, [id, router, token]);
 
   useEffect(() => {
     const hasChanges =
@@ -131,10 +126,8 @@ export default function EditCouponPage() {
     }
 
     try {
-      const token = getToken();
-      if (!token || !id) {
-        toast.error('Token o ID inválido');
-        setIsSubmitting(false);
+      if (!token) {
+        toast.error('Error');
         return;
       }
 

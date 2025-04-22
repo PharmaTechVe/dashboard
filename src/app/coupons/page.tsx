@@ -9,12 +9,14 @@ import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
-import { CouponResponse } from '@pharmatech/sdk/types'; // Usa el tipo exportado
+import { CouponResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
 type CouponStatus = 'Activa' | 'Finalizada';
 
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<CouponResponse[]>([]); // Usa CouponResponse
+  const [coupons, setCoupons] = useState<CouponResponse[]>([]);
+  const { token } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -38,18 +40,9 @@ export default function CouponsPage() {
     });
   };
 
-  const getToken = () => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        const token = getToken();
         if (!token) {
           router.push('/login');
           return;
@@ -79,7 +72,7 @@ export default function CouponsPage() {
     };
 
     fetchCoupons();
-  }, [currentPage, itemsPerPage, searchQuery, router]);
+  }, [currentPage, itemsPerPage, searchQuery, router, token]);
 
   const columns: Column<CouponResponse>[] = [
     { key: 'code', label: 'Código', render: (item) => item.code },

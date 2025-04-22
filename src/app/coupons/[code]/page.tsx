@@ -12,30 +12,23 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
 import { CouponResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CouponDetailsPage() {
   const params = useParams();
   const code =
     params?.code && typeof params.code === 'string' ? params.code : '';
+  const { token } = useAuth();
   const router = useRouter();
   const [coupon, setCoupon] = useState<CouponResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchCoupon = async () => {
       console.log('Fetching coupon with code:', code);
-      const token = getToken();
-      if (!token || !code) {
-        setIsLoading(false);
+      if (!token || typeof code !== 'string') {
+        toast.error('Error');
         return;
       }
 
@@ -52,7 +45,7 @@ export default function CouponDetailsPage() {
     };
 
     fetchCoupon();
-  }, [code]);
+  }, [code, token]);
 
   const handleEdit = () => {
     if (coupon) {
@@ -61,9 +54,8 @@ export default function CouponDetailsPage() {
   };
 
   const handleDelete = async () => {
-    const token = getToken();
-    if (!token || !coupon) {
-      toast.error('Error de autenticación');
+    if (!token) {
+      toast.error('Error');
       return;
     }
 
