@@ -12,26 +12,22 @@ import { CategoryResponse } from '@pharmatech/sdk';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CategoryDetailsPage() {
   const params = useParams();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
+  const { token } = useAuth();
   const router = useRouter();
   const [category, setCategory] = useState<CategoryResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchCategory = async () => {
-      const token = getToken();
-      if (!token || typeof id !== 'string') return;
+      if (!token || typeof id !== 'string') {
+        toast.error('Error');
+        return;
+      }
 
       try {
         const response = await api.category.getById(id);
@@ -58,9 +54,8 @@ export default function CategoryDetailsPage() {
   const handleDelete = async () => {
     if (!category) return;
 
-    const token = getToken();
     if (!token || typeof id !== 'string') {
-      toast.error('Error de autenticación');
+      toast.error('Error');
       return;
     }
 

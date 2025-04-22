@@ -12,21 +12,15 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { categorySchema } from '@/lib/validations/categorySchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function NewCategoryPage() {
   const router = useRouter();
+  const { token } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -45,10 +39,8 @@ export default function NewCategoryPage() {
     }
 
     try {
-      const token = getToken();
       if (!token) {
-        toast.error('No se encontró token de autenticación');
-        setIsSubmitting(false);
+        toast.error('Error');
         return;
       }
 
