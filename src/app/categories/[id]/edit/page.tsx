@@ -6,33 +6,30 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { categorySchema } from '@/lib/validations/categorySchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditCategoryPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
+  const { token } = useAuth();
   const router = useRouter();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchCategory = async () => {
-      const token = getToken();
-      if (!token || typeof id !== 'string') return;
+      if (!token || typeof id !== 'string') {
+        toast.error('Error');
+        return;
+      }
 
       try {
         const category = await api.category.getById(id);
@@ -45,7 +42,7 @@ export default function EditCategoryPage() {
     };
 
     fetchCategory();
-  }, [id, router]);
+  }, [id, router, token]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -67,10 +64,8 @@ export default function EditCategoryPage() {
     }
 
     try {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
-        toast.error('Token o ID inválido');
-        setIsSubmitting(false);
+        toast.error('Error');
         return;
       }
 
@@ -113,67 +108,70 @@ export default function EditCategoryPage() {
                   { label: 'Editar', href: '' },
                 ]}
               />
-            </div>
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Editar Categoría #
                   {typeof id === 'string' ? id.slice(0, 3) : ''}
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={() => handleSubmit()}
-                  textColor={Colors.textWhite}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                </Button>
+                <div className="flex gap-6">
+                  <Button
+                    color={Colors.secondaryWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="120px"
+                    height="48px"
+                    onClick={() => router.push('/categories')}
+                    textColor={Colors.primary}
+                    className="border-gray-300 hover:bg-gray-100"
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => handleSubmit()}
+                    textColor={Colors.textWhite}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                  </Button>
+                </div>
               </div>
+            </div>
 
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Nombre de la Categoría
-                  </label>
-                  <input
-                    name="name"
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setErrors({ ...errors, name: '' });
-                    }}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
+                <Input
+                  label="Nombre de la Categoría"
+                  placeholder="Ingresa el nombre de la categoría"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setErrors({ ...errors, name: '' });
+                  }}
+                  helperText={errors.name}
+                  helperTextColor="text-red-500"
+                  borderColor="#d1d5db"
+                />
 
-                <div>
-                  <label className="block text-[16px] font-medium text-gray-600">
-                    Descripción
-                  </label>
-                  <textarea
-                    name="description"
-                    className="mt-1 h-[120px] w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                    value={description}
-                    onChange={(e) => {
-                      setDescription(e.target.value);
-                      setErrors({ ...errors, description: '' });
-                    }}
-                  />
-                  {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.description}
-                    </p>
-                  )}
-                </div>
+                <Input
+                  label="Descripción"
+                  placeholder="Ingresa la descripción de la categoría"
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    setErrors({ ...errors, description: '' });
+                  }}
+                  helperText={errors.description}
+                  helperTextColor="text-red-500"
+                  borderColor="#d1d5db"
+                  type="text"
+                />
               </form>
             </div>
           </main>

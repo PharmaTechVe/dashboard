@@ -11,11 +11,13 @@ import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
 import DatePicker1 from '@/components/Calendar';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EditPromoPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const router = useRouter();
+  const { token } = useAuth();
 
   const [name, setName] = useState('');
   const [discount, setDiscount] = useState<number | ''>('');
@@ -31,18 +33,8 @@ export default function EditPromoPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchPromo = async () => {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
 
       try {
@@ -68,7 +60,7 @@ export default function EditPromoPage() {
     };
 
     fetchPromo();
-  }, [id, router]);
+  }, [id, router, token]);
 
   useEffect(() => {
     const hasChanges =
@@ -115,7 +107,6 @@ export default function EditPromoPage() {
     }
 
     try {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
         toast.error('Token o ID inválido');
         setIsSubmitting(false);
@@ -190,9 +181,6 @@ export default function EditPromoPage() {
                   { label: 'Editar', href: '' },
                 ]}
               />
-            </div>
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Editar Promoción #
@@ -206,7 +194,7 @@ export default function EditPromoPage() {
                     textSize="16"
                     width="120px"
                     height="44px"
-                    onClick={() => router.push(`/promos/${id}`)}
+                    onClick={() => router.push(`/promos/`)}
                     textColor={Colors.primary}
                   >
                     Cancelar
@@ -226,7 +214,9 @@ export default function EditPromoPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                 <div className="flex flex-col md:flex-row md:space-x-4">
                   <div className="md:w-1/2">

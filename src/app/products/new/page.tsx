@@ -5,25 +5,23 @@ import Navbar from '@/components/Navbar';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import Input from '@/components/Input/Input';
 import { Colors } from '@/styles/styles';
 import { newGenericProductSchema } from '@/lib/validations/newGenericProductSchema';
+import type { ManufacturerResponse } from '@pharmatech/sdk';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
-
-interface Manufacturer {
-  id: string;
-  name: string;
-  description: string;
-  country: { name: string };
-}
-
+import { useRouter } from 'next/navigation';
 export default function NewGenericProductPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [genericName, setGenericName] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
   const [manufacturerId, setManufacturerId] = useState('');
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [manufacturers, setManufacturers] = useState<ManufacturerResponse[]>(
+    [],
+  );
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -122,92 +120,103 @@ export default function NewGenericProductPage() {
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Nuevo Producto
                 </h1>
-                <Button
-                  color={Colors.primary}
-                  paddingX={4}
-                  paddingY={4}
-                  textSize="16"
-                  width="196px"
-                  height="44px"
-                  onClick={handleSubmit}
-                  textColor={Colors.textWhite}
-                >
-                  Agregar Producto
-                </Button>
+                <div className="flex space-x-4">
+                  <Button
+                    color={Colors.textWhite}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={() => router.back()} // Navega hacia atrás
+                    textColor={Colors.textMain}
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    color={Colors.primary}
+                    paddingX={4}
+                    paddingY={4}
+                    textSize="16"
+                    width="196px"
+                    height="44px"
+                    onClick={handleSubmit}
+                    textColor={Colors.textWhite}
+                  >
+                    Agregar Producto
+                  </Button>
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <Input
+                    label="Nombre Genérico"
+                    placeholder="Ingresa el nombre genérico"
+                    value={genericName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setGenericName(e.target.value)
+                    }
+                    helperText={errors.genericName}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <Dropdown
+                    title="Fabricante"
+                    placeholder="Selecciona el fabricante"
+                    width="100%"
+                    items={manufacturers.map((m) => ({
+                      label: m.name,
+                      value: m.id,
+                    }))}
+                    selected={selectedManufacturer}
+                    onChange={setSelectedManufacturer}
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <Input
+                    label="Nombre"
+                    placeholder="Ingresa el nombre del producto"
+                    value={name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setName(e.target.value)
+                    }
+                    helperText={errors.name}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <Input
+                    label="Prioridad"
+                    placeholder="Ingresa la prioridad"
+                    value={priority}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setPriority(e.target.value)
+                    }
+                    helperText={errors.priority}
+                    helperTextColor="#E10000"
+                    borderColor="#d1d5db"
+                    type="number"
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre Genérico
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Ingresa el nombre genérico"
-                  value={genericName}
-                  onChange={(e) => setGenericName(e.target.value)}
-                />
-                {errors.genericName && (
-                  <p className="text-sm text-red-500">{errors.genericName}</p>
-                )}
-              </div>
-              <div>
-                <Dropdown
-                  title="Fabricante"
-                  placeholder="Selecciona el fabricante"
-                  items={manufacturers.map((m) => ({
-                    label: m.name,
-                    value: m.id,
-                  }))}
-                  selected={selectedManufacturer}
-                  onChange={setSelectedManufacturer}
-                />
-                {errors.manufacturerId && (
-                  <p className="text-sm text-red-500">
-                    {errors.manufacturerId}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Nombre
-                </label>
-                <input
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Ingresa el nombre del producto"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Descripción
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+                <Input
+                  label="Descripción"
                   placeholder="Ingresa la descripción del producto"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setDescription(e.target.value)
+                  }
+                  helperText={errors.description}
+                  helperTextColor="#E10000"
+                  borderColor="#d1d5db"
+                  type="text"
                 />
-                {errors.description && (
-                  <p className="text-sm text-red-500">{errors.description}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Prioridad
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-                  placeholder="Ingresa la prioridad"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                />
-                {errors.priority && (
-                  <p className="text-sm text-red-500">{errors.priority}</p>
-                )}
               </div>
             </div>
           </main>

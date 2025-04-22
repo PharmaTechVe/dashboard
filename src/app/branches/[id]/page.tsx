@@ -13,6 +13,7 @@ import { api } from '@/lib/sdkConfig';
 //import Dropdown from '@/components/Dropdown';
 import { toast, ToastContainer } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 interface BranchItem {
   id: string;
@@ -31,22 +32,14 @@ interface BranchItem {
 
 export default function BranchDetailsPage() {
   const params = useParams();
+  const { token } = useAuth();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
   const [branch, setBranch] = useState<BranchItem | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return null;
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchBranch = async () => {
-      const token = getToken();
       if (!token || typeof id !== 'string') return;
 
       try {
@@ -58,14 +51,13 @@ export default function BranchDetailsPage() {
     };
 
     fetchBranch();
-  }, [id]);
+  }, [id, token]);
 
   const handleEdit = () => {
     if (typeof id === 'string') router.push(`/branches/${id}/edit`);
   };
 
   const handleDelete = async () => {
-    const token = getToken();
     if (!token || typeof id !== 'string') {
       toast.error('Error');
       return;

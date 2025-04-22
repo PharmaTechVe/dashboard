@@ -7,14 +7,15 @@ import Sidebar from '@/components/SideBar';
 import Navbar from '@/components/Navbar';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
-import { CategoryResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
-import { toast, ToastContainer } from 'react-toastify';
+import type { PresentationResponse } from '@pharmatech/sdk';
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<
-    CategoryResponse[]
+type PresentationItem = PresentationResponse;
+
+export default function PresentationListPage() {
+  const [presentations, setPresentations] = useState<PresentationItem[]>([]);
+  const [filteredPresentations, setFilteredPresentations] = useState<
+    PresentationItem[]
   >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -35,72 +36,78 @@ export default function CategoriesPage() {
     }
   }, [token, user, loading, router]);
 
-  const fetchCategories = useCallback(
+  const fetchPresentations = useCallback(
     async (page: number, limit: number) => {
       try {
-        if (!token) return;
-
-        const response = await api.category.findAll({ page, limit });
-        setCategories(response.results);
-        setFilteredCategories(response.results);
+        const response = await api.presentation.findAll({ page, limit });
+        setPresentations(response.results);
+        setFilteredPresentations(response.results); // Inicialmente, los datos filtrados son iguales a los originales
         setTotalItems(response.count);
       } catch (error) {
-        console.error('Error al obtener categorías:', error);
-        toast.error('Error al cargar las categorías');
+        console.error('Error fetching presentations:', error);
       } finally {
         setLoadingData(false);
       }
     },
-    [token],
+    [],
   );
 
   useEffect(() => {
     if (!token || !user?.sub) return;
-    fetchCategories(currentPage, itemsPerPage);
-  }, [fetchCategories, currentPage, itemsPerPage, token, user]);
+    fetchPresentations(currentPage, itemsPerPage);
+  }, [currentPage, itemsPerPage, token, user, fetchPresentations]);
 
   useEffect(() => {
     const filtered = searchQuery
-      ? categories.filter(
-          (category) =>
-            category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            category.description
+      ? presentations.filter(
+          (presentation) =>
+            presentation.name
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            presentation.description
               .toLowerCase()
               .includes(searchQuery.toLowerCase()),
         )
-      : categories;
+      : presentations;
 
-    setFilteredCategories(filtered);
-  }, [searchQuery, categories]);
+    setFilteredPresentations(filtered);
+  }, [searchQuery, presentations]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<CategoryResponse>[] = [
+  const columns: Column<PresentationItem>[] = [
     {
       key: 'name',
-      label: 'Nombre',
-      render: (item: CategoryResponse) => item.name,
+      label: 'Presentación',
+      render: (item) => item.name,
     },
     {
       key: 'description',
       label: 'Descripción',
-      render: (item: CategoryResponse) =>
-        item.description.length > 50
-          ? `${item.description.substring(0, 50)}...`
-          : item.description,
+      render: (item) => item.description,
+    },
+    {
+      key: 'quantity',
+      label: 'Cantidad',
+      render: (item) => item.quantity,
+    },
+    {
+      key: 'measurementUnit',
+      label: 'Unidad de medida',
+      render: (item) => item.measurementUnit,
     },
   ];
 
-  const handleAddCategory = () => {
-    router.push('/categories/new');
+  const handleEdit = (item: PresentationItem) => {
+    router.push(`/presentations/${item.id}/edit`);
   };
 
-  const handleViewCategory = (item: CategoryResponse) => {
-    router.push(`/categories/${item.id}`);
+  const handleView = (item: PresentationItem) => {
+    router.push(`/presentations/${item.id}`);
   };
 
-  const handleEditCategory = (item: CategoryResponse) => {
-    router.push(`/categories/${item.id}/edit`);
+  const handleAdd = () => {
+    router.push(`/presentations/new`);
   };
 
   const handleSearch = (query: string) => {
@@ -109,7 +116,7 @@ export default function CategoriesPage() {
   };
 
   if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando categorías...</h1>;
+    return <h1 className="p-4 text-lg">Cargando presentaciones...</h1>;
   }
 
   return (
@@ -123,14 +130,14 @@ export default function CategoriesPage() {
             style={{ maxHeight: 'calc(100vh - 150px)' }}
           >
             <TableContainer
-              title="Categorías"
-              tableData={filteredCategories} // Usa los datos filtrados
-              tableColumns={columns}
-              onAddClick={handleAddCategory}
-              onEdit={handleEditCategory}
-              onView={handleViewCategory}
-              addButtonText="Agregar Categoria"
+              title="Presentaciones"
+              onAddClick={handleAdd}
               onSearch={handleSearch} // Añadida la función de búsqueda
+              tableData={filteredPresentations} // Usa los datos filtrados
+              tableColumns={columns}
+              onEdit={handleEdit}
+              onView={handleView}
+              addButtonText="Agregar presentación"
               pagination={{
                 currentPage,
                 totalPages,
@@ -147,7 +154,6 @@ export default function CategoriesPage() {
           </div>
         </main>
       </div>
-      <ToastContainer />
     </div>
   );
 }

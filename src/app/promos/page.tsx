@@ -9,19 +9,12 @@ import { Column } from '@/components/Table';
 import { toast, ToastContainer } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
 import Badge from '@/components/Badge';
-//import { Promo } from '@pharmatech/sdk/types';
+import { PromoResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
-type PromoStatus = 'Activa' | 'Finalizada';
-
-interface PromoItem {
-  id: string;
-  originalId: string;
-  name: string;
-  discount: number;
-  status: PromoStatus;
-  startAt: string;
-  expiredAt: string;
-}
+type PromoItem = PromoResponse & {
+  status: 'Activa' | 'Finalizada';
+};
 
 export default function PromosPage() {
   const [promos, setPromos] = useState<PromoItem[]>([]);
@@ -29,9 +22,13 @@ export default function PromosPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const { token } = useAuth();
   const router = useRouter();
 
-  const calculateStatus = (startAt: Date, expiredAt: Date): PromoStatus => {
+  const calculateStatus = (
+    startAt: Date,
+    expiredAt: Date,
+  ): 'Activa' | 'Finalizada' => {
     const today = new Date();
     return today >= startAt && today <= expiredAt ? 'Activa' : 'Finalizada';
   };
@@ -45,18 +42,9 @@ export default function PromosPage() {
     });
   };
 
-  const getToken = () => {
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken') ||
-      ''
-    );
-  };
-
   useEffect(() => {
     const fetchPromos = async () => {
       try {
-        const token = getToken();
         if (!token) {
           router.push('/login');
           return;
@@ -66,19 +54,13 @@ export default function PromosPage() {
           { page: currentPage, limit: itemsPerPage },
           token,
         );
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
 
-        const mapped = response.results.map((promo, index) => ({
-          id: (startIndex + index).toString(),
-          originalId: promo.id,
-          name: promo.name,
-          discount: promo.discount,
+        const mapped: PromoItem[] = response.results.map((promo) => ({
+          ...promo,
           status: calculateStatus(
             new Date(promo.startAt),
             new Date(promo.expiredAt),
           ),
-          startAt: formatDate(promo.startAt),
-          expiredAt: formatDate(promo.expiredAt),
         }));
 
         const filtered = searchQuery
@@ -100,7 +82,7 @@ export default function PromosPage() {
     };
 
     fetchPromos();
-  }, [currentPage, itemsPerPage, searchQuery, router]);
+  }, [currentPage, itemsPerPage, searchQuery, router, token]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -120,11 +102,6 @@ export default function PromosPage() {
 
   const columns: Column<PromoItem>[] = [
     {
-      key: 'id',
-      label: 'ID',
-      render: (item) => item.id,
-    },
-    {
       key: 'name',
       label: 'Nombre',
       render: (item) => item.name,
@@ -135,28 +112,28 @@ export default function PromosPage() {
       render: (item) => `${item.discount}%`,
     },
     {
+      key: 'startAt',
+      label: 'Fecha de inicio',
+      render: (item) => formatDate(item.startAt),
+    },
+    {
+      key: 'expiredAt',
+      label: 'Fecha de finalización',
+      render: (item) => formatDate(item.expiredAt),
+    },
+    {
       key: 'status',
       label: 'Estado',
       render: (item) => (
         <Badge
           variant="filled"
           color={item.status === 'Activa' ? 'success' : 'danger'}
-          size="small"
-          borderRadius="rounded"
+          size="medium"
+          borderRadius="square"
         >
           {item.status}
         </Badge>
       ),
-    },
-    {
-      key: 'startAt',
-      label: 'Fecha de inicio',
-      render: (item) => item.startAt,
-    },
-    {
-      key: 'expiredAt',
-      label: 'Fecha de finalización',
-      render: (item) => item.expiredAt,
     },
   ];
 
@@ -165,11 +142,11 @@ export default function PromosPage() {
   };
 
   const handleViewPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.originalId}`);
+    router.push(`/promos/${item.id}`);
   };
 
   const handleEditPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.originalId}/edit`);
+    router.push(`/promos/${item.id}/edit`);
   };
 
   const handleSearch = (query: string) => {

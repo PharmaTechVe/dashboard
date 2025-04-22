@@ -14,6 +14,7 @@ import { newBranchSchema } from '@/lib/validations/newBranchSchema';
 import { toast, ToastContainer } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
+import { useAuth } from '@/context/AuthContext';
 
 interface StateItem {
   id: string;
@@ -28,6 +29,7 @@ interface CityItem {
 export default function EditBranchPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
+  const { token } = useAuth();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('');
@@ -45,16 +47,11 @@ export default function EditBranchPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getToken = useCallback(
-    () =>
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken'),
-    [],
-  );
-
   const fetchStates = useCallback(async () => {
-    const token = getToken();
-    if (!token) return;
+    if (!token || typeof id !== 'string') {
+      toast.error('Error');
+      return;
+    }
 
     const response = await api.state.findAll({
       page: 1,
@@ -62,13 +59,14 @@ export default function EditBranchPage() {
       countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
     });
     setStates(response.results);
-  }, [getToken]);
+  }, [token, id]);
 
   const fetchCities = useCallback(
     async (stateId: string) => {
-      const token = getToken();
-      if (!token) return;
-
+      if (!token || typeof id !== 'string') {
+        toast.error('Error');
+        return;
+      }
       const response = await api.city.findAll({
         page: 1,
         limit: 50,
@@ -76,12 +74,14 @@ export default function EditBranchPage() {
       });
       setCities(response.results);
     },
-    [getToken],
+    [token, id],
   );
 
   const fetchBranch = useCallback(async () => {
-    const token = getToken();
-    if (!token || typeof id !== 'string') return;
+    if (!token || typeof id !== 'string') {
+      toast.error('Error');
+      return;
+    }
 
     try {
       const branch = await api.branch.getById(id, token);
@@ -95,7 +95,7 @@ export default function EditBranchPage() {
     } catch (error) {
       console.error('Error al cargar la sucursal:', error);
     }
-  }, [id, getToken]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchStates();
@@ -141,12 +141,10 @@ export default function EditBranchPage() {
     }
 
     try {
-      const token = getToken();
       if (!token || typeof id !== 'string') {
-        toast.error('Token o ID inválido');
+        toast.error('Error');
         return;
       }
-
       const payload = {
         name,
         address,

@@ -9,6 +9,7 @@ import {
   DocumentIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
 import { uploadImageToCloudinary } from '@/lib/utils/uploadImage';
@@ -25,6 +26,7 @@ interface FileWithProgress {
 
 interface ImageUploadProps {
   productId: string;
+  onUploadedImagesChange?: (urls: string[]) => void;
 }
 
 type UploadedImage = {
@@ -34,7 +36,10 @@ type UploadedImage = {
   size?: number;
 };
 
-export default function ImageUpload({ productId }: ImageUploadProps) {
+export default function ImageUpload({
+  productId,
+  onUploadedImagesChange,
+}: ImageUploadProps) {
   const { token } = useAuth();
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -59,7 +64,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
                 const sizeStr = res.headers.get('content-length');
                 size = sizeStr ? parseInt(sizeStr, 10) : undefined;
               } catch {
-                console.warn('No se pudo obtener el tamaño para', img.url);
+                console.warn('No se pudo obtener el tama\u00f1o para', img.url);
               }
             }
 
@@ -78,12 +83,18 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
           return [...enriched, ...onlyFrontend];
         });
       } catch (err) {
-        console.error('Error al traer imágenes existentes:', err);
+        console.error('Error al traer im\u00e1genes existentes:', err);
       }
     };
 
     if (token) fetchExistingImages();
   }, [productId, token]);
+
+  useEffect(() => {
+    const newUploaded = files.filter((f) => !f.fromBackend && f.uploadedUrl);
+    const urls = newUploaded.map((f) => f.uploadedUrl!).filter(Boolean);
+    onUploadedImagesChange?.(urls);
+  }, [files, onUploadedImagesChange]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) handleFiles(e.target.files);
@@ -107,7 +118,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
 
   const uploadToCloudinary = async (fileObj: FileWithProgress) => {
     try {
-      toast.info(`Subiendo "${fileObj.file.name}"...`);
+      toast.info(`Subiendo \"${fileObj.file.name}\"...`);
 
       const uploadedUrl = await uploadImageToCloudinary(
         fileObj.file,
@@ -125,7 +136,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
         ),
       );
 
-      toast.success(`"${fileObj.file.name}" subida con éxito`);
+      toast.success(`\"${fileObj.file.name}\" subida con \u00e9xito`);
     } catch (error) {
       console.error('Error durante la subida:', error);
       toast.error('No se pudo subir la imagen');
@@ -178,7 +189,6 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
 
   return (
     <div className="mx-auto max-h-[600px] w-[843px] overflow-y-auto rounded-lg bg-white p-6">
-      {/* Drop area */}
       <div
         className={`mx-auto flex h-[230px] w-[747px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
           isDragging
@@ -194,8 +204,7 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
           <DocumentPlusIcon className="h-6 w-6 text-[#374CBE]" />
         </div>
         <p className="text-center text-gray-600">
-          Arrastra y suelta las fotos del <br />
-          producto o{' '}
+          Arrastra y suelta las fotos del <br /> producto o{' '}
           <button className="font-medium text-[#374CBE]">búscalas</button>
         </p>
         <input
@@ -208,11 +217,9 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
         />
       </div>
 
-      {/* Preview */}
       <div className="mt-6 space-y-4">
         {files.map((file) => (
           <div key={file.id} className="mb-4">
-            {/* Nombre para preview */}
             {!file.fromBackend && (
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center">
@@ -230,7 +237,6 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
               </div>
             )}
 
-            {/* Progreso de carga */}
             {!file.fromBackend && !file.uploadedUrl && (
               <>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-gray-100">
@@ -252,16 +258,18 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
               </>
             )}
 
-            {/* Vista previa */}
             {(file.previewUrl || file.uploadedUrl) && (
               <div className="mt-4 flex items-center border-t pt-4">
-                <div className="mr-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded bg-gray-100">
-                  <img
-                    src={file.uploadedUrl ?? file.previewUrl}
+                <div className="relative mr-4 h-16 w-16 overflow-hidden rounded bg-gray-100">
+                  <Image
+                    src={file.uploadedUrl ?? (file.previewUrl as string)}
                     alt={file.file.name}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="64px"
                   />
                 </div>
+
                 <div className="flex-1">
                   <p className="text-gray-700">{file.file.name}</p>
                 </div>
@@ -294,7 +302,6 @@ export default function ImageUpload({ productId }: ImageUploadProps) {
         ))}
       </div>
 
-      {/* Modal de confirmación */}
       {fileToDelete && (
         <ModalConfirm
           isOpen={showConfirmModal}

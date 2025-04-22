@@ -11,77 +11,31 @@ import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { format } from 'date-fns';
-
-interface CouponDetails {
-  id: string;
-  code: string;
-  discount: number;
-  minPurchase: number;
-  maxUses: number;
-  expirationDate: string;
-}
+import { CouponResponse } from '@pharmatech/sdk/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CouponDetailsPage() {
   const params = useParams();
-  const id = params?.id && typeof params.id === 'string' ? params.id : '';
+  const code =
+    params?.code && typeof params.code === 'string' ? params.code : '';
+  const { token } = useAuth();
   const router = useRouter();
-  const [coupon, setCoupon] = useState<CouponDetails | null>(null);
+  const [coupon, setCoupon] = useState<CouponResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getToken = () => {
-    if (typeof window === 'undefined') return '';
-    return (
-      sessionStorage.getItem('pharmatechToken') ||
-      localStorage.getItem('pharmatechToken')
-    );
-  };
-
   useEffect(() => {
     const fetchCoupon = async () => {
-      const token = getToken();
-      if (!token || typeof id !== 'string') {
-        setIsLoading(false);
+      console.log('Fetching coupon with code:', code);
+      if (!token || typeof code !== 'string') {
+        toast.error('Error');
         return;
       }
 
       try {
         setIsLoading(true);
-
-        const allCoupons = await api.coupon.findAll(
-          { page: 1, limit: 100 },
-          token,
-        );
-
-        const foundCoupon = allCoupons.results.find((c) => c.id === id);
-
-        if (foundCoupon) {
-          setCoupon({
-            id: foundCoupon.id,
-            code: foundCoupon.code,
-            discount: foundCoupon.discount,
-            minPurchase: foundCoupon.minPurchase,
-            maxUses: foundCoupon.maxUses,
-            expirationDate: foundCoupon.expirationDate.toISOString(),
-          });
-        }
-
-        if (!foundCoupon) {
-          throw new Error('Cupón no encontrado');
-        }
-
-        if (typeof foundCoupon.expirationDate !== 'string') {
-          throw new Error('El formato de fecha no es válido');
-        }
-
-        setCoupon({
-          id: foundCoupon.id,
-          code: foundCoupon.code,
-          discount: foundCoupon.discount,
-          minPurchase: foundCoupon.minPurchase,
-          maxUses: foundCoupon.maxUses,
-          expirationDate: foundCoupon.expirationDate,
-        });
+        const response = await api.coupon.getByCode(code, token);
+        setCoupon(response);
       } catch (error) {
         console.error('Error al obtener el cupón:', error);
         toast.error('Error al cargar el cupón');
@@ -91,25 +45,22 @@ export default function CouponDetailsPage() {
     };
 
     fetchCoupon();
-  }, [id]);
+  }, [code, token]);
 
   const handleEdit = () => {
-    if (coupon && typeof id === 'string') {
-      router.push(`/coupons/${id}/edit`);
+    if (coupon) {
+      router.push(`/coupons/${code}/edit`);
     }
   };
 
   const handleDelete = async () => {
-    if (!coupon || typeof coupon.code !== 'string') return;
-
-    const token = getToken();
     if (!token) {
-      toast.error('Error de autenticación');
+      toast.error('Error');
       return;
     }
 
     try {
-      await api.coupon.delete(coupon.code, token);
+      await api.coupon.delete(code, token);
       toast.success('Cupón eliminado exitosamente');
       router.push('/coupons');
     } catch (error) {
@@ -120,13 +71,11 @@ export default function CouponDetailsPage() {
     }
   };
 
-  const handleCancelDelete = () => setShowDeleteModal(false);
-
-  const formatDate = (dateString: string) => {
+  const formatDate = (date: Date) => {
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
+      return format(date, 'dd/MM/yyyy');
     } catch {
-      return dateString;
+      return date.toString();
     }
   };
 
@@ -171,27 +120,9 @@ export default function CouponDetailsPage() {
               <Breadcrumb
                 items={[
                   { label: 'Cupones', href: '/coupons' },
-                  {
-                    label: `Cupón #${coupon.id.slice(0, 3)}`,
-                    href: '',
-                  },
+                  { label: `Cupón #${coupon.code}`, href: '' },
                 ]}
               />
-            </div>
-
-            <ModalConfirm
-              isOpen={showDeleteModal}
-              onClose={handleCancelDelete}
-              onConfirm={handleDelete}
-              title="Eliminar Cupón"
-              description="¿Deseas eliminar esta Cupón? Esta acción hará que el cupón deje de estar disponible para su selección en el sistema"
-              cancelText="Cancelar"
-              confirmText="Eliminar"
-              width="512px"
-              height="200px"
-            />
-
-            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="mb-6 flex items-center justify-between">
                 <h1 className="text-[28px] font-normal leading-none text-[#393938]">
                   Cupón #{coupon.id.slice(0, 3)}
@@ -224,39 +155,47 @@ export default function CouponDetailsPage() {
                   </Button>
                 </div>
               </div>
+            </div>
 
+            <ModalConfirm
+              isOpen={showDeleteModal}
+              onClose={() => setShowDeleteModal(false)}
+              onConfirm={handleDelete}
+              title="Eliminar Cupón"
+              description="¿Deseas eliminar este cupón? Esta acción hará que el cupón deje de estar disponible para su selección en el sistema."
+              cancelText="Cancelar"
+              confirmText="Eliminar"
+              width="512px"
+              height="200px"
+            />
+
+            <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
               <div className="space-y-6">
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Código del cupón
                   </label>
-                  <input
-                    className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                    value={coupon.code}
-                    readOnly
-                  />
+                  <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
+                    {coupon.code}
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Fecha de finalización
                   </label>
-                  <input
-                    className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                    value={formatDate(coupon.expirationDate)}
-                    readOnly
-                  />
+                  <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
+                    {formatDate(coupon.expirationDate)}
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-[16px] font-medium text-gray-600">
                     Usos máximos
                   </label>
-                  <input
-                    className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                    value={coupon.maxUses}
-                    readOnly
-                  />
+                  <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
+                    {coupon.maxUses}
+                  </p>
                 </div>
 
                 <div className="border-t pt-4">
@@ -268,22 +207,18 @@ export default function CouponDetailsPage() {
                       <label className="block text-[16px] font-medium text-gray-600">
                         Porcentaje de descuento
                       </label>
-                      <input
-                        className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                        value={`${coupon.discount}%`}
-                        readOnly
-                      />
+                      <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
+                        {`${coupon.discount}%`}
+                      </p>
                     </div>
 
                     <div>
                       <label className="block text-[16px] font-medium text-gray-600">
                         Compra mínima
                       </label>
-                      <input
-                        className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                        value={`$${coupon.minPurchase.toFixed(2)}`}
-                        readOnly
-                      />
+                      <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
+                        {`$${coupon.minPurchase.toFixed(2)}`}
+                      </p>
                     </div>
                   </div>
                 </div>
