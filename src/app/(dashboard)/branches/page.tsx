@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
@@ -42,16 +42,6 @@ export default function BranchesPage() {
 
   const { token, user, loading } = useAuth();
   const router = useRouter();
-  const tokenChecked = useRef(false);
-
-  useEffect(() => {
-    if (!loading && (!token || !user?.sub)) {
-      if (!tokenChecked.current) {
-        router.replace('/login');
-        tokenChecked.current = true;
-      }
-    }
-  }, [token, user, loading, router]);
 
   const fetchBranches = useCallback(
     async (page: number, limit: number) => {

@@ -43,10 +43,7 @@ export default function PromosPage() {
   useEffect(() => {
     const fetchPromos = async () => {
       try {
-        if (!token) {
-          router.push('/login');
-          return;
-        }
+        if (!token) return;
 
         const response = await api.promo.findAll(
           { page: currentPage, limit: itemsPerPage },

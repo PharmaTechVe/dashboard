@@ -32,10 +32,7 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        if (!token) {
-          router.push('/login');
-          return;
-        }
+        if (!token) return;
 
         const response = await api.order.findAll(
           {

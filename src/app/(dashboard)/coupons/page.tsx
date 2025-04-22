@@ -41,10 +41,7 @@ export default function CouponsPage() {
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
-        if (!token) {
-          router.push('/login');
-          return;
-        }
+        if (!token) return;
 
         const response = await api.coupon.findAll(
           { page: currentPage, limit: itemsPerPage },

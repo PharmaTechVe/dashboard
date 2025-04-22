@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import TableContainer from '@/components/TableContainer';
@@ -23,16 +23,6 @@ export default function PresentationListPage() {
 
   const { token, user, loading } = useAuth();
   const router = useRouter();
-  const tokenChecked = useRef(false);
-
-  useEffect(() => {
-    if (!loading && (!token || !user?.sub)) {
-      if (!tokenChecked.current) {
-        router.replace('/login');
-        tokenChecked.current = true;
-      }
-    }
-  }, [token, user, loading, router]);
 
   const fetchPresentations = useCallback(
     async (page: number, limit: number) => {

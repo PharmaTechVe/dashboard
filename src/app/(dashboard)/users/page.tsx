@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
@@ -44,7 +44,6 @@ const roleReverse: Record<string, string> = {
 export default function UsersPage() {
   const router = useRouter();
   const { token, user, loading } = useAuth();
-  const tokenChecked = useRef(false);
 
   const [users, setUsers] = useState<UserItem[]>([]);
   const roles = [
@@ -59,16 +58,6 @@ export default function UsersPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [loadingData, setLoadingData] = useState(true); // solo para datos
-
-  // 🔐 Protección de ruta segura
-  useEffect(() => {
-    if (!loading && (!token || !user?.sub)) {
-      if (!tokenChecked.current) {
-        router.replace('/login');
-        tokenChecked.current = true;
-      }
-    }
-  }, [token, user, loading, router]);
 
   const fetchUsers = useCallback(
     async (page: number, limit: number) => {
