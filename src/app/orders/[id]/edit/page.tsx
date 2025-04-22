@@ -10,11 +10,12 @@ import Dropdown from '@/components/Dropdown';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast, ToastContainer } from 'react-toastify';
-import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import {
   OrderStatus,
   OrderDeliveryStatus,
   OrderDetailedResponse,
+  UserList,
+  UserRole,
 } from '@pharmatech/sdk';
 
 export default function EditOrderStatusPage() {
@@ -26,6 +27,10 @@ export default function EditOrderStatusPage() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
+  const [deliveryUsers, setDeliveryUsers] = useState<UserList[]>([]);
+  const [selectedDeliveryUserId, setSelectedDeliveryUserId] = useState<
+    string | null
+  >(null);
   const [loading, setLoading] = useState(true);
 
   const getToken = useCallback(() => {
@@ -48,10 +53,9 @@ export default function EditOrderStatusPage() {
       const deliveryRes = await api.deliveryService.findAll(
         {
           page: 1,
-          limit: 1,
+          limit: 10,
           q: '',
           branchId: orderData.branch?.id,
-          status: undefined,
         },
         token,
       );
@@ -60,10 +64,19 @@ export default function EditOrderStatusPage() {
       if (delivery) {
         setDeliveryId(delivery.id);
         setDeliveryStatus(delivery.deliveryStatus);
+        if (delivery.employeeId) {
+          setSelectedDeliveryUserId(delivery.employeeId);
+        }
       }
+
+      const usersRes = await api.user.findAll(
+        { page: 1, limit: 100, role: UserRole.DELIVERY },
+        token,
+      );
+      setDeliveryUsers(usersRes.results);
     } catch (error) {
-      console.error('Error al cargar datos de la orden:', error);
-      toast.error('Error al cargar la orden o el delivery');
+      console.error('Error al cargar datos:', error);
+      toast.error('Error al cargar la orden o los datos del delivery');
     } finally {
       setLoading(false);
     }
@@ -79,13 +92,21 @@ export default function EditOrderStatusPage() {
 
     try {
       await api.order.update(id, { status: orderStatus }, token);
-
+      console.log('Orden actualizada:', id);
+      console.log('DeliveryId', selectedDeliveryUserId);
       if (deliveryId && deliveryStatus) {
-        await api.deliveryService.update(deliveryId, { deliveryStatus }, token);
+        await api.deliveryService.update(
+          deliveryId,
+          {
+            deliveryStatus,
+            employeeId: selectedDeliveryUserId ?? undefined,
+          },
+          token,
+        );
       }
 
       toast.success('Orden actualizada correctamente');
-      setTimeout(() => router.push('/orders'), REDIRECTION_TIMEOUT);
+      setTimeout(() => router.push('/orders'), 2000);
     } catch (error) {
       console.error('Error actualizando la orden:', error);
       toast.error('No se pudo actualizar la orden');
@@ -164,21 +185,37 @@ export default function EditOrderStatusPage() {
               />
 
               {deliveryId && (
-                <Dropdown
-                  title="Estado del Delivery"
-                  placeholder="Selecciona el estado del delivery"
-                  width="100%"
-                  selected={deliveryStatus}
-                  onChange={(value) =>
-                    setDeliveryStatus(value as OrderDeliveryStatus)
-                  }
-                  items={Object.values(OrderDeliveryStatus).map(
-                    (statusKey) => ({
-                      label: statusKey,
-                      value: statusKey,
-                    }),
-                  )}
-                />
+                <>
+                  <Dropdown
+                    title="Estado del Delivery"
+                    placeholder="Selecciona el estado del delivery"
+                    width="100%"
+                    selected={deliveryStatus}
+                    onChange={(value) =>
+                      setDeliveryStatus(value as OrderDeliveryStatus)
+                    }
+                    items={Object.values(OrderDeliveryStatus).map(
+                      (statusKey) => ({
+                        label: statusKey,
+                        value: statusKey,
+                      }),
+                    )}
+                  />
+
+                  <Dropdown
+                    title="Asignar Repartidor"
+                    placeholder="Selecciona un repartidor"
+                    width="100%"
+                    selected={selectedDeliveryUserId ?? ''}
+                    onChange={(value) =>
+                      setSelectedDeliveryUserId(value as string)
+                    }
+                    items={deliveryUsers.map((user) => ({
+                      label: user.id,
+                      value: user.id,
+                    }))}
+                  />
+                </>
               )}
             </div>
           </main>
