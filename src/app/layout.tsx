@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import theme from '../styles/styles';
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastContainer } from 'react-toastify';
 
 export const metadata: Metadata = {
   title: 'Pharmatech',
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="es" className={theme.poppins.variable}>
       <body className="m-0 min-h-screen p-0">
         <AuthProvider>{children}</AuthProvider>
+        <ToastContainer />
       </body>
     </html>
   );
