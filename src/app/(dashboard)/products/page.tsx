@@ -42,22 +42,19 @@ export default function GenericProductListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { token, user, loading } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const fetchProducts = useCallback(async (page: number, limit: number) => {
     try {
       const response = await api.genericProduct.findAll({ page, limit });
       setProducts(response.results);
-      setFilteredProducts(response.results); // Inicialmente, los datos filtrados son iguales a los originales
+      setFilteredProducts(response.results);
       setTotalItems(response.count);
     } catch (error) {
       console.error('Error fetching generic products:', error);
-    } finally {
-      setLoadingData(false);
     }
   }, []);
 
@@ -136,10 +133,6 @@ export default function GenericProductListPage() {
     setSearchQuery(query);
     setCurrentPage(1);
   };
-
-  if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando productos...</h1>;
-  }
 
   return (
     <div

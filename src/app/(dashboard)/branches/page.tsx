@@ -38,9 +38,8 @@ export default function BranchesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [loadingData, setLoadingData] = useState(true);
 
-  const { token, user, loading } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const fetchBranches = useCallback(
@@ -56,8 +55,6 @@ export default function BranchesPage() {
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error al obtener sucursales:', error);
-      } finally {
-        setLoadingData(false);
       }
     },
     [token],
@@ -118,10 +115,6 @@ export default function BranchesPage() {
   const handleEdit = (item: BranchItem) => {
     router.push(`/branches/${item.id}/edit`);
   };
-
-  if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando Sucursales..</h1>;
-  }
 
   return (
     <div className="mx-auto my-12 max-h-[616px] max-w-[949px]">

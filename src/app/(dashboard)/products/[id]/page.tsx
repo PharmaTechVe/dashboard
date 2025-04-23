@@ -30,7 +30,6 @@ export default function GenericProductDetailPage() {
   const [presentations, setPresentations] = useState<
     ProductPresentationResponse[]
   >([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
 
@@ -86,8 +85,6 @@ export default function GenericProductDetailPage() {
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Error fetching product details.');
-      } finally {
-        setLoading(false);
       }
     }
     if (id) fetchProduct();
@@ -136,7 +133,6 @@ export default function GenericProductDetailPage() {
     { label: product ? product.name : 'Producto', href: '' },
   ];
 
-  if (loading) return <p className="p-4 text-lg">Loading...</p>;
   if (error || !product)
     return <p className="p-4 text-lg">{error || 'Product not found.'}</p>;
 

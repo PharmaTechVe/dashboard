@@ -36,7 +36,6 @@ export default function EditProductPresentationPage() {
   const [promoId, setPromoId] = useState<string>('');
   const [selectedPromo, setSelectedPromo] = useState('');
   const [price, setPrice] = useState('');
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -63,8 +62,6 @@ export default function EditProductPresentationPage() {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Error cargando los datos de la presentación.');
-      } finally {
-        setLoading(false);
       }
     }
     fetchData();
@@ -118,7 +115,6 @@ export default function EditProductPresentationPage() {
     { label: 'Editar presentación', href: '' },
   ];
 
-  if (loading) return <p className="p-4 text-lg">Cargando presentación...</p>;
   if (error || !presentationData)
     return (
       <p className="p-4 text-lg">{error || 'Presentación no encontrada.'}</p>

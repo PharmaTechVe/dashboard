@@ -19,17 +19,14 @@ export default function PromoDetailsPage() {
   const router = useRouter();
   const [promo, setPromo] = useState<PromoResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPromo = async () => {
       if (!token || typeof id !== 'string') {
-        setIsLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true);
         const response = await api.promo.getById(id, token);
 
         if (
@@ -43,8 +40,6 @@ export default function PromoDetailsPage() {
       } catch (error) {
         console.error('Error al obtener la promoción:', error);
         toast.error('Error al cargar la promoción');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -86,10 +81,6 @@ export default function PromoDetailsPage() {
       return date.toString();
     }
   };
-
-  if (isLoading) {
-    return <p className="text-center text-[16px]">Cargando promoción...</p>;
-  }
 
   if (!promo) {
     return (

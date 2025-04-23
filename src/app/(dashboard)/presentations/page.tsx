@@ -18,10 +18,9 @@ export default function PresentationListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { token, user, loading } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const fetchPresentations = useCallback(
@@ -29,12 +28,10 @@ export default function PresentationListPage() {
       try {
         const response = await api.presentation.findAll({ page, limit });
         setPresentations(response.results);
-        setFilteredPresentations(response.results); // Inicialmente, los datos filtrados son iguales a los originales
+        setFilteredPresentations(response.results);
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error fetching presentations:', error);
-      } finally {
-        setLoadingData(false);
       }
     },
     [],
@@ -102,10 +99,6 @@ export default function PresentationListPage() {
     setSearchQuery(query);
     setCurrentPage(1);
   };
-
-  if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando presentaciones...</h1>;
-  }
 
   return (
     <div

@@ -17,10 +17,9 @@ export default function CategoriesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [loadingData, setLoadingData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { token, user, loading } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const fetchCategories = useCallback(
@@ -35,8 +34,6 @@ export default function CategoriesPage() {
       } catch (error) {
         console.error('Error al obtener categorías:', error);
         toast.error('Error al cargar las categorías');
-      } finally {
-        setLoadingData(false);
       }
     },
     [token],
@@ -95,10 +92,6 @@ export default function CategoriesPage() {
     setSearchQuery(query);
     setCurrentPage(1);
   };
-
-  if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando categorías...</h1>;
-  }
 
   return (
     <div

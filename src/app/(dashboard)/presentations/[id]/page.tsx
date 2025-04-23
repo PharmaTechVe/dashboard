@@ -19,7 +19,6 @@ export default function PresentationDetailPage() {
   const { token } = useAuth();
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -33,7 +32,6 @@ export default function PresentationDetailPage() {
         toast.error('Error al cargar la presentación');
         console.error(error);
       } finally {
-        setLoading(false);
       }
     }
 
@@ -62,7 +60,6 @@ export default function PresentationDetailPage() {
     { label: presentation?.name || 'Presentación', href: '' },
   ];
 
-  if (loading) return <p className="p-4 text-lg">Cargando presentación...</p>;
   if (!presentation)
     return <p className="p-4 text-lg">Presentación no encontrada</p>;
 

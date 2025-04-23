@@ -26,7 +26,6 @@ export default function ViewProductPresentationPage() {
   const { token } = useAuth();
   const [presentation, setPresentation] =
     useState<ProductPresentationResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
 
@@ -50,8 +49,6 @@ export default function ViewProductPresentationPage() {
       } catch (err) {
         console.error('Error fetching product presentation:', err);
         setError('Error cargando la presentación.');
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -90,7 +87,6 @@ export default function ViewProductPresentationPage() {
     { label: 'Ver presentación', href: '' },
   ];
 
-  if (loading) return <p className="p-4 text-lg">Cargando presentación...</p>;
   if (error || !presentation)
     return (
       <p className="p-4 text-lg">{error || 'Presentación no encontrada.'}</p>

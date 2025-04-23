@@ -20,7 +20,6 @@ export default function CouponDetailsPage() {
   const router = useRouter();
   const [coupon, setCoupon] = useState<CouponResponse | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCoupon = async () => {
@@ -31,14 +30,11 @@ export default function CouponDetailsPage() {
       }
 
       try {
-        setIsLoading(true);
         const response = await api.coupon.getByCode(code, token);
         setCoupon(response);
       } catch (error) {
         console.error('Error al obtener el cupón:', error);
         toast.error('Error al cargar el cupón');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -76,10 +72,6 @@ export default function CouponDetailsPage() {
       return date.toString();
     }
   };
-
-  if (isLoading) {
-    return <p className="text-center text-[16px]">Cargando cupón...</p>;
-  }
 
   if (!coupon) {
     return (

@@ -24,7 +24,6 @@ export default function ViewOrderStatusPage() {
   const [, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
-  const [loading, setLoading] = useState(true);
 
   const fetchOrderData = useCallback(async () => {
     if (!token || typeof id !== 'string') {
@@ -44,8 +43,6 @@ export default function ViewOrderStatusPage() {
     } catch (error) {
       console.error('Error al cargar datos de la orden:', error);
       toast.error('Error al cargar la orden o el delivery');
-    } finally {
-      setLoading(false);
     }
   }, [id, token]);
 
@@ -58,10 +55,6 @@ export default function ViewOrderStatusPage() {
     { label: 'Órdenes', href: '/orders' },
     { label: `Orden #${id.slice(0, 6)}`, href: '' },
   ];
-
-  if (loading) {
-    return <p className="text-center text-[16px]">Cargando orden...</p>;
-  }
 
   return (
     <>

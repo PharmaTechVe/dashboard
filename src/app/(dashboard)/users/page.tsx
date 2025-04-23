@@ -43,7 +43,7 @@ const roleReverse: Record<string, string> = {
 
 export default function UsersPage() {
   const router = useRouter();
-  const { token, user, loading } = useAuth();
+  const { token, user } = useAuth();
 
   const [users, setUsers] = useState<UserItem[]>([]);
   const roles = [
@@ -57,7 +57,6 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [loadingData, setLoadingData] = useState(true); // solo para datos
 
   const fetchUsers = useCallback(
     async (page: number, limit: number) => {
@@ -71,8 +70,6 @@ export default function UsersPage() {
         setTotalItems(response.count);
       } catch (error) {
         console.error('Error al obtener usuarios:', error);
-      } finally {
-        setLoadingData(false);
       }
     },
     [token],
@@ -145,11 +142,6 @@ export default function UsersPage() {
   const handleSearch = (query: string) => {
     console.log('Buscando usuario:', query);
   };
-
-  // ⏳ Esperamos sesión o datos
-  if (loading || !token || !user?.sub || loadingData) {
-    return <h1 className="p-4 text-lg">Cargando usuarios...</h1>;
-  }
 
   return (
     <div className="mx-auto my-12">

@@ -4,7 +4,8 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/SideBar';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, Suspense, useEffect, useRef } from 'react';
+import Loading from './loading';
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -30,7 +31,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex h-full flex-1 flex-col">
         <Navbar />
         <main className="flex-1 overflow-y-auto bg-[#F1F5FD] p-6 text-[#393938]">
-          {children}
+          <Suspense fallback={<Loading />}>{children}</Suspense>
         </main>
       </div>
     </div>

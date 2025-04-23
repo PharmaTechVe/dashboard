@@ -67,19 +67,16 @@ export default function UserDetailsPage() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState<UserList | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token } = useAuth();
 
   const fetchUser = useCallback(async () => {
     if (!token || typeof id !== 'string') {
       setError('Token no encontrado o ID inválido');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const userData: ApiUserResponse = await api.user.getProfile(id, token);
 
       const processedUser: UserList = {
@@ -106,8 +103,6 @@ export default function UserDetailsPage() {
       console.error('Error al cargar el usuario:', err);
       setError('No se pudo cargar la información del usuario');
       toast.error('No se pudo cargar la información del usuario');
-    } finally {
-      setLoading(false);
     }
   }, [id, token]);
 
@@ -175,11 +170,7 @@ export default function UserDetailsPage() {
         height="200px"
       />
 
-      {loading ? (
-        <p className="font-poppins text-[16px]">
-          Cargando datos del usuario...
-        </p>
-      ) : error ? (
+      {error ? (
         <p className="font-poppins text-[16px] text-red-500">{error}</p>
       ) : user ? (
         <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)]">
