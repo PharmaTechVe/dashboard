@@ -11,6 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '../../loading';
 
 enum UserRole {
   ADMIN = 'admin',
@@ -307,9 +308,7 @@ export default function UserDetailsPage() {
           </div>
         </div>
       ) : (
-        <p className="font-poppins text-[16px]">
-          No se encontró información del usuario.
-        </p>
+        <Loading />
       )}
     </>
   );

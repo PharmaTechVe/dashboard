@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { CouponResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '../../loading';
 
 export default function CouponDetailsPage() {
   const params = useParams();
@@ -74,11 +75,7 @@ export default function CouponDetailsPage() {
   };
 
   if (!coupon) {
-    return (
-      <p className="text-center text-[16px] text-red-500">
-        No se pudo cargar el cupón
-      </p>
-    );
+    return <Loading />;
   }
 
   return (

@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '../../loading';
 
 export default function PresentationDetailPage() {
   const params = useParams();
@@ -60,8 +61,7 @@ export default function PresentationDetailPage() {
     { label: presentation?.name || 'Presentación', href: '' },
   ];
 
-  if (!presentation)
-    return <p className="p-4 text-lg">Presentación no encontrada</p>;
+  if (!presentation) return <Loading />;
 
   return (
     <>

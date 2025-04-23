@@ -16,6 +16,7 @@ import {
   UserRole,
 } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '@/app/(dashboard)/loading';
 
 export default function EditOrderStatusPage() {
   const params = useParams();
@@ -110,7 +111,7 @@ export default function EditOrderStatusPage() {
   ];
 
   if (loading) {
-    return <p className="text-center text-[16px]">Cargando orden...</p>;
+    return <Loading />;
   }
 
   return (

@@ -16,6 +16,7 @@ import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { Column } from '@/components/Table';
 import TableContainer from '@/components/TableContainer';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '../../loading';
 
 type ProductPresentationItem = ProductPresentationResponse;
 export default function GenericProductDetailPage() {
@@ -133,8 +134,7 @@ export default function GenericProductDetailPage() {
     { label: product ? product.name : 'Producto', href: '' },
   ];
 
-  if (error || !product)
-    return <p className="p-4 text-lg">{error || 'Product not found.'}</p>;
+  if (error || !product) return <Loading />;
 
   return (
     <>

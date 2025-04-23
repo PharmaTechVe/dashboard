@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { PromoResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
+import Loading from '../../loading';
 
 export default function PromoDetailsPage() {
   const params = useParams();
@@ -83,11 +84,7 @@ export default function PromoDetailsPage() {
   };
 
   if (!promo) {
-    return (
-      <p className="text-center text-[16px] text-red-500">
-        No se pudo cargar la promoción
-      </p>
-    );
+    return <Loading />;
   }
 
   return (
