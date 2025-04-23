@@ -53,7 +53,7 @@ const Input: React.FC<InputProps> = ({
   iconColor = 'text-gray-500',
   iconPosition = 'left',
   helperText,
-  helperTextColor = 'text-gray-500',
+  helperTextColor = 'text-red-500',
   disabled = false,
   type = 'text',
   showPasswordToggle = false,
@@ -70,8 +70,8 @@ const Input: React.FC<InputProps> = ({
     setPasswordVisible(!passwordVisible);
   };
 
-  const hoverBorderColor = adjustColor(borderColor, 40);
-  const focusBorderColor = adjustColor(borderColor, -40);
+  const hoverBorderColor = adjustColor(borderColor, 20);
+  const focusBorderColor = adjustColor(borderColor, -20);
 
   return (
     <div className="flex w-full flex-col">

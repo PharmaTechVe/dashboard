@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import {
   Bars3BottomLeftIcon,
@@ -19,6 +20,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import '@/styles/globals.css';
 import theme from '@/styles/styles';
 import Avatar from '@/components/Avatar';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/sdkConfig';
 
 interface SubMenuItem {
   name: string;
@@ -36,13 +39,31 @@ interface MenuItem {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | undefined>();
+
   const router = useRouter();
   const pathname = usePathname();
+  const { user, token } = useAuth();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
     if (isOpen) setOpenSubmenu(null);
   };
+
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (!token || !user?.sub) return;
+
+      try {
+        const profile = await api.user.getProfile(user.sub, token);
+        setProfilePicture(profile.profile?.profilePicture || '');
+      } catch (err) {
+        console.error('Error al obtener la imagen de perfil:', err);
+      }
+    };
+
+    fetchProfilePicture();
+  }, [token, user]);
 
   const generalMenuItems: MenuItem[] = [
     {
@@ -56,6 +77,7 @@ const Sidebar = () => {
       route: '/inventory',
       subItems: [
         { name: 'Productos', route: '/products' },
+        { name: 'Presentaciones', route: '/presentations' },
         { name: 'Categorías', route: '/categories' },
       ],
     },
@@ -64,7 +86,7 @@ const Sidebar = () => {
       icon: <ChartBarIcon className="h-6 w-6" />,
       route: '/orders',
       subItems: [
-        { name: 'Listado', route: '/orders/list' },
+        { name: 'Listado', route: '/orders/' },
         { name: 'Reembolsos', route: '/orders/refunds' },
         { name: 'Asignación', route: '/orders/assign' },
       ],
@@ -73,6 +95,10 @@ const Sidebar = () => {
       name: 'Promos y cupones',
       icon: <TagIcon className="h-6 w-6" />,
       route: '/promos',
+      subItems: [
+        { name: 'Promos', route: '/promos' },
+        { name: 'Cupones', route: '/coupons' },
+      ],
     },
     {
       name: 'Sucursales',
@@ -211,20 +237,18 @@ const Sidebar = () => {
                   {isOpen && item.subItems && openSubmenu === item.name && (
                     <div className="ml-6 flex flex-col gap-2 transition-all duration-300 ease-out">
                       {item.subItems.map((sub, index) => {
-                        const subName = sub.name;
-                        const subRoute = sub.route;
-                        const isSubActive = pathname === subRoute;
+                        const isSubActive = pathname === sub.route;
                         return (
                           <div
-                            key={`${subName}-${index}`}
+                            key={`${sub.name}-${index}`}
                             className={`cursor-pointer rounded-md px-4 py-2 transition-all duration-300 ease-out ${
                               isSubActive
                                 ? 'bg-[#5E6780] text-white'
                                 : 'text-gray-400 hover:bg-[#5E6780] hover:text-white'
                             }`}
-                            onClick={() => handleNavigation(subRoute)}
+                            onClick={() => handleNavigation(sub.route)}
                           >
-                            {subName}
+                            {sub.name}
                           </div>
                         );
                       })}
@@ -236,6 +260,7 @@ const Sidebar = () => {
           </nav>
         </div>
 
+        {/* Reportes */}
         {isOpen && (
           <h2
             className="px-4 transition-all duration-300 ease-out"
@@ -248,7 +273,6 @@ const Sidebar = () => {
             Reportes y estadísticas
           </h2>
         )}
-
         <nav className="my-4 flex flex-col gap-2 px-4 transition-all duration-300 ease-out">
           {reportMenuItems.map((item) => {
             const isActive = pathname === item.route;
@@ -267,6 +291,7 @@ const Sidebar = () => {
           })}
         </nav>
 
+        {/* Otros */}
         {isOpen && (
           <h2
             className="px-4 transition-all duration-300 ease-out"
@@ -279,7 +304,6 @@ const Sidebar = () => {
             Otros
           </h2>
         )}
-
         <nav className="mt-4 flex flex-col gap-2 px-4 transition-all duration-300 ease-out">
           {otherMenuItems.map((item) => {
             const isActive = pathname === item.route;
@@ -299,20 +323,20 @@ const Sidebar = () => {
         </nav>
       </div>
 
+      {/* Footer Avatar */}
       <div className="mt-auto p-4 transition-all duration-300 ease-out">
-        {isOpen && (
+        {isOpen && user && (
           <div className="flex items-center gap-3">
-            <Avatar name="John Doe" size={48} withDropdown={false} />
-            <div
-              className="text-sm transition-all duration-300 ease-out"
-              style={{
-                color: theme.Colors.stroke,
-                fontSize: `${theme.FontSizes.b3.size}px`,
-                lineHeight: `${theme.FontSizes.b3.lineHeight}px`,
-              }}
-            >
-              <p className="font-bold">John Doe</p>
-              <p>user@pharmatech.com</p>
+            <Avatar
+              name={user.name}
+              imageUrl={profilePicture}
+              size={48}
+              withDropdown={true}
+              dropdownOptions={[{ label: 'Perfil', route: '/admin/profile' }]}
+            />
+            <div className="text-sm text-white">
+              <p className="font-bold">{user.name}</p>
+              <p>{user.email}</p>
             </div>
           </div>
         )}

@@ -24,7 +24,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   items,
   selected = null,
   width = '16rem',
-  height = 'auto',
+  height,
   onChange,
   onToggle,
 }) => {
@@ -66,10 +66,14 @@ const Dropdown: React.FC<DropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onToggle]);
 
+  // Anotamos explícitamente el objeto de estilos
+  const listStyle: React.CSSProperties =
+    items.length > 10 ? { maxHeight: '500px', overflowY: 'auto' } : {};
+
   return (
     <div
       ref={dropdownRef}
-      className="relative w-64"
+      className="relative"
       style={{
         width,
         height,
@@ -77,7 +81,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     >
       {title && (
         <label
-          className="mb-1 block text-sm font-medium"
+          className="mb-1 mt-1 block text-sm font-medium"
           style={{
             color: Colors.textLowContrast,
             fontSize: FontSizes.b1.size,
@@ -89,9 +93,10 @@ const Dropdown: React.FC<DropdownProps> = ({
 
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-md border border-gray-400 bg-white px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2"
+        className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-4 text-sm text-gray-800 focus:outline-none focus:ring-2"
         onClick={toggleDropdown}
         style={{
+          height: '42px',
           color: Colors.textLowContrast,
           fontSize: FontSizes.b1.size,
         }}
@@ -101,7 +106,10 @@ const Dropdown: React.FC<DropdownProps> = ({
       </button>
 
       {isOpen && (
-        <ul className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
+        <ul
+          className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
+          style={listStyle}
+        >
           {items.map((item, index) => (
             <li
               key={typeof item === 'string' ? index : item.value}

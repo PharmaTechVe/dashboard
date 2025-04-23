@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Button from './Button';
 import Input from './Input/Input';
 import {
@@ -18,6 +18,8 @@ export default function DatePicker1({ onDateSelect }: DatePicker1Props) {
   );
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
@@ -66,8 +68,27 @@ export default function DatePicker1({ onDateSelect }: DatePicker1Props) {
   const handleDone = () => {
     setIsCalendarOpen(false);
   };
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMonth = Number(event.target.value);
+    setCurrentDate(new Date(year, newMonth, 1));
+  };
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsCalendarOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <div onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
         <Input
           type="text"
@@ -91,13 +112,23 @@ export default function DatePicker1({ onDateSelect }: DatePicker1Props) {
               <ChevronLeftIcon className="h-6 w-6 text-gray-600" />
             </button>
             <div className="flex items-center space-x-4">
-              <span className="text-xl font-medium">{MONTH_NAMES[month]}</span>
+              <select
+                value={month}
+                onChange={handleMonthChange}
+                className="appearance-none bg-transparent text-center text-lg font-medium md:appearance-none"
+              >
+                {MONTH_NAMES.map((m, index) => (
+                  <option key={index} value={index}>
+                    {m}
+                  </option>
+                ))}
+              </select>
               <input
                 type="number"
                 value={yearInput}
                 onChange={handleYearChange}
                 className="w-16 appearance-auto bg-transparent text-center text-lg font-medium outline-none md:appearance-auto"
-                min="0"
+                min="1900"
                 max="3000"
               />
             </div>
