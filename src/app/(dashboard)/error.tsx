@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Colors, FontSizes } from '@/styles/styles';
+import Button from '@/components/Button';
 
 export default function Error() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function Error() {
 
   return (
     <div
-      className="flex h-screen flex-col items-center justify-center"
+      className="flex h-screen flex-col items-center justify-center gap-5 text-center"
       style={{ backgroundColor: '#F1F5FD' }}
     >
       <h1
@@ -34,16 +35,9 @@ export default function Error() {
       >
         No pudimos cargar la página. Por favor, inténtalo de nuevo.
       </p>
-      <button
-        onClick={handleRetry}
-        className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        style={{
-          backgroundColor: Colors.primary,
-          fontSize: FontSizes.b1.size,
-        }}
-      >
+      <Button onClick={handleRetry} className="max-w-[200px]">
         Reintentar
-      </button>
+      </Button>
     </div>
   );
 }
