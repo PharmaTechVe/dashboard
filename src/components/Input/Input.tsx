@@ -21,6 +21,7 @@ interface InputProps {
   showPasswordToggleIconColor?: string;
   borderSize?: string;
   borderColor?: string;
+  readViewOnly?: boolean;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -60,11 +61,39 @@ const Input: React.FC<InputProps> = ({
   showPasswordToggleIconColor = 'text-gray-500',
   borderSize = '2px',
   borderColor = '#000000',
+  readViewOnly = false,
   onChange,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+
+  if (readViewOnly) {
+    return (
+      <div className="flex w-full flex-col">
+        {label && (
+          <label
+            className="mb-1 font-medium"
+            style={{
+              color: theme.Colors.textLowContrast,
+              fontSize: theme.FontSizes.b1.size,
+            }}
+          >
+            {label}
+          </label>
+        )}
+
+        <div
+          className="text-gray-750 w-full rounded-md bg-gray-200 px-3 py-2"
+          style={{
+            fontSize: theme.FontSizes.b1.size,
+          }}
+        >
+          {value || placeholder}
+        </div>
+      </div>
+    );
+  }
 
   const handleToggleVisibility = () => {
     setPasswordVisible(!passwordVisible);
