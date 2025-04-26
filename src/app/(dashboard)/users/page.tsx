@@ -7,20 +7,20 @@ import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
-import { Pagination, UserList } from '@pharmatech/sdk';
+import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
 
-const roleTranslations: Record<string, string> = {
-  admin: 'Administrador',
-  branch_admin: 'Administrador de Sucursal',
-  customer: 'Cliente',
-  delivery: 'Repartidor',
+const roleTranslations: Record<UserRole, string> = {
+  [UserRole.ADMIN]: 'Administrador',
+  [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
+  [UserRole.CUSTOMER]: 'Cliente',
+  [UserRole.DELIVERY]: 'Repartidor',
 };
 
-const roleReverse: Record<string, string> = {
-  Administrador: 'admin',
-  'Administrador de Sucursal': 'branch_admin',
-  Cliente: 'customer',
-  Repartidor: 'delivery',
+const roleReverse: Record<string, UserRole> = {
+  Administrador: UserRole.ADMIN,
+  'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
+  Cliente: UserRole.CUSTOMER,
+  Repartidor: UserRole.DELIVERY,
 };
 
 export default function UsersPage() {
@@ -88,7 +88,7 @@ export default function UsersPage() {
     {
       key: 'role',
       label: 'Rol',
-      render: (item) => roleTranslations[item.role] || item.role,
+      render: (item) => roleTranslations[item.role as UserRole] || item.role,
     },
     {
       key: 'isValidated',
