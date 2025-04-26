@@ -12,36 +12,25 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import { StateResponse, CityResponse, BranchResponse } from '@pharmatech/sdk';
 
-interface StateItem {
-  id: string;
-  name: string;
-}
-
-interface CityItem {
-  id: string;
-  name: string;
-}
+/// This is a constant that represents the ID of Venezuela.
+const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
 export default function EditBranchPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const { token } = useAuth();
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const router = useRouter();
 
-  const [states, setStates] = useState<StateItem[]>([]);
-  const [cities, setCities] = useState<CityItem[]>([]);
+  const [branch, setBranch] = useState<BranchResponse | null>(null);
+  const [states, setStates] = useState<StateResponse[]>([]);
+  const [cities, setCities] = useState<CityResponse[]>([]);
 
   const [selectedStateName, setSelectedStateName] = useState('');
   const [selectedCityName, setSelectedCityName] = useState('');
   const [stateId, setStateId] = useState('');
   const [cityId, setCityId] = useState('');
-
-  const router = useRouter();
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fetchStates = useCallback(async () => {
@@ -53,7 +42,7 @@ export default function EditBranchPage() {
     const response = await api.state.findAll({
       page: 1,
       limit: 24,
-      countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
+      countryId: COUNTRY_ID,
     });
     setStates(response.results);
   }, [token, id]);
@@ -81,14 +70,10 @@ export default function EditBranchPage() {
     }
 
     try {
-      const branch = await api.branch.getById(id, token);
-      setName(branch.name);
-      setAddress(branch.address);
-      setLatitude(String(branch.latitude));
-      setLongitude(String(branch.longitude));
-
-      setSelectedStateName(branch.city.state.name);
-      setSelectedCityName(branch.city.name);
+      const fetchedBranch = await api.branch.getById(id, token);
+      setBranch(fetchedBranch);
+      setSelectedStateName(fetchedBranch.city.state.name);
+      setSelectedCityName(fetchedBranch.city.name);
     } catch (error) {
       console.error('Error al cargar la sucursal:', error);
     }
@@ -115,11 +100,13 @@ export default function EditBranchPage() {
   }, [selectedCityName, cities]);
 
   const handleSubmit = async () => {
+    if (!branch) return;
+
     const result = newBranchSchema.safeParse({
-      name,
-      address,
-      latitude,
-      longitude,
+      name: branch.name,
+      address: branch.address,
+      latitude: branch.latitude,
+      longitude: branch.longitude,
       stateId,
       cityId,
     });
@@ -143,10 +130,10 @@ export default function EditBranchPage() {
         return;
       }
       const payload = {
-        name,
-        address,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        name: branch.name,
+        address: branch.address,
+        latitude: parseFloat(String(branch.latitude)),
+        longitude: parseFloat(String(branch.longitude)),
         cityId,
       };
 
@@ -159,6 +146,13 @@ export default function EditBranchPage() {
       console.error('Error al actualizar la sucursal:', error);
       toast.error('Ocurrió un error al actualizar la sucursal');
     }
+  };
+
+  const handleChange = (
+    field: keyof BranchResponse,
+    value: string | number,
+  ) => {
+    setBranch((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   return (
@@ -174,6 +168,7 @@ export default function EditBranchPage() {
           ]}
         />
       </div>
+      {/* revisar width y height */}
 
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
@@ -201,8 +196,8 @@ export default function EditBranchPage() {
           <input
             className="mt-1 w-[808px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
             placeholder="Nombre de la sucursal"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={branch?.name || ''}
+            onChange={(e) => handleChange('name', e.target.value)}
           />
           {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
         </div>
@@ -241,8 +236,8 @@ export default function EditBranchPage() {
           <input
             className="mt-1 w-[808px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
             placeholder="Dirección"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            value={branch?.address}
+            onChange={(e) => handleChange('address', e.target.value)}
           />
           {errors.address && (
             <p className="text-sm text-red-500">{errors.address}</p>
@@ -257,8 +252,8 @@ export default function EditBranchPage() {
             <input
               className="mt-1 w-[249px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
               placeholder="Latitud"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
+              value={branch?.latitude}
+              onChange={(e) => handleChange('latitude', e.target.value)}
             />
             {errors.latitude && (
               <p className="text-sm text-red-500">{errors.latitude}</p>
@@ -271,8 +266,8 @@ export default function EditBranchPage() {
             <input
               className="mt-1 w-[249px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
               placeholder="Longitud"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
+              value={branch?.longitude || ''}
+              onChange={(e) => handleChange('longitude', e.target.value)}
             />
             {errors.longitude && (
               <p className="text-sm text-red-500">{errors.longitude}</p>
