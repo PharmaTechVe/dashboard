@@ -12,54 +12,13 @@ import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
-
-enum UserRole {
-  ADMIN = 'admin',
-  BRANCH_ADMIN = 'branch_admin',
-  CUSTOMER = 'customer',
-  DELIVERY = 'delivery',
-}
+import { UserList, UserRole } from '@pharmatech/sdk';
 
 const roleLabels = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
   [UserRole.DELIVERY]: 'Repartidor',
-};
-
-type ApiUserResponse = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  documentId: string;
-  phoneNumber: string;
-  role: string;
-  isValidated: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  lastOrderDate: Date | null;
-  profile: {
-    birthDate?: Date | string;
-    gender?: string;
-    profilePicture?: string;
-  };
-};
-
-type UserList = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  documentId: string;
-  phoneNumber: string;
-  role: string;
-  profile: {
-    birthDate?: Date | string;
-    gender?: 'm' | 'f';
-    profilePicture?: string;
-  };
 };
 
 export default function UserDetailsPage() {
@@ -78,27 +37,8 @@ export default function UserDetailsPage() {
     }
 
     try {
-      const userData: ApiUserResponse = await api.user.getProfile(id, token);
-
-      const processedUser: UserList = {
-        id: userData.id,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        documentId: userData.documentId,
-        phoneNumber: userData.phoneNumber,
-        role: userData.role,
-        profile: {
-          birthDate: userData.profile?.birthDate,
-          gender:
-            userData.profile?.gender === 'm' || userData.profile?.gender === 'f'
-              ? userData.profile.gender
-              : undefined,
-          profilePicture: userData.profile?.profilePicture,
-        },
-      };
-
-      setUser(processedUser);
+      const userData = await api.user.getProfile(id, token);
+      setUser(userData);
       setError(null);
     } catch (err) {
       console.error('Error al cargar el usuario:', err);
