@@ -11,60 +11,23 @@ export function useCsvUploader(storageKey: string = 'csv-inventory') {
   const [fileName, setFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const validateAndFormatCsv = (
-    rawData: Record<string, unknown>[],
-  ): CsvRow[] => {
-    const validated: CsvRow[] = [];
+  const formatCsv = (rawData: Record<string, unknown>[]): CsvRow[] => {
+    return rawData.map((row) => {
+      const formattedRow: CsvRow = {};
 
-    for (const row of rawData) {
-      // Intentamos extraer los campos requeridos
-      const productPresentationId =
-        typeof row.productPresentationId === 'string'
-          ? row.productPresentationId.trim()
-          : '';
-      const branchId =
-        typeof row.branchId === 'string' ? row.branchId.trim() : '';
-      const branchName =
-        typeof row.branchName === 'string' ? row.branchName.trim() : '';
-      const stockQuantityRaw = row.stockQuantity;
-
-      // Validar que los campos requeridos existan
-      if (
-        !productPresentationId ||
-        !branchId ||
-        !branchName ||
-        stockQuantityRaw === undefined ||
-        stockQuantityRaw === null
-      ) {
-        console.error(
-          'Fila inválida encontrada (faltan campos requeridos):',
-          row,
-        );
-        continue; // Saltamos esta fila
+      for (const key in row) {
+        const value = row[key];
+        if (typeof value === 'string') {
+          formattedRow[key] = value.trim();
+        } else if (typeof value === 'number') {
+          formattedRow[key] = value;
+        } else if (value !== undefined && value !== null) {
+          formattedRow[key] = String(value).trim();
+        }
       }
 
-      // Convertir stockQuantity a número
-      const stockQuantity =
-        typeof stockQuantityRaw === 'number'
-          ? stockQuantityRaw
-          : Number(stockQuantityRaw);
-
-      if (isNaN(stockQuantity)) {
-        console.error('Stock quantity no es un número válido:', row);
-        continue; // Saltamos esta fila
-      }
-
-      // Guardamos toda la fila, manteniendo campos extra si existen
-      validated.push({
-        ...row,
-        productPresentationId,
-        branchId,
-        branchName,
-        stockQuantity,
-      });
-    }
-
-    return validated;
+      return formattedRow;
+    });
   };
 
   const loadStoredCsv = useCallback(async () => {
@@ -72,8 +35,8 @@ export function useCsvUploader(storageKey: string = 'csv-inventory') {
     try {
       const stored = await getCsvData(storageKey);
       if (stored) {
-        const validated = validateAndFormatCsv(stored.data);
-        setCsvData(validated);
+        const formatted = formatCsv(stored.data);
+        setCsvData(formatted);
         setFileName(stored.fileName);
       }
     } catch (error) {
@@ -90,17 +53,17 @@ export function useCsvUploader(storageKey: string = 'csv-inventory') {
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
-        quoteChar: '"', // <- para corregir el problema de las comillas dobles
-        dynamicTyping: true, // <- convierte números automáticamente
+        quoteChar: '"',
+        dynamicTyping: true,
         complete: async (result) => {
           try {
             const rawData = result.data as Record<string, unknown>[];
-            const validated = validateAndFormatCsv(rawData);
-            setCsvData(validated);
+            const formatted = formatCsv(rawData);
+            setCsvData(formatted);
             setFileName(file.name);
             await saveCsvData(storageKey, {
               fileName: file.name,
-              data: validated,
+              data: formatted,
             });
           } catch (error) {
             console.error('Error procesando el CSV:', error);
