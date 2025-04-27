@@ -11,6 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/Input/Input';
 
 export default function CategoryDetailsPage() {
   const params = useParams();
@@ -87,7 +88,10 @@ export default function CategoryDetailsPage() {
           ]}
         />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Categoría #{category?.id?.slice(0, 3) || 'N/A'}
           </h1>
           <div className="flex gap-6">
@@ -120,7 +124,6 @@ export default function CategoryDetailsPage() {
         </div>
       </div>
 
-      {}
       <ModalConfirm
         isOpen={showDeleteModal}
         onClose={handleCancelDelete}
@@ -135,14 +138,7 @@ export default function CategoryDetailsPage() {
 
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Nombre
-          </label>
-          <input
-            className="mt-1 w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-            value={category?.name || ''}
-            readOnly
-          />
+          <Input label="Nombre" value={category?.name || ''} readViewOnly />
         </div>
 
         <div>
