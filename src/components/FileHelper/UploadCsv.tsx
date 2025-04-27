@@ -44,30 +44,42 @@ export default function CsvUploader() {
           </button>
         </div>
       )}
+
       {csvData.length > 0 && (
-        <div className="mt-6 w-full overflow-auto">
-          <table className="min-w-full border text-sm">
-            <thead>
-              <tr>
-                {Object.keys(csvData[0]).map((key) => (
-                  <th key={key} className="border bg-gray-100 px-2 py-1">
-                    {key}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {csvData.map((row, index) => (
-                <tr key={index}>
-                  {Object.values(row).map((value, i) => (
-                    <td key={i} className="border px-2 py-1">
-                      {String(value)}
-                    </td>
+        <div className="mt-6 flex w-full flex-col gap-6">
+          {/* Tabla */}
+          <div className="overflow-auto">
+            <table className="min-w-full border text-sm">
+              <thead>
+                <tr>
+                  {Object.keys(csvData[0]).map((key) => (
+                    <th key={key} className="border bg-gray-100 px-2 py-1">
+                      {key}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {csvData.map((row, index) => (
+                  <tr key={index}>
+                    {Object.values(row).map((value, i) => (
+                      <td key={i} className="border px-2 py-1">
+                        {String(value)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* JSON */}
+          <div className="w-full rounded bg-gray-100 p-4 text-sm">
+            <h3 className="mb-2 text-base font-semibold">JSON Parseado</h3>
+            <pre className="overflow-x-auto">
+              {JSON.stringify(csvData, null, 2)}
+            </pre>
+          </div>
         </div>
       )}
     </div>
