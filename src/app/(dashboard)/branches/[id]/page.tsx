@@ -10,6 +10,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/Input/Input';
 
 interface BranchItem {
   id: string;
@@ -104,7 +105,10 @@ export default function BranchDetailsPage() {
       {branch ? (
         <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+            <h1
+              className="text-[28px] font-normal leading-none"
+              style={{ color: Colors.textMain }}
+            >
               Sucursal #{branch.id.slice(0, 3)}
             </h1>
             <div className="flex gap-6">
@@ -137,69 +141,39 @@ export default function BranchDetailsPage() {
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Nombre
-            </label>
-            <input
-              className="mt-1 w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-              value={branch.name}
-              readOnly
-            />
+            <Input label="Nombre" value={branch.name} readViewOnly />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Estado
-              </label>
-              <input
-                className="mt-1 w-[375px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+              <Input
+                label="Estado"
                 value={branch.city.state.name}
-                readOnly
+                readViewOnly
               />
             </div>
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Ciudad
-              </label>
-              <input
-                className="mt-1 w-[375px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-                value={branch.city.name}
-                readOnly
-              />
+              <Input label="Ciudad" value={branch.city.name} readViewOnly />
             </div>
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Dirección
-            </label>
-            <input
-              className="mt-1 w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-              value={branch.address}
-              readOnly
-            />
+            <Input label="Dirección" value={branch.address} readViewOnly />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Latitud
-              </label>
-              <input
-                className="mt-1 w-[249px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-                value={branch.latitude}
-                readOnly
+              <Input
+                label="Latitud"
+                value={String(branch.latitude)}
+                readViewOnly
               />
             </div>
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Longitud
-              </label>
-              <input
-                className="mt-1 w-[249px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-                value={branch.longitude}
-                readOnly
+              <Input
+                label="Longitud"
+                value={String(branch.longitude)}
+                readViewOnly
               />
             </div>
           </div>
