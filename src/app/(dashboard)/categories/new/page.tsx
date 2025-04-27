@@ -69,7 +69,10 @@ export default function NewCategoryPage() {
 
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Nueva Categoría
           </h1>
           <div className="flex gap-6">
@@ -112,8 +115,9 @@ export default function NewCategoryPage() {
               setErrors({ ...errors, name: '' });
             }}
             helperText={errors.name}
-            helperTextColor="text-red-500"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
+            borderSize="1px"
           />
 
           <Input
@@ -125,9 +129,10 @@ export default function NewCategoryPage() {
               setErrors({ ...errors, description: '' });
             }}
             helperText={errors.description}
-            helperTextColor="text-red-500"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
             type="text"
+            borderSize="1px"
           />
         </form>
       </div>
