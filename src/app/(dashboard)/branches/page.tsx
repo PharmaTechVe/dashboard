@@ -7,33 +7,13 @@ import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { BranchResponse, StateResponse } from '@pharmatech/sdk';
 
-interface BranchItem {
-  id: string;
-  name: string;
-  address: string;
-  city: {
-    id: string;
-    name: string;
-  };
-  latitude: number;
-  longitude: number;
-}
-
-interface BranchResponse {
-  results: BranchItem[];
-  count: number;
-  next: string | null;
-  previous: string | null;
-}
-
-interface StateItem {
-  id: string;
-  name: string;
-}
+/// This is a constant that represents the ID of Venezuela.
+const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
 export default function BranchesPage() {
-  const [branches, setBranches] = useState<BranchItem[]>([]);
+  const [branches, setBranches] = useState<BranchResponse[]>([]);
   const [states, setStates] = useState<string[]>(['Todos']);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -47,10 +27,7 @@ export default function BranchesPage() {
       try {
         if (!token) return;
 
-        const response: BranchResponse = await api.branch.findAll({
-          page,
-          limit,
-        });
+        const response = await api.branch.findAll({ page, limit });
         setBranches(response.results);
         setTotalItems(response.count);
       } catch (error) {
@@ -67,10 +44,11 @@ export default function BranchesPage() {
       const response = await api.state.findAll({
         page: 1,
         limit: 24,
-        countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
+        countryId: COUNTRY_ID,
       });
 
-      const stateNames = response.results.map((state: StateItem) => state.name);
+      const statesList = response.results as StateResponse[];
+      const stateNames = statesList.map((state) => state.name);
       setStates(['Todos', ...stateNames]);
     } catch (error) {
       console.error('Error al obtener estados:', error);
@@ -86,7 +64,7 @@ export default function BranchesPage() {
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<BranchItem>[] = [
+  const columns: Column<BranchResponse>[] = [
     {
       key: 'name',
       label: 'Nombre',
@@ -108,16 +86,16 @@ export default function BranchesPage() {
     router.push('/branches/new');
   };
 
-  const handleView = (item: BranchItem) => {
+  const handleView = (item: BranchResponse) => {
     router.push(`/branches/${item.id}`);
   };
 
-  const handleEdit = (item: BranchItem) => {
+  const handleEdit = (item: BranchResponse) => {
     router.push(`/branches/${item.id}/edit`);
   };
 
   return (
-    <div className="mx-auto my-12 max-h-[616px] max-w-[949px]">
+    <div className="mx-auto my-12">
       <div className="[&>ul]:max-h-60 [&>ul]:overflow-y-auto">
         <TableContainer
           title="Sucursales"
