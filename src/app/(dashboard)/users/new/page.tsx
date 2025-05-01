@@ -10,21 +10,9 @@ import RadioButton from '@/components/RadioButton';
 import { Colors } from '@/styles/styles';
 import { toast } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
-
 import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
-
-enum UserGender {
-  MALE = 'm',
-  FEMALE = 'f',
-}
-
-enum UserRole {
-  ADMIN = 'admin',
-  BRANCH_ADMIN = 'branch_admin',
-  CUSTOMER = 'customer',
-  DELIVERY = 'delivery',
-}
+import { UserGender, UserRole } from '@pharmatech/sdk';
 
 // Mapeo para mostrar etiquetas en el dropdown y obtener el valor que espera la API
 const roleMapping: Record<string, UserRole> = {

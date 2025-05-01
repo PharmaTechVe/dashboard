@@ -7,45 +7,27 @@ import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
+import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
 
-interface UserItem {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  documentId: string;
-  phoneNumber: string;
-  lastOrderDate: Date;
-  role: string;
-  isValidated: boolean;
-}
-
-interface UserResponse {
-  results: UserItem[];
-  count: number;
-  next: string | null;
-  previous: string | null;
-}
-
-const roleTranslations: Record<string, string> = {
-  admin: 'Administrador',
-  branch_admin: 'Administrador de Sucursal',
-  customer: 'Cliente',
-  delivery: 'Repartidor',
+const roleTranslations: Record<UserRole, string> = {
+  [UserRole.ADMIN]: 'Administrador',
+  [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
+  [UserRole.CUSTOMER]: 'Cliente',
+  [UserRole.DELIVERY]: 'Repartidor',
 };
 
-const roleReverse: Record<string, string> = {
-  Administrador: 'admin',
-  'Administrador de Sucursal': 'branch_admin',
-  Cliente: 'customer',
-  Repartidor: 'delivery',
+const roleReverse: Record<string, UserRole> = {
+  Administrador: UserRole.ADMIN,
+  'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
+  Cliente: UserRole.CUSTOMER,
+  Repartidor: UserRole.DELIVERY,
 };
 
 export default function UsersPage() {
   const router = useRouter();
   const { token, user } = useAuth();
 
-  const [users, setUsers] = useState<UserItem[]>([]);
+  const [users, setUsers] = useState<UserList[]>([]);
   const roles = [
     'Todos',
     'Administrador',
@@ -62,7 +44,7 @@ export default function UsersPage() {
     async (page: number, limit: number) => {
       try {
         if (!token) return;
-        const response: UserResponse = await api.user.findAll(
+        const response: Pagination<UserList> = await api.user.findAll(
           { page, limit },
           token,
         );
@@ -87,7 +69,7 @@ export default function UsersPage() {
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<UserItem>[] = [
+  const columns: Column<UserList>[] = [
     {
       key: 'firstName',
       label: 'Nombre',
@@ -106,7 +88,7 @@ export default function UsersPage() {
     {
       key: 'role',
       label: 'Rol',
-      render: (item) => roleTranslations[item.role] || item.role,
+      render: (item) => roleTranslations[item.role as UserRole] || item.role,
     },
     {
       key: 'isValidated',
@@ -127,11 +109,11 @@ export default function UsersPage() {
     router.push('/users/new');
   };
 
-  const handleView = (item: UserItem) => {
+  const handleView = (item: UserList) => {
     router.push(`/users/${item.id}`);
   };
 
-  const handleEdit = (item: UserItem) => {
+  const handleEdit = (item: UserList) => {
     router.push(`/users/${item.id}/edit`);
   };
 
