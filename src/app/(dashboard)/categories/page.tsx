@@ -1,39 +1,48 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import TableContainer from '@/components/TableContainer';
-import { Column } from '@/components/Table';
-import { CategoryResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
-import { toast } from 'react-toastify';
+import { useAuth } from '@/context/AuthContext';
+import { Pagination, CategoryResponse } from '@pharmatech/sdk';
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<
-    CategoryResponse[]
-  >([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const { token, user } = useAuth();
   const router = useRouter();
+  const { token, user } = useAuth();
+
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const handleSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
+    }, DEBOUNCE_MS);
+  };
 
   const fetchCategories = useCallback(
-    async (page: number, limit: number) => {
+    async (page: number, limit: number, q: string) => {
+      if (!token) return;
       try {
-        if (!token) return;
-
-        const response = await api.category.findAll({ page, limit });
+        const params: Parameters<typeof api.category.findAll>[0] = {
+          page,
+          limit,
+          ...(q ? { q } : {}),
+        };
+        const response: Pagination<CategoryResponse> =
+          await api.category.findAll(params);
         setCategories(response.results);
-        setFilteredCategories(response.results);
         setTotalItems(response.count);
       } catch (error) {
-        console.error('Error al obtener categorías:', error);
-        toast.error('Error al cargar las categorías');
+        console.error('Error fetching categories:', error);
       }
     },
     [token],
@@ -41,57 +50,22 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     if (!token || !user?.sub) return;
-    fetchCategories(currentPage, itemsPerPage);
-  }, [fetchCategories, currentPage, itemsPerPage, token, user]);
-
-  useEffect(() => {
-    const filtered = searchQuery
-      ? categories.filter(
-          (category) =>
-            category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            category.description
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
-        )
-      : categories;
-
-    setFilteredCategories(filtered);
-  }, [searchQuery, categories]);
+    fetchCategories(currentPage, itemsPerPage, searchQuery);
+  }, [fetchCategories, currentPage, itemsPerPage, searchQuery, token, user]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<CategoryResponse>[] = [
-    {
-      key: 'name',
-      label: 'Nombre',
-      render: (item: CategoryResponse) => item.name,
-    },
+  const columns = [
+    { key: 'name', label: 'Nombre', render: (c: CategoryResponse) => c.name },
     {
       key: 'description',
       label: 'Descripción',
-      render: (item: CategoryResponse) =>
-        item.description.length > 50
-          ? `${item.description.substring(0, 50)}...`
-          : item.description,
+      render: (c: CategoryResponse) =>
+        c.description.length > 50
+          ? `${c.description.slice(0, 50)}...`
+          : c.description,
     },
   ];
-
-  const handleAddCategory = () => {
-    router.push('/categories/new');
-  };
-
-  const handleViewCategory = (item: CategoryResponse) => {
-    router.push(`/categories/${item.id}`);
-  };
-
-  const handleEditCategory = (item: CategoryResponse) => {
-    router.push(`/categories/${item.id}/edit`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
 
   return (
     <div
@@ -100,19 +74,19 @@ export default function CategoriesPage() {
     >
       <TableContainer
         title="Categorías"
-        tableData={filteredCategories} // Usa los datos filtrados
+        onSearch={handleSearch}
+        addButtonText="Agregar Categoría"
+        onAddClick={() => router.push('/categories/new')}
+        tableData={categories}
         tableColumns={columns}
-        onAddClick={handleAddCategory}
-        onEdit={handleEditCategory}
-        onView={handleViewCategory}
-        addButtonText="Agregar Categoria"
-        onSearch={handleSearch} // Añadida la función de búsqueda
+        onView={(c) => router.push(`/categories/${c.id}`)}
+        onEdit={(c) => router.push(`/categories/${c.id}/edit`)}
         pagination={{
           currentPage,
           totalPages,
           totalItems,
           itemsPerPage,
-          onPageChange: (page) => setCurrentPage(page),
+          onPageChange: setCurrentPage,
           onItemsPerPageChange: (val) => {
             setItemsPerPage(val);
             setCurrentPage(1);

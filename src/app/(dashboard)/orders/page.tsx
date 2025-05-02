@@ -1,138 +1,103 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
-import { toast } from 'react-toastify';
-import { OrderResponse } from '@pharmatech/sdk/types';
 import { api } from '@/lib/sdkConfig';
-import Badge from '@/components/Badge';
+import { OrderResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
+import Badge from '@/components/Badge';
+import { toast } from 'react-toastify';
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<OrderResponse[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const router = useRouter();
   const { token } = useAuth();
+  const router = useRouter();
 
-  const formatDate = (input: Date | string): string => {
-    const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toLocaleDateString('es-ES', {
+  const [data, setData] = useState<OrderResponse[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const formatDate = (input: string | Date) =>
+    new Date(input).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
+
+  const onSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setQuery(q.trim());
+      setPage(1);
+    }, DEBOUNCE_MS);
   };
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        if (!token) return;
-
-        const response = await api.order.findAll(
-          {
-            page: currentPage,
-            limit: itemsPerPage,
-          },
-          token,
-        );
-
-        console.log('Response:', response);
-
-        setOrders(response.results);
-        setFilteredOrders(response.results); // Inicialmente, los datos filtrados son iguales a los originales
-        setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error al obtener órdenes:', error);
-        toast.error('Error al cargar las órdenes');
-      }
-    };
-
-    fetchOrders();
-  }, [currentPage, itemsPerPage, router, token]);
+  const fetchAll = useCallback(async () => {
+    if (!token) return;
+    try {
+      const resp = await api.order.findAll({ page, limit, q: query }, token);
+      setData(resp.results);
+      setTotal(resp.count);
+    } catch {
+      toast.error('Error al cargar órdenes');
+    }
+  }, [page, limit, query, token]);
 
   useEffect(() => {
-    const filtered = searchQuery
-      ? orders.filter(
-          (order) =>
-            order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            order.type.toLowerCase().includes(searchQuery.toLowerCase()),
-        )
-      : orders;
+    fetchAll();
+  }, [fetchAll]);
 
-    setFilteredOrders(filtered);
-  }, [searchQuery, orders]);
+  const totalPages = Math.ceil(total / limit);
 
   const columns: Column<OrderResponse>[] = [
-    {
-      key: 'id',
-      label: 'ID',
-      render: (item) => item.id.slice(0, 8),
-    },
+    { key: 'id', label: 'ID', render: (o) => o.id.slice(0, 8) },
     {
       key: 'createdAt',
-      label: 'Fecha de creación',
-      render: (item) => formatDate(item.createdAt),
+      label: 'Creación',
+      render: (o) => formatDate(o.createdAt),
     },
     {
       key: 'updatedAt',
-      label: 'Última actualización',
-      render: (item) => formatDate(item.updatedAt),
+      label: 'Actualización',
+      render: (o) => formatDate(o.updatedAt),
     },
     {
       key: 'status',
       label: 'Estado',
-      render: (item) => (
+      render: (o) => (
         <Badge
           variant="filled"
           color={
-            item.status === 'completed'
+            o.status === 'completed'
               ? 'success'
-              : item.status === 'requested'
+              : o.status === 'requested'
                 ? 'warning'
                 : 'info'
           }
           size="small"
           borderRadius="rounded"
         >
-          {item.status}
+          {o.status}
         </Badge>
       ),
     },
     {
       key: 'totalPrice',
       label: 'Precio total',
-      render: (item) => `$${item.totalPrice.toFixed(2)}`,
+      render: (o) => `$${o.totalPrice.toFixed(2)}`,
     },
     {
       key: 'type',
       label: 'Tipo',
-      render: (item) => item.type,
+      render: (o) => o.type,
     },
   ];
-
-  const handleAdd = () => {
-    router.push('/orders/new');
-  };
-
-  const handleView = (item: OrderResponse) => {
-    router.push(`/orders/${item.id}`);
-  };
-
-  const handleEdit = (item: OrderResponse) => {
-    router.push(`/orders/${item.id}/edit`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
 
   return (
     <div
@@ -141,22 +106,22 @@ export default function OrdersPage() {
     >
       <TableContainer<OrderResponse>
         title="Órdenes"
-        tableData={filteredOrders} // Usa los datos filtrados
-        tableColumns={columns}
-        onSearch={handleSearch}
-        onAddClick={handleAdd}
-        onEdit={handleEdit}
-        onView={handleView}
+        onSearch={onSearch}
+        onAddClick={() => router.push('/orders/new')}
         addButtonText="Agregar orden"
+        tableData={data}
+        tableColumns={columns}
+        onView={(o) => router.push(`/orders/${o.id}`)}
+        onEdit={(o) => router.push(`/orders/${o.id}/edit`)}
         pagination={{
-          currentPage,
-          totalPages: Math.ceil(totalItems / itemsPerPage),
-          totalItems,
-          itemsPerPage,
-          onPageChange: setCurrentPage,
+          currentPage: page,
+          totalPages,
+          totalItems: total,
+          itemsPerPage: limit,
+          onPageChange: setPage,
           onItemsPerPageChange: (val) => {
-            setItemsPerPage(val);
-            setCurrentPage(1);
+            setLimit(val);
+            setPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}

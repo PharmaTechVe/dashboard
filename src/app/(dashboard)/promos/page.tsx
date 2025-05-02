@@ -1,177 +1,147 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
-import { toast } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
-import Badge from '@/components/Badge';
-import { PromoResponse } from '@pharmatech/sdk/types';
+import { PromoResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
-
-type PromoItem = PromoResponse & {
-  status: 'Activa' | 'Finalizada';
-};
+import Badge from '@/components/Badge';
+import { toast } from 'react-toastify';
 
 export default function PromosPage() {
-  const [promos, setPromos] = useState<PromoItem[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
   const { token } = useAuth();
   const router = useRouter();
 
-  const calculateStatus = (
-    startAt: Date,
-    expiredAt: Date,
+  const [items, setItems] = useState<PromoResponse[]>([]);
+  const [filtered, setFiltered] = useState<PromoResponse[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const calcStatus = (
+    start: string | Date,
+    end: string | Date,
   ): 'Activa' | 'Finalizada' => {
-    const today = new Date();
-    return today >= startAt && today <= expiredAt ? 'Activa' : 'Finalizada';
+    const now = new Date();
+    const s = start instanceof Date ? start : new Date(start);
+    const e = end instanceof Date ? end : new Date(end);
+    return now >= s && now <= e ? 'Activa' : 'Finalizada';
   };
 
-  const formatDate = (input: Date | string): string => {
-    const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+  const onSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setQuery(q.trim().toLowerCase());
+      setPage(1);
+    }, DEBOUNCE_MS);
   };
+
+  const fetchAll = useCallback(async () => {
+    if (!token) return;
+    try {
+      const resp = await api.promo.findAll({ page, limit }, token);
+      setItems(resp.results);
+      setTotal(resp.count);
+    } catch {
+      toast.error('Error al cargar promociones');
+    }
+  }, [page, limit, token]);
 
   useEffect(() => {
-    const fetchPromos = async () => {
-      try {
-        if (!token) return;
+    fetchAll();
+  }, [fetchAll]);
 
-        const response = await api.promo.findAll(
-          { page: currentPage, limit: itemsPerPage },
-          token,
+  useEffect(() => {
+    const parts = query.split(',').map((s) => s.trim());
+    if (parts.length === 2) {
+      const [startStr, endStr] = parts;
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        setFiltered(
+          items.filter((p) => {
+            const s = new Date(p.startAt);
+            const e = new Date(p.expiredAt);
+            return (s >= start && s <= end) || (e >= start && e <= end);
+          }),
         );
-
-        const mapped: PromoItem[] = response.results.map((promo) => ({
-          ...promo,
-          status: calculateStatus(
-            new Date(promo.startAt),
-            new Date(promo.expiredAt),
-          ),
-        }));
-
-        const filtered = searchQuery
-          ? mapped.filter((p) =>
-              p.name.toLowerCase().includes(searchQuery.toLowerCase()),
-            )
-          : mapped;
-
-        setPromos(filtered);
-        setTotalItems(response.count);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error al obtener promociones:', error.message);
-        } else {
-          console.error('Error al obtener promociones:', error);
-        }
-        toast.error('Error al cargar las promociones');
+        return;
       }
-    };
+    }
 
-    fetchPromos();
-  }, [currentPage, itemsPerPage, searchQuery, router, token]);
+    setFiltered(
+      query ? items.filter((p) => p.name.toLowerCase().includes(query)) : items,
+    );
+  }, [items, query]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPromos((prevPromos) =>
-        prevPromos.map((promo) => ({
-          ...promo,
-          status: calculateStatus(
-            new Date(promo.startAt),
-            new Date(promo.expiredAt),
-          ),
-        })),
-      );
-    }, 60000);
+    const iv = setInterval(fetchAll, 60000);
+    return () => clearInterval(iv);
+  }, [fetchAll]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const totalPages = Math.ceil(total / limit);
 
-  const columns: Column<PromoItem>[] = [
-    {
-      key: 'name',
-      label: 'Nombre',
-      render: (item) => item.name,
-    },
-    {
-      key: 'discount',
-      label: '% Descuento',
-      render: (item) => `${item.discount}%`,
-    },
+  const columns: Column<PromoResponse>[] = [
+    { key: 'name', label: 'Nombre', render: (p) => p.name },
+    { key: 'discount', label: '% Dcto', render: (p) => `${p.discount}%` },
     {
       key: 'startAt',
-      label: 'Fecha de inicio',
-      render: (item) => formatDate(item.startAt),
+      label: 'Inicio',
+      render: (p) => new Date(p.startAt).toLocaleDateString('es-ES'),
     },
     {
       key: 'expiredAt',
-      label: 'Fecha de finalización',
-      render: (item) => formatDate(item.expiredAt),
+      label: 'Fin',
+      render: (p) => new Date(p.expiredAt).toLocaleDateString('es-ES'),
     },
     {
       key: 'status',
       label: 'Estado',
-      render: (item) => (
-        <Badge
-          variant="filled"
-          color={item.status === 'Activa' ? 'success' : 'danger'}
-          size="medium"
-          borderRadius="square"
-        >
-          {item.status}
-        </Badge>
-      ),
+      render: (p) => {
+        const status = calcStatus(p.startAt, p.expiredAt);
+        return (
+          <Badge
+            variant="filled"
+            color={status === 'Activa' ? 'success' : 'danger'}
+            size="medium"
+            borderRadius="square"
+          >
+            {status}
+          </Badge>
+        );
+      },
     },
   ];
-
-  const handleAddPromo = () => {
-    router.push('/promos/new');
-  };
-
-  const handleViewPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.id}`);
-  };
-
-  const handleEditPromo = (item: PromoItem) => {
-    router.push(`/promos/${item.id}/edit`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
 
   return (
     <div
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
-      <TableContainer
+      <TableContainer<PromoResponse>
         title="Promociones"
-        tableData={promos}
-        tableColumns={columns}
-        onAddClick={handleAddPromo}
-        onEdit={handleEditPromo}
-        onView={handleViewPromo}
+        onSearch={onSearch}
+        onAddClick={() => router.push('/promos/new')}
         addButtonText="Agregar Promo"
-        onSearch={handleSearch}
+        tableData={filtered}
+        tableColumns={columns}
+        onView={(p) => router.push(`/promos/${p.id}`)}
+        onEdit={(p) => router.push(`/promos/${p.id}/edit`)}
         pagination={{
-          currentPage,
-          totalPages: Math.ceil(totalItems / itemsPerPage),
-          totalItems,
-          itemsPerPage,
-          onPageChange: setCurrentPage,
+          currentPage: page,
+          totalPages,
+          totalItems: total,
+          itemsPerPage: limit,
+          onPageChange: setPage,
           onItemsPerPageChange: (val) => {
-            setItemsPerPage(val);
-            setCurrentPage(1);
+            setLimit(val);
+            setPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}

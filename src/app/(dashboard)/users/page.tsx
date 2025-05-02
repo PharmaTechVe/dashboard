@@ -1,57 +1,68 @@
 'use client';
 
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
-import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-import { useAuth } from '@/context/AuthContext';
 import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
+import { useAuth } from '@/context/AuthContext';
 
-const roleTranslations: Record<UserRole, string> = {
+// Mapeo de roles como strings para evitar problemas de índice en Record
+const roleTranslations: Record<string, string> = {
+  '': 'Todos',
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
   [UserRole.DELIVERY]: 'Repartidor',
 };
 
-const roleReverse: Record<string, UserRole> = {
-  Administrador: UserRole.ADMIN,
-  'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
-  Cliente: UserRole.CUSTOMER,
-  Repartidor: UserRole.DELIVERY,
-};
+// Opciones para el dropdown
+const roleOptions = Object.entries(roleTranslations).map(([value, label]) => ({
+  label,
+  value,
+}));
 
 export default function UsersPage() {
   const router = useRouter();
   const { token, user } = useAuth();
 
   const [users, setUsers] = useState<UserList[]>([]);
-  const roles = [
-    'Todos',
-    'Administrador',
-    'Administrador de Sucursal',
-    'Cliente',
-    'Repartidor',
-  ];
-  const [selectedRole, setSelectedRole] = useState<string>('Todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('');
+
+  // Ref para debounce de búsqueda
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearch = (q: string) => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
+    }, 500);
+  };
 
   const fetchUsers = useCallback(
-    async (page: number, limit: number) => {
+    async (page: number, limit: number, q: string, role: string) => {
+      if (!token) return;
       try {
-        if (!token) return;
+        const params: Parameters<typeof api.user.findAll>[0] = {
+          page,
+          limit,
+          ...(q ? { q } : {}),
+          ...(role ? { role: role as UserRole } : {}),
+        };
         const response: Pagination<UserList> = await api.user.findAll(
-          { page, limit },
+          params,
           token,
         );
         setUsers(response.results);
         setTotalItems(response.count);
       } catch (error) {
-        console.error('Error al obtener usuarios:', error);
+        console.error('Error fetching users:', error);
       }
     },
     [token],
@@ -59,70 +70,51 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!token || !user?.sub) return;
-    fetchUsers(currentPage, itemsPerPage);
-  }, [fetchUsers, currentPage, itemsPerPage, token, user]);
-
-  const filteredUsers =
-    selectedRole === 'Todos'
-      ? users
-      : users.filter((user) => user.role === selectedRole);
+    fetchUsers(currentPage, itemsPerPage, searchQuery, selectedRole);
+  }, [
+    fetchUsers,
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedRole,
+    token,
+    user,
+  ]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<UserList>[] = [
-    {
-      key: 'firstName',
-      label: 'Nombre',
-      render: (item) => item.firstName,
-    },
-    {
-      key: 'lastName',
-      label: 'Apellido',
-      render: (item) => item.lastName,
-    },
-    {
-      key: 'email',
-      label: 'Correo',
-      render: (item) => item.email,
-    },
+  const columns = [
+    { key: 'firstName', label: 'Nombre', render: (u: UserList) => u.firstName },
+    { key: 'lastName', label: 'Apellido', render: (u: UserList) => u.lastName },
+    { key: 'email', label: 'Correo', render: (u: UserList) => u.email },
     {
       key: 'role',
       label: 'Rol',
-      render: (item) => roleTranslations[item.role as UserRole] || item.role,
+      render: (u: UserList) => roleTranslations[u.role] || u.role,
     },
     {
       key: 'isValidated',
-      label: 'Correo\u00A0Validado',
-      render: (item) => (
+      label: 'Correo Validado',
+      render: (u: UserList) => (
         <div
-          className={`ml-2.5 flex h-[24px] w-[85px] min-w-[100px] flex-none flex-grow-0 flex-row items-center justify-center gap-px rounded-[6px] px-[10px] py-[3px] ${
-            item.isValidated ? 'bg-[#A3E4D7]' : 'bg-[#F5B7B1]'
-          } text-xs font-medium`}
+          className={`ml-2.5 flex h-[24px] w-[85px] min-w-[100px] items-center justify-center rounded-[6px] px-[10px] py-[3px] text-xs font-medium ${
+            u.isValidated ? 'bg-[#A3E4D7]' : 'bg-[#F5B7B1]'
+          }`}
         >
-          {item.isValidated ? 'Validado' : 'No Validado'}
+          {u.isValidated ? 'Validado' : 'No Validado'}
         </div>
       ),
     },
   ];
 
-  const handleAddUser = () => {
-    router.push('/users/new');
-  };
+  const handleAddUser = () => router.push('/users/new');
+  const handleView = (u: UserList) => router.push(`/users/${u.id}`);
+  const handleEdit = (u: UserList) => router.push(`/users/${u.id}/edit`);
 
-  const handleView = (item: UserList) => {
-    router.push(`/users/${item.id}`);
-  };
-
-  const handleEdit = (item: UserList) => {
-    router.push(`/users/${item.id}/edit`);
-  };
-
-  const handleRoleChange = (val: string) => {
-    setSelectedRole(val === 'Todos' ? 'Todos' : roleReverse[val]);
-  };
-
-  const handleSearch = (query: string) => {
-    console.log('Buscando usuario:', query);
+  const handleRoleChange = (label: string) => {
+    const opt = roleOptions.find((o) => o.label === label);
+    setSelectedRole(opt?.value || '');
+    setCurrentPage(1);
   };
 
   return (
@@ -130,13 +122,17 @@ export default function UsersPage() {
       <div className="[&>ul]:max-h-60 [&>ul]:overflow-y-auto">
         <TableContainer
           title="Usuarios"
-          dropdownComponent={
-            <Dropdown title="Rol" items={roles} onChange={handleRoleChange} />
-          }
-          addButtonText="Agregar Usuario"
           onAddClick={handleAddUser}
+          addButtonText="Agregar Usuario"
           onSearch={handleSearch}
-          tableData={filteredUsers}
+          dropdownComponent={
+            <Dropdown
+              title="Rol"
+              items={roleOptions.map((o) => o.label)}
+              onChange={handleRoleChange}
+            />
+          }
+          tableData={users}
           tableColumns={columns}
           onView={handleView}
           onEdit={handleEdit}
@@ -145,12 +141,12 @@ export default function UsersPage() {
             totalPages,
             totalItems,
             itemsPerPage,
-            onPageChange: (page) => setCurrentPage(page),
+            onPageChange: setCurrentPage,
             onItemsPerPageChange: (val) => {
               setItemsPerPage(val);
               setCurrentPage(1);
             },
-            itemsPerPageOptions: [3, 5, 10, 15, 20],
+            itemsPerPageOptions: [5, 10, 15, 20],
           }}
         />
       </div>

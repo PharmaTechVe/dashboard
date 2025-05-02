@@ -1,141 +1,144 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
-import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-import { CategoryResponse, GenericProductResponse } from '@pharmatech/sdk';
+import { useAuth } from '@/context/AuthContext';
+import {
+  Pagination,
+  GenericProductResponse,
+  CategoryResponse,
+} from '@pharmatech/sdk';
 
 export default function GenericProductListPage() {
-  const [products, setProducts] = useState<GenericProductResponse[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<
-    GenericProductResponse[]
-  >([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const { token, user } = useAuth();
   const router = useRouter();
+  const { token, user } = useAuth();
 
-  const fetchProducts = useCallback(async (page: number, limit: number) => {
-    try {
-      const response = await api.genericProduct.findAll({ page, limit });
-      setProducts(response.results);
-      setFilteredProducts(response.results);
-      setTotalItems(response.count);
-    } catch (error) {
-      console.error('Error fetching generic products:', error);
-    }
-  }, []);
+  const [products, setProducts] = useState<GenericProductResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const handleSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
+    }, DEBOUNCE_MS);
+  };
+
+  const handleCategoryChange = (label: string) => {
+    const cat = categories.find((c) => c.name === label);
+    setSelectedCategoryId(cat?.id ?? '');
+    setCurrentPage(1);
+  };
+
+  const fetchProducts = useCallback(
+    async (page: number, limit: number, q: string, categoryId: string) => {
+      try {
+        const params: Parameters<typeof api.genericProduct.findAll>[0] = {
+          page,
+          limit,
+          ...(q ? { q } : {}),
+          ...(categoryId ? { categoryId } : {}),
+        };
+        const response: Pagination<GenericProductResponse> =
+          await api.genericProduct.findAll(params);
+        setProducts(response.results);
+        setTotalItems(response.count);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    },
+    [],
+  );
 
   const fetchCategories = useCallback(async () => {
     try {
-      const resp = await api.category.findAll({ page: 1, limit: 20 });
-      const catNames = resp.results.map((cat: CategoryResponse) => cat.name);
-      setCategories(catNames);
-    } catch (err) {
-      console.error('Error al cargar categorías:', err);
+      const resp = await api.category.findAll({ page: 1, limit: 100 });
+      setCategories(resp.results);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
     }
   }, []);
 
   useEffect(() => {
     if (!token || !user?.sub) return;
-
-    fetchProducts(currentPage, itemsPerPage);
     fetchCategories();
-  }, [currentPage, itemsPerPage, token, user, fetchProducts, fetchCategories]);
+  }, [fetchCategories, token, user]);
 
   useEffect(() => {
-    const filtered = searchQuery
-      ? products.filter(
-          (product) =>
-            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.genericName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            product.manufacturer.name
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
-        )
-      : products;
-
-    setFilteredProducts(filtered);
-  }, [searchQuery, products]);
+    if (!token || !user?.sub) return;
+    fetchProducts(currentPage, itemsPerPage, searchQuery, selectedCategoryId);
+  }, [
+    fetchProducts,
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedCategoryId,
+    token,
+    user,
+  ]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<GenericProductResponse>[] = [
+  const columns = [
     {
       key: 'name',
       label: 'Nombre',
-      render: (item) => item.name,
+      render: (p: GenericProductResponse) => p.name,
     },
     {
       key: 'genericName',
       label: 'Nombre genérico',
-      render: (item) => item.genericName,
+      render: (p: GenericProductResponse) => p.genericName,
     },
     {
       key: 'manufacturer',
       label: 'Marca',
-      render: (item) => item.manufacturer.name,
+      render: (p: GenericProductResponse) => p.manufacturer.name,
     },
     {
       key: 'priority',
       label: 'Prioridad',
-      render: (item) => item.priority,
+      render: (p: GenericProductResponse) => p.priority,
     },
   ];
 
-  const handleEdit = (item: GenericProductResponse) => {
-    router.push(`/products/${item.id}/edit`);
-  };
-
-  const handleView = (item: GenericProductResponse) => {
-    router.push(`/products/${item.id}`);
-  };
-
-  const handleAdd = () => {
-    router.push(`/products/new`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
+  const categoryOptions = ['Todas', ...categories.map((c) => c.name)];
 
   return (
-    <div
-      className="overflow-y-auto"
-      style={{ maxHeight: 'calc(100vh - 150px)' }}
-    >
+    <div className="mx-auto my-12">
       <TableContainer
-        title="Productos genéricos"
+        title="Productos Genéricos"
+        addButtonText="Agregar Producto"
+        onAddClick={() => router.push('/products/new')}
+        onSearch={handleSearch}
         dropdownComponent={
           <Dropdown
             title="Categorías"
-            items={categories}
-            onChange={(val) => console.log('Filtrar por categoría:', val)}
+            items={categoryOptions}
+            onChange={handleCategoryChange}
           />
         }
-        onAddClick={handleAdd}
-        onSearch={handleSearch} // Añadida la función de búsqueda
-        tableData={filteredProducts} // Usa los datos filtrados
+        tableData={products}
         tableColumns={columns}
-        onEdit={handleEdit}
-        onView={handleView}
+        onView={(p) => router.push(`/products/${p.id}`)}
+        onEdit={(p) => router.push(`/products/${p.id}/edit`)}
         pagination={{
           currentPage,
           totalPages,
           totalItems,
           itemsPerPage,
-          onPageChange: (page) => setCurrentPage(page),
+          onPageChange: setCurrentPage,
           onItemsPerPageChange: (val) => {
             setItemsPerPage(val);
             setCurrentPage(1);

@@ -1,128 +1,99 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-import type { PresentationResponse } from '@pharmatech/sdk';
-
-type PresentationItem = PresentationResponse;
+import { PresentationResponse } from '@pharmatech/sdk';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PresentationListPage() {
-  const [presentations, setPresentations] = useState<PresentationItem[]>([]);
-  const [filteredPresentations, setFilteredPresentations] = useState<
-    PresentationItem[]
-  >([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
-  const fetchPresentations = useCallback(
-    async (page: number, limit: number) => {
-      try {
-        const response = await api.presentation.findAll({ page, limit });
-        setPresentations(response.results);
-        setFilteredPresentations(response.results);
-        setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error fetching presentations:', error);
-      }
-    },
-    [],
-  );
+  const [data, setData] = useState<PresentationResponse[]>([]);
+  const [filtered, setFiltered] = useState<PresentationResponse[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const onSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setQuery(q.trim().toLowerCase());
+      setPage(1);
+    }, DEBOUNCE_MS);
+  };
+
+  const fetchAll = useCallback(async () => {
+    try {
+      const resp = await api.presentation.findAll({ page, limit });
+      setData(resp.results);
+      setTotal(resp.count);
+    } catch {
+      // manejar error si se desea
+    }
+  }, [page, limit]);
 
   useEffect(() => {
-    if (!token || !user?.sub) return;
-    fetchPresentations(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage, token, user, fetchPresentations]);
+    if (!user?.sub) return;
+    fetchAll();
+  }, [fetchAll, user]);
 
   useEffect(() => {
-    const filtered = searchQuery
-      ? presentations.filter(
-          (presentation) =>
-            presentation.name
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            presentation.description
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
-        )
-      : presentations;
+    const ql = query;
+    setFiltered(
+      ql
+        ? data.filter(
+            (p) =>
+              p.name.toLowerCase().includes(ql) ||
+              p.description.toLowerCase().includes(ql),
+          )
+        : data,
+    );
+  }, [data, query]);
 
-    setFilteredPresentations(filtered);
-  }, [searchQuery, presentations]);
+  const totalPages = Math.ceil(total / limit);
 
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const columns: Column<PresentationItem>[] = [
-    {
-      key: 'name',
-      label: 'Presentación',
-      render: (item) => item.name,
-    },
-    {
-      key: 'description',
-      label: 'Descripción',
-      render: (item) => item.description,
-    },
-    {
-      key: 'quantity',
-      label: 'Cantidad',
-      render: (item) => item.quantity,
-    },
+  const columns: Column<PresentationResponse>[] = [
+    { key: 'name', label: 'Presentación', render: (p) => p.name },
+    { key: 'description', label: 'Descripción', render: (p) => p.description },
+    { key: 'quantity', label: 'Cantidad', render: (p) => p.quantity },
     {
       key: 'measurementUnit',
-      label: 'Unidad de medida',
-      render: (item) => item.measurementUnit,
+      label: 'Unidad',
+      render: (p) => p.measurementUnit,
     },
   ];
-
-  const handleEdit = (item: PresentationItem) => {
-    router.push(`/presentations/${item.id}/edit`);
-  };
-
-  const handleView = (item: PresentationItem) => {
-    router.push(`/presentations/${item.id}`);
-  };
-
-  const handleAdd = () => {
-    router.push(`/presentations/new`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
 
   return (
     <div
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
-      <TableContainer
+      <TableContainer<PresentationResponse>
         title="Presentaciones"
-        onAddClick={handleAdd}
-        onSearch={handleSearch} // Añadida la función de búsqueda
-        tableData={filteredPresentations} // Usa los datos filtrados
-        tableColumns={columns}
-        onEdit={handleEdit}
-        onView={handleView}
+        onSearch={onSearch}
+        onAddClick={() => router.push('/presentations/new')}
         addButtonText="Agregar presentación"
+        tableData={filtered}
+        tableColumns={columns}
+        onView={(p) => router.push(`/presentations/${p.id}`)}
+        onEdit={(p) => router.push(`/presentations/${p.id}/edit`)}
         pagination={{
-          currentPage,
+          currentPage: page,
           totalPages,
-          totalItems,
-          itemsPerPage,
-          onPageChange: (page) => setCurrentPage(page),
+          totalItems: total,
+          itemsPerPage: limit,
+          onPageChange: setPage,
           onItemsPerPageChange: (val) => {
-            setItemsPerPage(val);
-            setCurrentPage(1);
+            setLimit(val);
+            setPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}

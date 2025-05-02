@@ -1,156 +1,152 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
-import { toast } from 'react-toastify';
 import { api } from '@/lib/sdkConfig';
-import Badge from '@/components/Badge';
-import { CouponResponse } from '@pharmatech/sdk/types';
+import { CouponResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
-
-type CouponStatus = 'Activa' | 'Finalizada';
+import Badge from '@/components/Badge';
+import { toast } from 'react-toastify';
 
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<CouponResponse[]>([]);
   const { token } = useAuth();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
-  const calculateStatus = (expirationDate: Date): CouponStatus => {
+  const [items, setItems] = useState<CouponResponse[]>([]);
+  const [filtered, setFiltered] = useState<CouponResponse[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_MS = 500;
+
+  const calcStatus = (exp: string | Date): 'Activa' | 'Finalizada' => {
     const today = new Date();
+    const e = exp instanceof Date ? exp : new Date(exp);
     today.setHours(0, 0, 0, 0);
-    const exp = new Date(expirationDate);
-    exp.setHours(0, 0, 0, 0);
-    return exp >= today ? 'Activa' : 'Finalizada';
+    e.setHours(0, 0, 0, 0);
+    return e >= today ? 'Activa' : 'Finalizada';
   };
 
-  const formatDate = (input: Date | string): string => {
-    const date = typeof input === 'string' ? new Date(input) : input;
-    return date.toLocaleDateString('es-ES', {
+  const formatDate = (input: string | Date) => {
+    const d = typeof input === 'string' ? new Date(input) : input;
+    return d.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
   };
 
+  const onSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setQuery(q.trim().toLowerCase());
+      setPage(1);
+    }, DEBOUNCE_MS);
+  };
+
+  const fetchAll = useCallback(async () => {
+    if (!token) return;
+    try {
+      const resp = await api.coupon.findAll({ page, limit }, token);
+      setItems(resp.results);
+      setTotal(resp.count);
+    } catch {
+      toast.error('Error al cargar cupones');
+    }
+  }, [page, limit, token]);
+
   useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        if (!token) return;
+    fetchAll();
+  }, [fetchAll]);
 
-        const response = await api.coupon.findAll(
-          { page: currentPage, limit: itemsPerPage },
-          token,
+  useEffect(() => {
+    // intentamos parsear como rango de fechas "YYYY-MM-DD,YYYY-MM-DD"
+    const parts = query.split(',').map((s) => s.trim());
+    if (parts.length === 2) {
+      const [startStr, endStr] = parts;
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        setFiltered(
+          items.filter((c) => {
+            const d = new Date(c.expirationDate);
+            d.setHours(0, 0, 0, 0);
+            return d >= start && d <= end;
+          }),
         );
-
-        const filtered = searchQuery
-          ? response.results.filter((coupon) =>
-              coupon.code.toLowerCase().includes(searchQuery.toLowerCase()),
-            )
-          : response.results;
-
-        setCoupons(filtered);
-        setTotalItems(response.count);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error al obtener cupones:', error.message);
-        } else {
-          console.error('Error al obtener cupones:', error);
-        }
-        toast.error('Error al cargar los cupones');
+        return;
       }
-    };
+    }
 
-    fetchCoupons();
-  }, [currentPage, itemsPerPage, searchQuery, router, token]);
+    // si no es rango válido, filtramos por código
+    setFiltered(
+      query ? items.filter((c) => c.code.toLowerCase().includes(query)) : items,
+    );
+  }, [items, query]);
+
+  const totalPages = Math.ceil(total / limit);
 
   const columns: Column<CouponResponse>[] = [
-    { key: 'code', label: 'Código', render: (item) => item.code },
-    {
-      key: 'discount',
-      label: '% Descuento',
-      render: (item) => `${item.discount}%`,
-    },
+    { key: 'code', label: 'Código', render: (c) => c.code },
+    { key: 'discount', label: '% Dcto', render: (c) => `${c.discount}%` },
     {
       key: 'minPurchase',
       label: 'Compra min.',
-      render: (item) => `$${item.minPurchase.toFixed(2)}`,
+      render: (c) => `$${c.minPurchase.toFixed(2)}`,
     },
-    {
-      key: 'maxUses',
-      label: 'Máx. usos',
-      render: (item) => item.maxUses,
-    },
+    { key: 'maxUses', label: 'Máx usos', render: (c) => c.maxUses },
     {
       key: 'expirationDate',
-      label: 'Fecha de finalización',
-      render: (item) => formatDate(item.expirationDate),
+      label: 'Fecha fin',
+      render: (c) => formatDate(c.expirationDate),
     },
     {
       key: 'status',
-      label: 'Status',
-      render: (item) => (
-        <Badge
-          variant="filled"
-          color={
-            calculateStatus(new Date(item.expirationDate)) === 'Activa'
-              ? 'success'
-              : 'info'
-          }
-          size="small"
-          borderRadius="rounded"
-        >
-          {calculateStatus(new Date(item.expirationDate))}
-        </Badge>
-      ),
+      label: 'Estado',
+      render: (c) => {
+        const status = calcStatus(c.expirationDate);
+        return (
+          <Badge
+            variant="filled"
+            color={status === 'Activa' ? 'success' : 'info'}
+            size="small"
+            borderRadius="rounded"
+          >
+            {status}
+          </Badge>
+        );
+      },
     },
   ];
-
-  const handleAddCoupon = () => {
-    router.push('/coupons/new');
-  };
-
-  const handleViewCoupon = (item: CouponResponse) => {
-    router.push(`/coupons/${item.code}`);
-  };
-
-  const handleEditCoupon = (item: CouponResponse) => {
-    router.push(`/coupons/${item.code}/edit`);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
 
   return (
     <div
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
-      <TableContainer
+      <TableContainer<CouponResponse>
         title="Cupones"
-        tableData={coupons}
-        tableColumns={columns}
-        onAddClick={handleAddCoupon}
-        onEdit={handleEditCoupon}
-        onView={handleViewCoupon}
+        onSearch={onSearch}
+        onAddClick={() => router.push('/coupons/new')}
         addButtonText="Agregar Cupón"
-        onSearch={handleSearch}
+        tableData={filtered}
+        tableColumns={columns}
+        onView={(c) => router.push(`/coupons/${c.code}`)}
+        onEdit={(c) => router.push(`/coupons/${c.code}/edit`)}
         pagination={{
-          currentPage,
-          totalPages: Math.ceil(totalItems / itemsPerPage),
-          totalItems,
-          itemsPerPage,
-          onPageChange: setCurrentPage,
+          currentPage: page,
+          totalPages,
+          totalItems: total,
+          itemsPerPage: limit,
+          onPageChange: setPage,
           onItemsPerPageChange: (val) => {
-            setItemsPerPage(val);
-            setCurrentPage(1);
+            setLimit(val);
+            setPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
