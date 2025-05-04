@@ -110,7 +110,10 @@ export default function NewGenericProductPage() {
       </div>
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Nuevo Producto
           </h1>
           <div className="flex space-x-4">
@@ -150,7 +153,8 @@ export default function NewGenericProductPage() {
                 setGenericName(e.target.value)
               }
               helperText={errors.genericName}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
             />
           </div>
@@ -178,7 +182,8 @@ export default function NewGenericProductPage() {
                 setName(e.target.value)
               }
               helperText={errors.name}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
             />
           </div>
@@ -191,7 +196,8 @@ export default function NewGenericProductPage() {
                 setPriority(e.target.value)
               }
               helperText={errors.priority}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
               type="number"
             />
@@ -206,7 +212,8 @@ export default function NewGenericProductPage() {
               setDescription(e.target.value)
             }
             helperText={errors.description}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
             borderColor="#d1d5db"
             type="text"
           />
