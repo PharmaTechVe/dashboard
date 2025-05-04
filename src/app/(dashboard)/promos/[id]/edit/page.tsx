@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
+import Input from '@/components/Input/Input';
+import Calendar from '@/components/Calendar';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
-import DatePicker1 from '@/components/Calendar';
 import { useAuth } from '@/context/AuthContext';
 
 export default function EditPromoPage() {
@@ -16,11 +17,6 @@ export default function EditPromoPage() {
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const router = useRouter();
   const { token } = useAuth();
-
-  const [name, setName] = useState('');
-  const [discount, setDiscount] = useState<number | ''>('');
-  const [startAt, setStartAt] = useState<Date | null>(null);
-  const [expiredAt, setExpiredAt] = useState<Date | null>(null);
 
   const [tempName, setTempName] = useState('');
   const [tempDiscount, setTempDiscount] = useState<number | ''>('');
@@ -37,47 +33,29 @@ export default function EditPromoPage() {
 
       try {
         const promo = await api.promo.getById(id, token);
-        setName(promo.name);
-        setDiscount(promo.discount);
-        setStartAt(new Date(promo.startAt));
-        setExpiredAt(new Date(promo.expiredAt));
-
         setTempName(promo.name);
         setTempDiscount(promo.discount);
         setTempStartAt(new Date(promo.startAt));
         setTempExpiredAt(new Date(promo.expiredAt));
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error al cargar la promoción:', error.message);
-        } else {
-          console.error('Error al cargar la promoción:', error);
-        }
+      } catch (error) {
+        console.error('Error al cargar la promoción:', error);
         toast.error('Error al cargar los datos de la promoción');
         router.push('/promos');
       }
     };
 
     fetchPromo();
-  }, [id, router, token]);
+  }, [id, token, router]);
 
   useEffect(() => {
     const hasChanges =
-      tempName !== name ||
-      tempDiscount !== discount ||
-      tempStartAt?.toISOString() !== startAt?.toISOString() ||
-      tempExpiredAt?.toISOString() !== expiredAt?.toISOString();
+      tempName.trim() !== tempName ||
+      tempDiscount !== tempDiscount ||
+      tempStartAt?.toISOString() !== tempStartAt?.toISOString() ||
+      tempExpiredAt?.toISOString() !== tempExpiredAt?.toISOString();
 
     setHasPendingChanges(hasChanges);
-  }, [
-    tempName,
-    tempDiscount,
-    tempStartAt,
-    tempExpiredAt,
-    name,
-    discount,
-    startAt,
-    expiredAt,
-  ]);
+  }, [tempName, tempDiscount, tempStartAt, tempExpiredAt]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -124,41 +102,11 @@ export default function EditPromoPage() {
 
       toast.success('Promoción actualizada exitosamente');
       setTimeout(() => router.push(`/promos/${id}`), 1500);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error al actualizar la promoción:', error);
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ||
-        (error as Error)?.message ||
-        'Error desconocido';
-      toast.error(errorMessage);
+      toast.error('Error al actualizar la promoción');
       setIsSubmitting(false);
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name: fieldName, value } = e.target;
-    if (fieldName === 'name') {
-      setTempName(value.trimStart());
-    } else if (fieldName === 'discount') {
-      setTempDiscount(value === '' ? '' : Number(value));
-    }
-    setErrors((prev) => ({ ...prev, [fieldName]: '' }));
-  };
-
-  const handleStartSelect = (dateStr: string) => {
-    const date = new Date(dateStr);
-    setTempStartAt(date);
-    setErrors((prev) => ({ ...prev, startAt: '' }));
-    if (tempExpiredAt && date > tempExpiredAt) {
-      setTempExpiredAt(date);
-    }
-  };
-
-  const handleExpiredSelect = (dateStr: string) => {
-    const date = new Date(dateStr);
-    setTempExpiredAt(date);
-    setErrors((prev) => ({ ...prev, expiredAt: '' }));
   };
 
   return (
@@ -210,52 +158,39 @@ export default function EditPromoPage() {
 
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-          <div className="flex flex-col md:flex-row md:space-x-4">
-            <div className="md:w-1/2">
-              <label className="block text-[16px] font-medium text-gray-600">
-                Nombre de la Promoción
-              </label>
-              <input
-                type="text"
-                name="name"
-                className={`mt-1 w-full rounded-md border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                value={tempName}
-                onChange={handleChange}
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-              )}
-            </div>
+          <Input
+            label="Nombre de la Promoción"
+            placeholder="Ingresa el nombre de la promoción"
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            helperText={errors.name}
+            helperTextColor={Colors.semanticDanger}
+            borderColor="#d1d5db"
+          />
 
-            <div className="mt-4 md:mt-0 md:w-1/2">
-              <label className="block text-[16px] font-medium text-gray-600">
-                Porcentaje de descuento
-              </label>
-              <input
-                type="number"
-                name="discount"
-                className={`mt-1 w-full rounded-md border ${
-                  errors.discount ? 'border-red-500' : 'border-gray-300'
-                } p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0`}
-                value={tempDiscount}
-                onChange={handleChange}
-                min="1"
-                max="100"
-              />
-              {errors.discount && (
-                <p className="mt-1 text-sm text-red-500">{errors.discount}</p>
-              )}
-            </div>
-          </div>
+          <Input
+            label="Porcentaje de Descuento"
+            placeholder="Ingresa el porcentaje de descuento"
+            value={tempDiscount === '' ? '' : tempDiscount.toString()}
+            onChange={(e) =>
+              setTempDiscount(
+                e.target.value === '' ? '' : Number(e.target.value),
+              )
+            }
+            helperText={errors.discount}
+            helperTextColor={Colors.semanticDanger}
+            borderColor="#d1d5db"
+            type="number"
+          />
 
           <div className="flex flex-col gap-4 md:flex-row md:gap-6">
             <div className="w-full md:w-1/2">
               <label className="block text-[16px] font-medium text-gray-600">
-                Fecha de inicio
+                Fecha de Inicio
               </label>
-              <DatePicker1 onDateSelect={handleStartSelect} />
+              <Calendar
+                onDateSelect={(date) => setTempStartAt(new Date(date))}
+              />
               {errors.startAt && (
                 <p className="mt-1 text-sm text-red-500">{errors.startAt}</p>
               )}
@@ -263,9 +198,11 @@ export default function EditPromoPage() {
 
             <div className="w-full md:w-1/2">
               <label className="block text-[16px] font-medium text-gray-600">
-                Fecha de finalización
+                Fecha de Finalización
               </label>
-              <DatePicker1 onDateSelect={handleExpiredSelect} />
+              <Calendar
+                onDateSelect={(date) => setTempExpiredAt(new Date(date))}
+              />
               {errors.expiredAt && (
                 <p className="mt-1 text-sm text-red-500">{errors.expiredAt}</p>
               )}
