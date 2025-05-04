@@ -103,7 +103,10 @@ export default function EditPresentationPage() {
       <div className="mx-auto mb-4 max-w-[904px]">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Editar Presentación
           </h1>
           <div className="flex space-x-4">
@@ -133,7 +136,10 @@ export default function EditPresentationPage() {
             </Button>
           </div>
         </div>
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Modifica los datos de la presentación
         </p>
       </div>
@@ -147,8 +153,9 @@ export default function EditPresentationPage() {
               setName(e.target.value)
             }
             helperText={errors.name}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
+            borderSize="1px"
           />
         </div>
         <div className="flex space-x-4">
@@ -177,9 +184,10 @@ export default function EditPresentationPage() {
                 setQuantity(e.target.value)
               }
               helperText={errors.quantity}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
               type="number"
+              borderSize="1px"
             />
           </div>
         </div>
@@ -192,9 +200,10 @@ export default function EditPresentationPage() {
               setDescription(e.target.value)
             }
             helperText={errors.description}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
             type="text"
+            borderSize="1px"
           />
         </div>
       </div>
