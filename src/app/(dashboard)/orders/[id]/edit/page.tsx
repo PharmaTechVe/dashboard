@@ -7,6 +7,8 @@ import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
+import io from 'socket.io-client';
+import { SOCKET_URL } from '@/lib/socket-url';
 import { toast } from 'react-toastify';
 import {
   OrderStatus,
@@ -23,7 +25,15 @@ export default function EditOrderStatusPage() {
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
   const { token } = useAuth();
-
+  const socket = io(SOCKET_URL, {
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    },
+  });
   const [, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
@@ -33,6 +43,33 @@ export default function EditOrderStatusPage() {
     string | null
   >(null);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+
+  type SocketError = {
+    message: string;
+    data: { id: string };
+  };
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+      console.log('Socket connected: ', isConnected);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Socket connected: ', isConnected);
+    });
+
+    socket.on('error', (error: SocketError) => {
+      console.error('Socket error: ', error);
+      toast.error('Error de conexión con el servidor');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const fetchOrderData = useCallback(async () => {
     if (!token || !id) return;
@@ -82,8 +119,7 @@ export default function EditOrderStatusPage() {
     if (!token || !id) return;
 
     try {
-      await api.order.update(id, { status: orderStatus }, token);
-      console.log('Orden actualizada:', id);
+      socket.emit('updateOrder', { id, status: orderStatus });
       console.log('DeliveryId', selectedDeliveryUserId);
       if (deliveryId && deliveryStatus) {
         await api.deliveryService.update(
