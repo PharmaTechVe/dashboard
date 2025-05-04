@@ -116,7 +116,10 @@ export default function AddProductPresentationPage() {
 
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Añadir presentación a producto
           </h1>
           <div className="flex space-x-4">
@@ -146,7 +149,10 @@ export default function AddProductPresentationPage() {
             </Button>
           </div>
         </div>
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Selecciona la presentación y la promo que deseas agregar
         </p>
         <div>
@@ -188,9 +194,10 @@ export default function AddProductPresentationPage() {
               setPrice(e.target.value)
             }
             helperText={errors.price}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
             type="number"
+            borderSize="1px"
           />
         </div>
       </div>
