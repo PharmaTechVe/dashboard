@@ -3,10 +3,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
+import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-import { OrderResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
+import {
+  Pagination,
+  OrderResponse,
+  OrderStatus,
+  OrderType,
+} from '@pharmatech/sdk';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
 
@@ -14,8 +20,11 @@ export default function OrdersPage() {
   const { token } = useAuth();
   const router = useRouter();
 
-  const [data, setData] = useState<OrderResponse[]>([]);
-  const [query, setQuery] = useState<string>('');
+  // datos y paginación
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [query, setQuery] = useState<string>(''); // buscador libre (q)
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('');
+  const [selectedType, setSelectedType] = useState<OrderType | ''>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
@@ -24,16 +33,9 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  // debounce para búsqueda
   const DEBOUNCE_MS = 500;
-
-  const formatDate = (input: string | Date) =>
-    new Date(input).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const onSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -42,25 +44,78 @@ export default function OrdersPage() {
     }, DEBOUNCE_MS);
   };
 
-  const fetchAll = useCallback(async () => {
+  // opciones de estado y tipo
+  const statusOptions = [
+    { value: '', label: 'Todos' },
+    { value: OrderStatus.REQUESTED, label: 'Solicitado' },
+    { value: OrderStatus.IN_PROGRESS, label: 'En proceso' },
+    { value: OrderStatus.APPROVED, label: 'Aprobada' },
+    { value: OrderStatus.CANCELED, label: 'Cancelada' },
+    { value: OrderStatus.READY_FOR_PICKUP, label: 'Lista para Retiro' },
+    { value: OrderStatus.COMPLETED, label: 'Completado' },
+  ] as const;
+
+  const typeOptions = [
+    { value: '', label: 'Todos' },
+    { value: OrderType.PICKUP, label: 'Pickup' },
+    { value: OrderType.DELIVERY, label: 'Delivery' },
+  ] as const;
+
+  const handleStatusChange = (label: string) => {
+    const opt = statusOptions.find((o) => o.label === label);
+    setSelectedStatus(opt?.value ?? '');
+    setPage(1);
+  };
+
+  const handleTypeChange = (label: string) => {
+    const opt = typeOptions.find((o) => o.label === label);
+    setSelectedType(opt?.value ?? '');
+    setPage(1);
+  };
+
+  // formatea fechas
+  const formatDate = (input: string | Date) =>
+    new Date(input).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+  // trae órdenes usando SOLO los filtros que el backend expone (q + status + type)
+  const fetchOrders = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
     setError(null);
+
     try {
-      const resp = await api.order.findAll({ page, limit, q: query }, token);
-      setData(resp.results);
+      const params: Parameters<typeof api.order.findAll>[0] = {
+        page,
+        limit,
+        ...(query ? { q: query } : {}),
+        ...(selectedStatus ? { status: selectedStatus } : {}),
+        ...(selectedType ? { type: selectedType } : {}),
+      };
+
+      const resp: Pagination<OrderResponse> = await api.order.findAll(
+        params,
+        token,
+      );
+
+      setOrders(resp.results);
       setTotal(resp.count);
-    } catch {
+    } catch (err: unknown) {
+      console.error('Error fetching orders:', err);
       toast.error('Error al cargar órdenes');
       setError('No se pudieron cargar las órdenes.');
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, query, token]);
+  }, [page, limit, query, selectedStatus, selectedType, token]);
 
+  // recarga al cambiar filtros o paginación
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchOrders();
+  }, [fetchOrders]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -83,9 +138,9 @@ export default function OrdersPage() {
         <Badge
           variant="filled"
           color={
-            o.status === 'completed'
+            o.status === OrderStatus.COMPLETED
               ? 'success'
-              : o.status === 'requested'
+              : o.status === OrderStatus.REQUESTED
                 ? 'warning'
                 : 'info'
           }
@@ -96,12 +151,12 @@ export default function OrdersPage() {
         </Badge>
       ),
     },
+    { key: 'type', label: 'Tipo', render: (o) => o.type },
     {
       key: 'totalPrice',
       label: 'Precio total',
       render: (o) => `$${o.totalPrice.toFixed(2)}`,
     },
-    { key: 'type', label: 'Tipo', render: (o) => o.type },
   ];
 
   return (
@@ -112,12 +167,35 @@ export default function OrdersPage() {
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
+
       <TableContainer<OrderResponse>
         title="Órdenes"
         onSearch={onSearch}
+        dropdownComponent={
+          <div className="flex space-x-2">
+            <Dropdown
+              title="Estado"
+              items={statusOptions.map((o) => o.label)}
+              onChange={handleStatusChange}
+              selected={
+                statusOptions.find((o) => o.value === selectedStatus)?.label ||
+                'Todos'
+              }
+            />
+            <Dropdown
+              title="Tipo"
+              items={typeOptions.map((o) => o.label)}
+              onChange={handleTypeChange}
+              selected={
+                typeOptions.find((o) => o.value === selectedType)?.label ||
+                'Todos'
+              }
+            />
+          </div>
+        }
         onAddClick={() => router.push('/orders/new')}
         addButtonText="Agregar orden"
-        tableData={data}
+        tableData={orders}
         tableColumns={columns}
         onView={(o) => router.push(`/orders/${o.id}`)}
         onEdit={(o) => router.push(`/orders/${o.id}/edit`)}
@@ -134,6 +212,7 @@ export default function OrdersPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+
       {isLoading && <div className="mt-4 text-center">Cargando órdenes...</div>}
     </div>
   );

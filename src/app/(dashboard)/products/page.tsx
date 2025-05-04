@@ -11,11 +11,13 @@ import {
   GenericProductResponse,
   CategoryResponse,
 } from '@pharmatech/sdk';
+import { toast } from 'react-toastify';
 
 export default function GenericProductListPage() {
   const router = useRouter();
   const { token, user } = useAuth();
 
+  // datos
   const [products, setProducts] = useState<GenericProductResponse[]>([]);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -24,12 +26,13 @@ export default function GenericProductListPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  // estados UI
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // debounce
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
-
   const handleSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -38,63 +41,67 @@ export default function GenericProductListPage() {
     }, DEBOUNCE_MS);
   };
 
+  // dropdown de categorías
+  const categoryOptions = ['Todas', ...categories.map((c) => c.name)];
   const handleCategoryChange = (label: string) => {
     const cat = categories.find((c) => c.name === label);
     setSelectedCategoryId(cat?.id ?? '');
     setCurrentPage(1);
   };
 
-  const fetchProducts = useCallback(
-    async (page: number, limit: number, q: string, categoryId: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const params: Parameters<typeof api.genericProduct.findAll>[0] = {
-          page,
-          limit,
-          ...(q ? { q } : {}),
-          ...(categoryId ? { categoryId } : {}),
-        };
-        const response: Pagination<GenericProductResponse> =
-          await api.genericProduct.findAll(params);
-        setProducts(response.results);
-        setTotalItems(response.count);
-      } catch (err: unknown) {
-        console.error('Error fetching products:', err);
-        setError('No se pudieron cargar los productos.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [],
-  );
-
+  // carga categorías (solo una vez)
   const fetchCategories = useCallback(async () => {
     try {
       const resp = await api.category.findAll({ page: 1, limit: 100 });
       setCategories(resp.results);
     } catch (err: unknown) {
       console.error('Error fetching categories:', err);
+      toast.error('No se pudieron cargar las categorías');
     }
   }, []);
 
   useEffect(() => {
     if (token && user?.sub) fetchCategories();
-  }, [fetchCategories, token, user]);
+  }, [fetchCategories, token, user?.sub]);
 
-  useEffect(() => {
-    if (token && user?.sub) {
-      fetchProducts(currentPage, itemsPerPage, searchQuery, selectedCategoryId);
+  // carga productos según filtros — ahora con dependencias correctas
+  const fetchProducts = useCallback(async () => {
+    if (!token || !user?.sub) return;
+    setIsLoading(true);
+    setError(null);
+
+    const params: Parameters<typeof api.genericProduct.findAll>[0] = {
+      page: currentPage,
+      limit: itemsPerPage,
+      ...(searchQuery ? { q: searchQuery } : {}),
+      ...(selectedCategoryId ? { categoryId: selectedCategoryId } : {}),
+    };
+
+    try {
+      const response: Pagination<GenericProductResponse> =
+        await api.genericProduct.findAll(params);
+      setProducts(response.results);
+      setTotalItems(response.count);
+    } catch (err: unknown) {
+      console.error('Error fetching products:', err);
+      toast.error('Error al cargar los productos');
+      setError('No se pudieron cargar los productos.');
+    } finally {
+      setIsLoading(false);
     }
   }, [
-    fetchProducts,
+    token,
+    user?.sub,
     currentPage,
     itemsPerPage,
     searchQuery,
     selectedCategoryId,
-    token,
-    user,
   ]);
+
+  // disparamos la carga de productos cuando cambian filtros/página
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -121,17 +128,16 @@ export default function GenericProductListPage() {
     },
   ];
 
-  const categoryOptions = ['Todas', ...categories.map((c) => c.name)];
-
   return (
     <div className="mx-auto my-12">
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
-      <TableContainer
+
+      <TableContainer<GenericProductResponse>
         title="Productos Genéricos"
-        addButtonText="Agregar Producto"
         onAddClick={() => router.push('/products/new')}
+        addButtonText="Agregar Producto"
         onSearch={handleSearch}
         dropdownComponent={
           <Dropdown
@@ -157,9 +163,8 @@ export default function GenericProductListPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando productos...</div>
-      )}
+
+      {isLoading && <div className="mt-4 text-center">Cargando productos…</div>}
     </div>
   );
 }

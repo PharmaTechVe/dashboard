@@ -15,15 +15,18 @@ export default function BranchesPage() {
   const router = useRouter();
   const { token, user } = useAuth();
 
+  // Búsqueda y filtro de estado
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStateId, setSelectedStateId] = useState<string>('');
+
+  // Paginación de sucursales
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
-
-  const [branches, setBranches] = useState<BranchResponse[]>([]);
-  const [states, setStates] = useState<StateResponse[]>([]);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  // Datos
+  const [branches, setBranches] = useState<BranchResponse[]>([]);
+  const [states, setStates] = useState<StateResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +45,7 @@ export default function BranchesPage() {
     setCurrentPage(1);
   };
 
+  // Carga de estados (únicamente para el dropdown)
   const fetchStates = useCallback(async () => {
     if (!token) return;
     try {
@@ -56,6 +60,7 @@ export default function BranchesPage() {
     }
   }, [token]);
 
+  // Carga de sucursales con paginación dinámica
   const fetchBranches = useCallback(
     async (page: number, limit: number, q: string, stateId: string) => {
       if (!token) return;
@@ -82,6 +87,7 @@ export default function BranchesPage() {
     [token],
   );
 
+  // Efectos
   useEffect(() => {
     if (token && user?.sub) {
       fetchStates();
@@ -117,6 +123,7 @@ export default function BranchesPage() {
       render: (b: BranchResponse) => b.city.name,
     },
   ];
+
   const stateOptions = ['Todos', ...states.map((s) => s.name)];
 
   return (
@@ -124,6 +131,7 @@ export default function BranchesPage() {
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
+
       <TableContainer
         title="Sucursales"
         onSearch={handleSearch}
@@ -153,6 +161,7 @@ export default function BranchesPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+
       {isLoading && (
         <div className="mt-4 text-center">Cargando sucursales...</div>
       )}

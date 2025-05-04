@@ -13,51 +13,58 @@ export default function PresentationListPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [items, setItems] = useState<PresentationResponse[]>([]);
-  const [query, setQuery] = useState<string>('');
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
-  const [total, setTotal] = useState<number>(0);
+  // datos y paginación
+  const [presentations, setPresentations] = useState<PresentationResponse[]>(
+    [],
+  );
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
 
-  const [isLoading, setIsLoading] = useState(false);
+  // estados de carga y error
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  // debounce
   const DEBOUNCE_MS = 500;
-
-  const onSearch = (q: string) => {
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const handleSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setQuery(q.trim());
-      setPage(1);
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
     }, DEBOUNCE_MS);
   };
 
+  // fetch presentaciones usando solo filtros soportados por el backend (q)
   const fetchPresentations = useCallback(async () => {
     if (!user?.sub) return;
     setIsLoading(true);
     setError(null);
+    const params: Parameters<typeof api.presentation.findAll>[0] = {
+      page: currentPage,
+      limit: itemsPerPage,
+      ...(searchQuery ? { q: searchQuery } : {}),
+    };
     try {
-      const resp = await api.presentation.findAll({
-        page,
-        limit,
-        ...(query ? { q: query } : {}),
-      });
-      setItems(resp.results);
-      setTotal(resp.count);
-    } catch {
+      const response = await api.presentation.findAll(params);
+      setPresentations(response.results);
+      setTotalItems(response.count);
+    } catch (err: unknown) {
+      console.error('Error fetching presentations:', err);
       toast.error('Error al cargar presentaciones');
       setError('No se pudieron cargar las presentaciones.');
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, query, user]);
+  }, [user, currentPage, itemsPerPage, searchQuery]);
 
   useEffect(() => {
     fetchPresentations();
   }, [fetchPresentations]);
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const columns: Column<PresentationResponse>[] = [
     { key: 'name', label: 'Presentación', render: (p) => p.name },
@@ -78,28 +85,30 @@ export default function PresentationListPage() {
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
+
       <TableContainer<PresentationResponse>
         title="Presentaciones"
-        onSearch={onSearch}
+        onSearch={handleSearch}
         onAddClick={() => router.push('/presentations/new')}
         addButtonText="Agregar presentación"
-        tableData={items}
+        tableData={presentations}
         tableColumns={columns}
         onView={(p) => router.push(`/presentations/${p.id}`)}
         onEdit={(p) => router.push(`/presentations/${p.id}/edit`)}
         pagination={{
-          currentPage: page,
+          currentPage,
           totalPages,
-          totalItems: total,
-          itemsPerPage: limit,
-          onPageChange: setPage,
+          totalItems,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
           onItemsPerPageChange: (val) => {
-            setLimit(val);
-            setPage(1);
+            setItemsPerPage(val);
+            setCurrentPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+
       {isLoading && (
         <div className="mt-4 text-center">Cargando presentaciones...</div>
       )}

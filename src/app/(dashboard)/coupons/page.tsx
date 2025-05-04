@@ -4,139 +4,192 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
 import { Column } from '@/components/Table';
+import Dropdown from '@/components/Dropdown';
 import { api } from '@/lib/sdkConfig';
-import { CouponResponse } from '@pharmatech/sdk';
+import { Pagination, CouponResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
-import { toast } from 'react-toastify';
+
+// Presets de rango de expiración que el backend soporta via expirationBetween
+const expirationTranslations: Record<string, string> = {
+  '': 'Todos',
+  '7': 'Próximos 7 días',
+  '30': 'Próximos 30 días',
+  '90': 'Próximos 90 días',
+};
+const expirationOptions = Object.entries(expirationTranslations).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 export default function CouponsPage() {
-  const { token } = useAuth();
   const router = useRouter();
+  const { token } = useAuth();
 
-  // datos y paginación
-  const [items, setItems] = useState<CouponResponse[]>([]);
-  const [query, setQuery] = useState<string>('');
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
-  const [total, setTotal] = useState<number>(0);
+  const [coupons, setCoupons] = useState<CouponResponse[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
 
-  // loading & error
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedExpirationPeriod, setSelectedExpirationPeriod] =
+    useState<string>('');
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // debounce
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const DEBOUNCE_MS = 500;
-
-  const calcStatus = (exp: string | Date): 'Activa' | 'Finalizada' => {
-    const today = new Date();
-    const e = exp instanceof Date ? exp : new Date(exp);
-    return e >= today ? 'Activa' : 'Finalizada';
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const handleSearch = (q: string) => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
+    }, 500);
   };
 
-  const formatDate = (input: string | Date) => {
-    const d = typeof input === 'string' ? new Date(input) : input;
-    return d.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+  const handlePeriodChange = (label: string) => {
+    const opt = expirationOptions.find((o) => o.label === label);
+    setSelectedExpirationPeriod(opt?.value ?? '');
+    setCurrentPage(1);
   };
 
-  const onSearch = (q: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setQuery(q.trim());
-      setPage(1);
-    }, DEBOUNCE_MS);
-  };
+  const fetchCoupons = useCallback(
+    async (page: number, limit: number, q: string, period: string) => {
+      if (!token) return;
+      setIsLoading(true);
+      setError(null);
 
-  const fetchCoupons = useCallback(async () => {
-    if (!token) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const resp = await api.coupon.findAll(
-        { page, limit, ...(query ? { q: query } : {}) },
-        token,
-      );
-      setItems(resp.results);
-      setTotal(resp.count);
-    } catch {
-      toast.error('Error al cargar cupones');
-      setError('No se pudieron cargar los cupones.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, limit, query, token]);
+      const params: Parameters<typeof api.coupon.findAll>[0] = {
+        page,
+        limit,
+        ...(q ? { q } : {}),
+      };
+
+      if (period) {
+        const days = parseInt(period, 10);
+        const start = new Date();
+        const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+        params.expirationBetween = { start, end };
+      }
+
+      try {
+        const response: Pagination<CouponResponse> = await api.coupon.findAll(
+          params,
+          token,
+        );
+        setCoupons(response.results);
+        setTotalItems(response.count);
+      } catch (err: unknown) {
+        console.error('Error fetching coupons:', err);
+        setError('No se pudieron cargar los cupones.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token],
+  );
 
   useEffect(() => {
-    fetchCoupons();
-  }, [fetchCoupons]);
+    fetchCoupons(
+      currentPage,
+      itemsPerPage,
+      searchQuery,
+      selectedExpirationPeriod,
+    );
+  }, [
+    fetchCoupons,
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedExpirationPeriod,
+  ]);
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // columnas tipadas
   const columns: Column<CouponResponse>[] = [
-    { key: 'code', label: 'Código', render: (c) => c.code },
-    { key: 'discount', label: '% Dcto', render: (c) => `${c.discount}%` },
+    {
+      key: 'code',
+      label: 'Código',
+      render: (c: CouponResponse) => c.code,
+    },
+    {
+      key: 'discount',
+      label: '% Dcto',
+      render: (c: CouponResponse) => `${c.discount}%`,
+    },
     {
       key: 'minPurchase',
       label: 'Compra min.',
-      render: (c) => `$${c.minPurchase.toFixed(2)}`,
+      render: (c: CouponResponse) => `$${c.minPurchase.toFixed(2)}`,
     },
-    { key: 'maxUses', label: 'Máx usos', render: (c) => c.maxUses },
+    {
+      key: 'maxUses',
+      label: 'Máx usos',
+      render: (c: CouponResponse) => c.maxUses,
+    },
     {
       key: 'expirationDate',
       label: 'Fecha fin',
-      render: (c) => formatDate(c.expirationDate),
+      render: (c: CouponResponse) =>
+        new Date(c.expirationDate).toLocaleDateString('es-ES'),
     },
     {
       key: 'status',
       label: 'Estado',
-      render: (c) => (
-        <Badge
-          variant="filled"
-          color={calcStatus(c.expirationDate) === 'Activa' ? 'success' : 'info'}
-          size="small"
-          borderRadius="rounded"
-        >
-          {calcStatus(c.expirationDate)}
-        </Badge>
-      ),
+      render: (c: CouponResponse) => {
+        const isActive = new Date(c.expirationDate) >= new Date();
+        return (
+          <Badge
+            variant="filled"
+            color={isActive ? 'success' : 'info'}
+            size="small"
+          >
+            {isActive ? 'Activa' : 'Finalizada'}
+          </Badge>
+        );
+      },
     },
   ];
 
   return (
-    <div
-      className="overflow-y-auto"
-      style={{ maxHeight: 'calc(100vh - 150px)' }}
-    >
+    <div className="mx-auto my-12">
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
+
       <TableContainer<CouponResponse>
         title="Cupones"
-        onSearch={onSearch}
         onAddClick={() => router.push('/coupons/new')}
         addButtonText="Agregar Cupón"
-        tableData={items}
+        onSearch={handleSearch}
+        dropdownComponent={
+          <Dropdown
+            title="Expira en"
+            items={expirationOptions.map((o) => o.label)}
+            onChange={handlePeriodChange}
+          />
+        }
+        tableData={coupons}
         tableColumns={columns}
         onView={(c) => router.push(`/coupons/${c.code}`)}
         onEdit={(c) => router.push(`/coupons/${c.code}/edit`)}
         pagination={{
-          currentPage: page,
+          currentPage,
           totalPages,
-          totalItems: total,
-          itemsPerPage: limit,
-          onPageChange: setPage,
+          totalItems,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
           onItemsPerPageChange: (val) => {
-            setLimit(val);
-            setPage(1);
+            setItemsPerPage(val);
+            setCurrentPage(1);
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+
       {isLoading && <div className="mt-4 text-center">Cargando cupones...</div>}
     </div>
   );
