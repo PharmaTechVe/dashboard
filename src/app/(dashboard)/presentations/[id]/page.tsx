@@ -12,6 +12,7 @@ import { Presentation } from '@pharmatech/sdk';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
+import Input from '@/components/Input/Input';
 
 export default function PresentationDetailPage() {
   const params = useParams();
@@ -68,7 +69,10 @@ export default function PresentationDetailPage() {
       <div className="mx-auto mb-4 max-w-[904px]">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             {presentation.name}
           </h1>
           <div className="flex gap-6">
@@ -114,38 +118,28 @@ export default function PresentationDetailPage() {
       />
 
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Detalles de la presentación
         </p>
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Nombre
-          </label>
-          <input
-            readOnly
-            value={presentation.name}
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
-          />
+          <Input label="Nombre" value={presentation.name} readViewOnly />
         </div>
         <div className="flex space-x-4">
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Unidad de medida
-            </label>
-            <input
-              readOnly
+            <Input
+              label="Unidad de medida"
               value={presentation.measurementUnit}
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+              readViewOnly
             />
           </div>
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Cantidad del producto
-            </label>
-            <input
-              readOnly
-              value={presentation.quantity}
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+            <Input
+              label="Cantidad del producto"
+              value={String(presentation.quantity)}
+              readViewOnly
             />
           </div>
         </div>
