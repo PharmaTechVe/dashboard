@@ -8,17 +8,11 @@ import { newBranchSchema } from '@/lib/validations/newBranchSchema';
 import { api } from '@/lib/sdkConfig';
 import Dropdown from '@/components/Dropdown';
 import { toast } from 'react-toastify';
+import { StateResponse, CityResponse } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
 
-interface StateItem {
-  id: string;
-  name: string;
-}
-
-interface CityItem {
-  id: string;
-  name: string;
-}
+/// This is a constant that represents the ID of Venezuela.
+const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
 export default function NewBranchPage() {
   const [name, setName] = useState('');
@@ -26,8 +20,8 @@ export default function NewBranchPage() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  const [states, setStates] = useState<StateItem[]>([]);
-  const [cities, setCities] = useState<CityItem[]>([]);
+  const [states, setStates] = useState<StateResponse[]>([]);
+  const [cities, setCities] = useState<CityResponse[]>([]);
 
   const [selectedStateName, setSelectedStateName] = useState('');
   const [selectedCityName, setSelectedCityName] = useState('');
@@ -46,7 +40,7 @@ export default function NewBranchPage() {
       const response = await api.state.findAll({
         page: 1,
         limit: 24,
-        countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
+        countryId: COUNTRY_ID,
       });
 
       setStates(response.results);

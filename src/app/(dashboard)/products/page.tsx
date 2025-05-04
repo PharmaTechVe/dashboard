@@ -7,36 +7,12 @@ import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
 import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
-
-interface Manufacturer {
-  id: string;
-  name: string;
-  description: string;
-  country: { name: string };
-}
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export interface GenericProductResponse {
-  id: string;
-  name: string;
-  genericName: string;
-  description?: string;
-  priority: number;
-  manufacturer: Manufacturer;
-  categories: Category[];
-}
-
-type GenericProductItem = GenericProductResponse;
+import { CategoryResponse, GenericProductResponse } from '@pharmatech/sdk';
 
 export default function GenericProductListPage() {
-  const [products, setProducts] = useState<GenericProductItem[]>([]);
+  const [products, setProducts] = useState<GenericProductResponse[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<
-    GenericProductItem[]
+    GenericProductResponse[]
   >([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,7 +37,7 @@ export default function GenericProductListPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const resp = await api.category.findAll({ page: 1, limit: 20 });
-      const catNames = resp.results.map((cat: Category) => cat.name);
+      const catNames = resp.results.map((cat: CategoryResponse) => cat.name);
       setCategories(catNames);
     } catch (err) {
       console.error('Error al cargar categorías:', err);
@@ -94,7 +70,7 @@ export default function GenericProductListPage() {
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<GenericProductItem>[] = [
+  const columns: Column<GenericProductResponse>[] = [
     {
       key: 'name',
       label: 'Nombre',
@@ -117,11 +93,11 @@ export default function GenericProductListPage() {
     },
   ];
 
-  const handleEdit = (item: GenericProductItem) => {
+  const handleEdit = (item: GenericProductResponse) => {
     router.push(`/products/${item.id}/edit`);
   };
 
-  const handleView = (item: GenericProductItem) => {
+  const handleView = (item: GenericProductResponse) => {
     router.push(`/products/${item.id}`);
   };
 

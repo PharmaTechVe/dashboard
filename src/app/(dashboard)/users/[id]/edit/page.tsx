@@ -10,18 +10,7 @@ import { toast } from 'react-toastify';
 import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
-
-enum UserGender {
-  MALE = 'm',
-  FEMALE = 'f',
-}
-
-enum UserRole {
-  ADMIN = 'admin',
-  BRANCH_ADMIN = 'branch_admin',
-  CUSTOMER = 'customer',
-  DELIVERY = 'delivery',
-}
+import { UserGender, UserRole } from '@pharmatech/sdk';
 
 const roleLabels: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',

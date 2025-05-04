@@ -10,29 +10,15 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import { BranchResponse } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
-
-interface BranchItem {
-  id: string;
-  name: string;
-  address: string;
-  city: {
-    id: string;
-    name: string;
-    state: {
-      name: string;
-    };
-  };
-  latitude: number;
-  longitude: number;
-}
 
 export default function BranchDetailsPage() {
   const params = useParams();
   const { token } = useAuth();
   const id = params?.id && typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
-  const [branch, setBranch] = useState<BranchItem | null>(null);
+  const [branch, setBranch] = useState<BranchResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
