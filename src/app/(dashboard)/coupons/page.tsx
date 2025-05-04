@@ -14,21 +14,24 @@ export default function CouponsPage() {
   const { token } = useAuth();
   const router = useRouter();
 
+  // datos y paginación
   const [items, setItems] = useState<CouponResponse[]>([]);
-  const [filtered, setFiltered] = useState<CouponResponse[]>([]);
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
+  // loading & error
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // debounce
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
 
   const calcStatus = (exp: string | Date): 'Activa' | 'Finalizada' => {
     const today = new Date();
     const e = exp instanceof Date ? exp : new Date(exp);
-    today.setHours(0, 0, 0, 0);
-    e.setHours(0, 0, 0, 0);
     return e >= today ? 'Activa' : 'Finalizada';
   };
 
@@ -44,50 +47,33 @@ export default function CouponsPage() {
   const onSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setQuery(q.trim().toLowerCase());
+      setQuery(q.trim());
       setPage(1);
     }, DEBOUNCE_MS);
   };
 
-  const fetchAll = useCallback(async () => {
+  const fetchCoupons = useCallback(async () => {
     if (!token) return;
+    setIsLoading(true);
+    setError(null);
     try {
-      const resp = await api.coupon.findAll({ page, limit }, token);
+      const resp = await api.coupon.findAll(
+        { page, limit, ...(query ? { q: query } : {}) },
+        token,
+      );
       setItems(resp.results);
       setTotal(resp.count);
     } catch {
       toast.error('Error al cargar cupones');
+      setError('No se pudieron cargar los cupones.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [page, limit, token]);
+  }, [page, limit, query, token]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  useEffect(() => {
-    // intentamos parsear como rango de fechas "YYYY-MM-DD,YYYY-MM-DD"
-    const parts = query.split(',').map((s) => s.trim());
-    if (parts.length === 2) {
-      const [startStr, endStr] = parts;
-      const start = new Date(startStr);
-      const end = new Date(endStr);
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        setFiltered(
-          items.filter((c) => {
-            const d = new Date(c.expirationDate);
-            d.setHours(0, 0, 0, 0);
-            return d >= start && d <= end;
-          }),
-        );
-        return;
-      }
-    }
-
-    // si no es rango válido, filtramos por código
-    setFiltered(
-      query ? items.filter((c) => c.code.toLowerCase().includes(query)) : items,
-    );
-  }, [items, query]);
+    fetchCoupons();
+  }, [fetchCoupons]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -108,19 +94,16 @@ export default function CouponsPage() {
     {
       key: 'status',
       label: 'Estado',
-      render: (c) => {
-        const status = calcStatus(c.expirationDate);
-        return (
-          <Badge
-            variant="filled"
-            color={status === 'Activa' ? 'success' : 'info'}
-            size="small"
-            borderRadius="rounded"
-          >
-            {status}
-          </Badge>
-        );
-      },
+      render: (c) => (
+        <Badge
+          variant="filled"
+          color={calcStatus(c.expirationDate) === 'Activa' ? 'success' : 'info'}
+          size="small"
+          borderRadius="rounded"
+        >
+          {calcStatus(c.expirationDate)}
+        </Badge>
+      ),
     },
   ];
 
@@ -129,12 +112,15 @@ export default function CouponsPage() {
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer<CouponResponse>
         title="Cupones"
         onSearch={onSearch}
         onAddClick={() => router.push('/coupons/new')}
         addButtonText="Agregar Cupón"
-        tableData={filtered}
+        tableData={items}
         tableColumns={columns}
         onView={(c) => router.push(`/coupons/${c.code}`)}
         onEdit={(c) => router.push(`/coupons/${c.code}/edit`)}
@@ -151,6 +137,7 @@ export default function CouponsPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && <div className="mt-4 text-center">Cargando cupones...</div>}
     </div>
   );
 }

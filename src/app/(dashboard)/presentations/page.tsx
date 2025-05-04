@@ -7,17 +7,20 @@ import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
 import { PresentationResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'react-toastify';
 
 export default function PresentationListPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [data, setData] = useState<PresentationResponse[]>([]);
-  const [filtered, setFiltered] = useState<PresentationResponse[]>([]);
+  const [items, setItems] = useState<PresentationResponse[]>([]);
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
@@ -25,38 +28,34 @@ export default function PresentationListPage() {
   const onSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setQuery(q.trim().toLowerCase());
+      setQuery(q.trim());
       setPage(1);
     }, DEBOUNCE_MS);
   };
 
-  const fetchAll = useCallback(async () => {
+  const fetchPresentations = useCallback(async () => {
+    if (!user?.sub) return;
+    setIsLoading(true);
+    setError(null);
     try {
-      const resp = await api.presentation.findAll({ page, limit });
-      setData(resp.results);
+      const resp = await api.presentation.findAll({
+        page,
+        limit,
+        ...(query ? { q: query } : {}),
+      });
+      setItems(resp.results);
       setTotal(resp.count);
     } catch {
-      // manejar error si se desea
+      toast.error('Error al cargar presentaciones');
+      setError('No se pudieron cargar las presentaciones.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, query, user]);
 
   useEffect(() => {
-    if (!user?.sub) return;
-    fetchAll();
-  }, [fetchAll, user]);
-
-  useEffect(() => {
-    const ql = query;
-    setFiltered(
-      ql
-        ? data.filter(
-            (p) =>
-              p.name.toLowerCase().includes(ql) ||
-              p.description.toLowerCase().includes(ql),
-          )
-        : data,
-    );
-  }, [data, query]);
+    fetchPresentations();
+  }, [fetchPresentations]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -76,12 +75,15 @@ export default function PresentationListPage() {
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer<PresentationResponse>
         title="Presentaciones"
         onSearch={onSearch}
         onAddClick={() => router.push('/presentations/new')}
         addButtonText="Agregar presentación"
-        tableData={filtered}
+        tableData={items}
         tableColumns={columns}
         onView={(p) => router.push(`/presentations/${p.id}`)}
         onEdit={(p) => router.push(`/presentations/${p.id}/edit`)}
@@ -98,6 +100,9 @@ export default function PresentationListPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando presentaciones...</div>
+      )}
     </div>
   );
 }

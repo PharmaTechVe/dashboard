@@ -15,11 +15,13 @@ export default function PromosPage() {
   const router = useRouter();
 
   const [items, setItems] = useState<PromoResponse[]>([]);
-  const [filtered, setFiltered] = useState<PromoResponse[]>([]);
   const [query, setQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
@@ -37,53 +39,33 @@ export default function PromosPage() {
   const onSearch = (q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setQuery(q.trim().toLowerCase());
+      setQuery(q.trim());
       setPage(1);
     }, DEBOUNCE_MS);
   };
 
-  const fetchAll = useCallback(async () => {
+  const fetchPromos = useCallback(async () => {
     if (!token) return;
+    setIsLoading(true);
+    setError(null);
     try {
-      const resp = await api.promo.findAll({ page, limit }, token);
+      const resp = await api.promo.findAll(
+        { page, limit, ...(query ? { q: query } : {}) },
+        token,
+      );
       setItems(resp.results);
       setTotal(resp.count);
     } catch {
       toast.error('Error al cargar promociones');
+      setError('No se pudieron cargar las promociones.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [page, limit, token]);
+  }, [page, limit, query, token]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  useEffect(() => {
-    const parts = query.split(',').map((s) => s.trim());
-    if (parts.length === 2) {
-      const [startStr, endStr] = parts;
-      const start = new Date(startStr);
-      const end = new Date(endStr);
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        setFiltered(
-          items.filter((p) => {
-            const s = new Date(p.startAt);
-            const e = new Date(p.expiredAt);
-            return (s >= start && s <= end) || (e >= start && e <= end);
-          }),
-        );
-        return;
-      }
-    }
-
-    setFiltered(
-      query ? items.filter((p) => p.name.toLowerCase().includes(query)) : items,
-    );
-  }, [items, query]);
-
-  useEffect(() => {
-    const iv = setInterval(fetchAll, 60000);
-    return () => clearInterval(iv);
-  }, [fetchAll]);
+    fetchPromos();
+  }, [fetchPromos]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -103,19 +85,20 @@ export default function PromosPage() {
     {
       key: 'status',
       label: 'Estado',
-      render: (p) => {
-        const status = calcStatus(p.startAt, p.expiredAt);
-        return (
-          <Badge
-            variant="filled"
-            color={status === 'Activa' ? 'success' : 'danger'}
-            size="medium"
-            borderRadius="square"
-          >
-            {status}
-          </Badge>
-        );
-      },
+      render: (p) => (
+        <Badge
+          variant="filled"
+          color={
+            calcStatus(p.startAt, p.expiredAt) === 'Activa'
+              ? 'success'
+              : 'danger'
+          }
+          size="medium"
+          borderRadius="square"
+        >
+          {calcStatus(p.startAt, p.expiredAt)}
+        </Badge>
+      ),
     },
   ];
 
@@ -124,12 +107,15 @@ export default function PromosPage() {
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer<PromoResponse>
         title="Promociones"
         onSearch={onSearch}
         onAddClick={() => router.push('/promos/new')}
         addButtonText="Agregar Promo"
-        tableData={filtered}
+        tableData={items}
         tableColumns={columns}
         onView={(p) => router.push(`/promos/${p.id}`)}
         onEdit={(p) => router.push(`/promos/${p.id}/edit`)}
@@ -146,6 +132,9 @@ export default function PromosPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando promociones...</div>
+      )}
     </div>
   );
 }
