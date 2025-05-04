@@ -17,6 +17,9 @@ export default function CategoriesPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -31,6 +34,8 @@ export default function CategoriesPage() {
   const fetchCategories = useCallback(
     async (page: number, limit: number, q: string) => {
       if (!token) return;
+      setIsLoading(true);
+      setError(null);
       try {
         const params: Parameters<typeof api.category.findAll>[0] = {
           page,
@@ -41,8 +46,11 @@ export default function CategoriesPage() {
           await api.category.findAll(params);
         setCategories(response.results);
         setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
+      } catch (err: unknown) {
+        console.error('Error fetching categories:', err);
+        setError('No se pudieron cargar las categorías.');
+      } finally {
+        setIsLoading(false);
       }
     },
     [token],
@@ -72,6 +80,9 @@ export default function CategoriesPage() {
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer
         title="Categorías"
         onSearch={handleSearch}
@@ -94,6 +105,9 @@ export default function CategoriesPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando categorías...</div>
+      )}
     </div>
   );
 }

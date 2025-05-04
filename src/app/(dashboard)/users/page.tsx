@@ -8,7 +8,6 @@ import { api } from '@/lib/sdkConfig';
 import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 
-// Mapeo de roles como strings para evitar problemas de índice en Record
 const roleTranslations: Record<string, string> = {
   '': 'Todos',
   [UserRole.ADMIN]: 'Administrador',
@@ -17,7 +16,6 @@ const roleTranslations: Record<string, string> = {
   [UserRole.DELIVERY]: 'Repartidor',
 };
 
-// Opciones para el dropdown
 const roleOptions = Object.entries(roleTranslations).map(([value, label]) => ({
   label,
   value,
@@ -34,7 +32,9 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
 
-  // Ref para debounce de búsqueda
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleSearch = (q: string) => {
@@ -48,6 +48,8 @@ export default function UsersPage() {
   const fetchUsers = useCallback(
     async (page: number, limit: number, q: string, role: string) => {
       if (!token) return;
+      setIsLoading(true);
+      setError(null);
       try {
         const params: Parameters<typeof api.user.findAll>[0] = {
           page,
@@ -61,16 +63,20 @@ export default function UsersPage() {
         );
         setUsers(response.results);
         setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error fetching users:', error);
+      } catch (err: unknown) {
+        console.error('Error fetching users:', err);
+        setError('No se pudieron cargar los usuarios.');
+      } finally {
+        setIsLoading(false);
       }
     },
     [token],
   );
 
   useEffect(() => {
-    if (!token || !user?.sub) return;
-    fetchUsers(currentPage, itemsPerPage, searchQuery, selectedRole);
+    if (token && user?.sub) {
+      fetchUsers(currentPage, itemsPerPage, searchQuery, selectedRole);
+    }
   }, [
     fetchUsers,
     currentPage,
@@ -107,10 +113,6 @@ export default function UsersPage() {
     },
   ];
 
-  const handleAddUser = () => router.push('/users/new');
-  const handleView = (u: UserList) => router.push(`/users/${u.id}`);
-  const handleEdit = (u: UserList) => router.push(`/users/${u.id}/edit`);
-
   const handleRoleChange = (label: string) => {
     const opt = roleOptions.find((o) => o.label === label);
     setSelectedRole(opt?.value || '');
@@ -119,37 +121,41 @@ export default function UsersPage() {
 
   return (
     <div className="mx-auto my-12">
-      <div className="[&>ul]:max-h-60 [&>ul]:overflow-y-auto">
-        <TableContainer
-          title="Usuarios"
-          onAddClick={handleAddUser}
-          addButtonText="Agregar Usuario"
-          onSearch={handleSearch}
-          dropdownComponent={
-            <Dropdown
-              title="Rol"
-              items={roleOptions.map((o) => o.label)}
-              onChange={handleRoleChange}
-            />
-          }
-          tableData={users}
-          tableColumns={columns}
-          onView={handleView}
-          onEdit={handleEdit}
-          pagination={{
-            currentPage,
-            totalPages,
-            totalItems,
-            itemsPerPage,
-            onPageChange: setCurrentPage,
-            onItemsPerPageChange: (val) => {
-              setItemsPerPage(val);
-              setCurrentPage(1);
-            },
-            itemsPerPageOptions: [5, 10, 15, 20],
-          }}
-        />
-      </div>
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
+      <TableContainer
+        title="Usuarios"
+        onAddClick={() => router.push('/users/new')}
+        addButtonText="Agregar Usuario"
+        onSearch={handleSearch}
+        dropdownComponent={
+          <Dropdown
+            title="Rol"
+            items={roleOptions.map((o) => o.label)}
+            onChange={handleRoleChange}
+          />
+        }
+        tableData={users}
+        tableColumns={columns}
+        onView={(u) => router.push(`/users/${u.id}`)}
+        onEdit={(u) => router.push(`/users/${u.id}/edit`)}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
+          onItemsPerPageChange: (val) => {
+            setItemsPerPage(val);
+            setCurrentPage(1);
+          },
+          itemsPerPageOptions: [5, 10, 15, 20],
+        }}
+      />
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando usuarios...</div>
+      )}
     </div>
   );
 }

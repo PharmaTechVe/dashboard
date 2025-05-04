@@ -20,6 +20,10 @@ export default function OrdersPage() {
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
+  // estados de carga y error
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -40,12 +44,17 @@ export default function OrdersPage() {
 
   const fetchAll = useCallback(async () => {
     if (!token) return;
+    setIsLoading(true);
+    setError(null);
     try {
       const resp = await api.order.findAll({ page, limit, q: query }, token);
       setData(resp.results);
       setTotal(resp.count);
     } catch {
       toast.error('Error al cargar órdenes');
+      setError('No se pudieron cargar las órdenes.');
+    } finally {
+      setIsLoading(false);
     }
   }, [page, limit, query, token]);
 
@@ -92,11 +101,7 @@ export default function OrdersPage() {
       label: 'Precio total',
       render: (o) => `$${o.totalPrice.toFixed(2)}`,
     },
-    {
-      key: 'type',
-      label: 'Tipo',
-      render: (o) => o.type,
-    },
+    { key: 'type', label: 'Tipo', render: (o) => o.type },
   ];
 
   return (
@@ -104,6 +109,9 @@ export default function OrdersPage() {
       className="overflow-y-auto"
       style={{ maxHeight: 'calc(100vh - 150px)' }}
     >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer<OrderResponse>
         title="Órdenes"
         onSearch={onSearch}
@@ -126,6 +134,7 @@ export default function OrdersPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && <div className="mt-4 text-center">Cargando órdenes...</div>}
     </div>
   );
 }

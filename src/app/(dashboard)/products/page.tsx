@@ -24,6 +24,9 @@ export default function GenericProductListPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -43,6 +46,8 @@ export default function GenericProductListPage() {
 
   const fetchProducts = useCallback(
     async (page: number, limit: number, q: string, categoryId: string) => {
+      setIsLoading(true);
+      setError(null);
       try {
         const params: Parameters<typeof api.genericProduct.findAll>[0] = {
           page,
@@ -54,8 +59,11 @@ export default function GenericProductListPage() {
           await api.genericProduct.findAll(params);
         setProducts(response.results);
         setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error fetching products:', error);
+      } catch (err: unknown) {
+        console.error('Error fetching products:', err);
+        setError('No se pudieron cargar los productos.');
+      } finally {
+        setIsLoading(false);
       }
     },
     [],
@@ -65,19 +73,19 @@ export default function GenericProductListPage() {
     try {
       const resp = await api.category.findAll({ page: 1, limit: 100 });
       setCategories(resp.results);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+    } catch (err: unknown) {
+      console.error('Error fetching categories:', err);
     }
   }, []);
 
   useEffect(() => {
-    if (!token || !user?.sub) return;
-    fetchCategories();
+    if (token && user?.sub) fetchCategories();
   }, [fetchCategories, token, user]);
 
   useEffect(() => {
-    if (!token || !user?.sub) return;
-    fetchProducts(currentPage, itemsPerPage, searchQuery, selectedCategoryId);
+    if (token && user?.sub) {
+      fetchProducts(currentPage, itemsPerPage, searchQuery, selectedCategoryId);
+    }
   }, [
     fetchProducts,
     currentPage,
@@ -117,6 +125,9 @@ export default function GenericProductListPage() {
 
   return (
     <div className="mx-auto my-12">
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
       <TableContainer
         title="Productos Genéricos"
         addButtonText="Agregar Producto"
@@ -146,6 +157,9 @@ export default function GenericProductListPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando productos...</div>
+      )}
     </div>
   );
 }
