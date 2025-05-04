@@ -173,7 +173,10 @@ export default function EditProductPage() {
       <div className="mx-auto mb-4 max-w-[904px]">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Editar Producto
           </h1>
           <div className="flex space-x-4">
@@ -201,7 +204,10 @@ export default function EditProductPage() {
             </Button>
           </div>
         </div>
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Agrega la información básica del producto
         </p>
       </div>
@@ -216,8 +222,9 @@ export default function EditProductPage() {
                 setGenericName(e.target.value)
               }
               helperText={errors.genericName}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
+              borderSize="1px"
             />
           </div>
           <div className="w-1/2">
@@ -247,8 +254,9 @@ export default function EditProductPage() {
                 setName(e.target.value)
               }
               helperText={errors.name}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
+              borderSize="1px"
             />
           </div>
           <div className="w-1/2">
@@ -260,9 +268,10 @@ export default function EditProductPage() {
                 setPriority(e.target.value)
               }
               helperText={errors.priority}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
               type="number"
+              borderSize="1px"
             />
           </div>
         </div>
@@ -275,14 +284,18 @@ export default function EditProductPage() {
               setDescription(e.target.value)
             }
             helperText={errors.description}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
             type="text"
+            borderSize="1px"
           />
         </div>
       </div>
       <div className="mx-auto my-8 mb-4 max-w-[904px]">
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Agrega la información básica del producto
         </p>
       </div>
@@ -307,7 +320,10 @@ export default function EditProductPage() {
       </div>
       <div className="mx-auto max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
         <div className="my-8">
-          <h2 className="my-4 text-lg font-medium text-[#393938]">
+          <h2
+            className="my-4 text-lg font-medium"
+            style={{ color: Colors.textMain }}
+          >
             Imágenes del producto
           </h2>
           <ImageUpload
