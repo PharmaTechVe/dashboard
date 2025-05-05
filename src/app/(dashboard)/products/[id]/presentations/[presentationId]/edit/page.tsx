@@ -157,13 +157,10 @@ export default function EditProductPresentationPage() {
 
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Presentación
-          </label>
-          <input
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+          <Input
+            label="Presentación"
             value={`${presentationData.presentation.name} | ${presentationData.presentation.quantity} ${presentationData.presentation.measurementUnit}`}
-            readOnly
+            readViewOnly
           />
         </div>
         <div>
@@ -184,12 +181,11 @@ export default function EditProductPresentationPage() {
             label="Precio"
             placeholder="Agrega el precio de esta presentación"
             value={price}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPrice(e.target.value)
-            }
+            onChange={(e) => setPrice(e.target.value)}
             helperText={errors.price}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
+            borderSize="1px"
             type="number"
           />
         </div>

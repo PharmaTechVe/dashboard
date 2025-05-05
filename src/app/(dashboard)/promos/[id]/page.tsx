@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { PromoResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
+import Input from '@/components/Input/Input';
 
 export default function PromoDetailsPage() {
   const params = useParams();
@@ -148,47 +149,35 @@ export default function PromoDetailsPage() {
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="space-y-6">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Nombre de la Promoción
-            </label>
-            <input
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+            <Input
+              label="Nombre de la Promoción"
               value={promo.name}
-              readOnly
+              readViewOnly
             />
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Porcentaje de descuento
-            </label>
-            <input
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+            <Input
+              label="Porcentaje de Descuento"
               value={`${promo.discount}%`}
-              readOnly
+              readViewOnly
             />
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Fecha de inicio
-              </label>
-              <input
-                className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                value={formatDate(promo.startAt)}
-                readOnly
+              <Input
+                label="Fecha de Inicio"
+                value={formatDate(new Date(promo.startAt))}
+                readViewOnly
               />
             </div>
 
             <div>
-              <label className="block text-[16px] font-medium text-gray-600">
-                Fecha de finalización
-              </label>
-              <input
-                className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
-                value={formatDate(promo.expiredAt)}
-                readOnly
+              <Input
+                label="Fecha de Finalización"
+                value={formatDate(new Date(promo.expiredAt))}
+                readViewOnly
               />
             </div>
           </div>
