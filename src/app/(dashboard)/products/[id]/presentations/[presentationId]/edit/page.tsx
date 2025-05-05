@@ -167,13 +167,13 @@ export default function EditProductPresentationPage() {
           <Dropdown
             title="Promoción"
             placeholder="Selecciona una promoción"
-            width={'100%'}
+            width="100%"
             items={promos.map((promo) => ({
               label: promo.name,
               value: promo.id,
             }))}
-            selected={selectedPromo}
-            onChange={setSelectedPromo}
+            selected={promoId} // Usamos directamente el `promoId`
+            onChange={(value) => setPromoId(value)} // Actualizamos el `promoId` directamente
           />
         </div>
         <div>
