@@ -1,83 +1,46 @@
 'use client';
 
-import { saveAs } from 'file-saver';
-import { pdf } from '@react-pdf/renderer';
-import PDFReportTemplate from '@/components/FileHelper/PDFReportTemplate';
-import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/sdkConfig';
+import { useRouter } from 'next/navigation';
+import {
+  ShoppingBagIcon,
+  ClipboardDocumentListIcon,
+} from '@heroicons/react/24/outline';
 
-interface ReportRow {
-  id: string;
-  product: string;
-  quantity: number;
-  price: string;
-}
-
-const columns: { key: keyof ReportRow; label: string }[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'product', label: 'Producto' },
-  { key: 'quantity', label: 'Cantidad' },
-  { key: 'price', label: 'Precio' },
-];
-
-const data: ReportRow[] = [
-  { id: '1', product: 'Ibuprofeno 400mg', quantity: 5, price: '$15.00' },
-  { id: '2', product: 'Paracetamol 500mg', quantity: 8, price: '$20.00' },
-  { id: '3', product: 'Omeprazol 20mg', quantity: 3, price: '$10.00' },
-];
-
-const totals = [
-  { label: 'Total Productos', value: '16' },
-  { label: 'Total Precio', value: '$45.00' },
-];
-
-export default function ReportPreviewPage() {
-  const { token, user } = useAuth();
-  const [userName, setUserName] = useState<string>('User');
-
-  useEffect(() => {
-    if (!token || !user?.sub) return;
-
-    (async () => {
-      try {
-        const profile = await api.user.getProfile(user.sub, token);
-        const fullName = `${profile.firstName} ${profile.lastName}`;
-        setUserName(fullName);
-      } catch (error) {
-        console.error('Error obteniendo el perfil del usuario:', error);
-      }
-    })();
-  }, [token, user]);
-
-  const handleDownload = async () => {
-    const printDate = new Date().toLocaleDateString('es-VE');
-
-    const blob = await pdf(
-      <PDFReportTemplate<ReportRow>
-        title="Reporte de inventario"
-        dateRange={{ start: '01/05/2025', end: '03/05/2025' }}
-        userName={userName}
-        printDate={printDate}
-        columns={columns}
-        data={data}
-        totals={totals}
-      />,
-    ).toBlob();
-
-    saveAs(blob, 'reporte-productos.pdf');
-  };
+export default function ReportsModulePage() {
+  const router = useRouter();
 
   return (
-    <div className="p-6">
-      <h1 className="mb-4 text-xl font-bold">Reporte de Inventario</h1>
+    <div className="flex flex-col items-center px-6 py-10">
+      <h1 className="text-primary mb-10 text-3xl font-bold">
+        Módulo de Reportes
+      </h1>
 
-      <button
-        onClick={handleDownload}
-        className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-      >
-        Descargar Reporte PDF
-      </button>
+      <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+        <div
+          onClick={() => router.push('/reports/sales')}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-lg bg-white p-6 shadow transition hover:scale-[1.02] hover:shadow-md"
+        >
+          <ShoppingBagIcon className="text-primary mb-4 h-12 w-12" />
+          <h2 className="text-xl font-semibold text-gray-800">
+            Reporte de Ventas
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-500">
+            Ver el historial de ventas y descargar el PDF.
+          </p>
+        </div>
+        <div
+          onClick={() => router.push('/reports/inventory')}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-lg bg-white p-6 shadow transition hover:scale-[1.02] hover:shadow-md"
+        >
+          <ClipboardDocumentListIcon className="text-primary mb-4 h-12 w-12" />
+          <h2 className="text-xl font-semibold text-gray-800">
+            Reporte de Inventario
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-500">
+            Consultar stock por presentación y sucursal.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

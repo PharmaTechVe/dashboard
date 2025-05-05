@@ -1,4 +1,4 @@
-import { Document, Page, Text, View } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import styles from '@/styles/pdfStyles';
 
 interface Column<T> {
@@ -13,7 +13,7 @@ interface TotalItem {
 
 interface Props<T> {
   title: string;
-  dateRange: { start: string; end: string };
+  dateRange?: { start: string; end: string };
   userName: string;
   printDate: string;
   columns: Column<T>[];
@@ -32,13 +32,14 @@ export default function PDFReportTemplate<T>({
 }: Props<T>) {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.header}>
+          <Image src="/Pharmatech_logo_reports.png" style={styles.logo} />
           <View />
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>
-              {`Del ${dateRange.start} al ${dateRange.end}`}
+              {dateRange ? `Del ${dateRange.start} al ${dateRange.end}` : ''}
             </Text>
           </View>
           <View>

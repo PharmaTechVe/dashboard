@@ -28,13 +28,19 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
+
+  logo: {
+    width: 100,
+    height: 90,
+    objectFit: 'contain',
+  },
   titleContainer: {
     textAlign: 'center',
   },
   title: {
     fontSize: FontSizes.s1.size,
-    fontWeight: 'bold',
-    color: Colors.textMain,
+    fontWeight: 'normal',
+    color: Colors.primary,
   },
   subtitle: {
     fontSize: FontSizes.c1.size,
@@ -46,7 +52,7 @@ const pdfStyles = StyleSheet.create({
     color: Colors.textWhite,
     paddingVertical: 6,
     paddingHorizontal: 4,
-    fontWeight: 'bold',
+    fontWeight: 'normal',
   },
   row: {
     flexDirection: 'row',
