@@ -304,8 +304,8 @@ export default function EditProductPage() {
               label: c.name,
               value: c.id,
             }))}
-            selected={selectedCategory}
-            onChange={setSelectedCategory}
+            selected={categoryId}
+            onChange={(value) => setCategoryId(value)}
           />
           {errors.categoryId && (
             <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>
