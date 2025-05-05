@@ -110,7 +110,10 @@ export default function NewGenericProductPage() {
       </div>
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Nuevo Producto
           </h1>
           <div className="flex space-x-4">
@@ -146,11 +149,10 @@ export default function NewGenericProductPage() {
               label="Nombre Genérico"
               placeholder="Ingresa el nombre genérico"
               value={genericName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setGenericName(e.target.value)
-              }
+              onChange={(e) => setGenericName(e.target.value)}
               helperText={errors.genericName}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
             />
           </div>
@@ -174,11 +176,10 @@ export default function NewGenericProductPage() {
               label="Nombre"
               placeholder="Ingresa el nombre del producto"
               value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setName(e.target.value)
-              }
+              onChange={(e) => setName(e.target.value)}
               helperText={errors.name}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
             />
           </div>
@@ -187,11 +188,10 @@ export default function NewGenericProductPage() {
               label="Prioridad"
               placeholder="Ingresa la prioridad"
               value={priority}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPriority(e.target.value)
-              }
+              onChange={(e) => setPriority(e.target.value)}
               helperText={errors.priority}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
               borderColor="#d1d5db"
               type="number"
             />
@@ -202,13 +202,14 @@ export default function NewGenericProductPage() {
             label="Descripción"
             placeholder="Ingresa la descripción del producto"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setDescription(e.target.value)
-            }
+            onChange={(e) => setDescription(e.target.value)}
             helperText={errors.description}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
             borderColor="#d1d5db"
             type="text"
+            isTextArea
+            rows={4}
           />
         </div>
       </div>

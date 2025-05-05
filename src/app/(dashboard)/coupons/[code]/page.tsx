@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { CouponResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
+import Input from '@/components/Input/Input';
 
 export default function CouponDetailsPage() {
   const params = useParams();
@@ -88,7 +89,10 @@ export default function CouponDetailsPage() {
           ]}
         />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Cupón #{coupon.id.slice(0, 3)}
           </h1>
           <div className="flex gap-6">
@@ -136,30 +140,23 @@ export default function CouponDetailsPage() {
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="space-y-6">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Código del cupón
-            </label>
-            <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
-              {coupon.code}
-            </p>
+            <Input label="Código del cupón" value={coupon.code} readViewOnly />
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Fecha de finalización
-            </label>
-            <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
-              {formatDate(coupon.expirationDate)}
-            </p>
+            <Input
+              label="Fecha de finalización"
+              value={formatDate(coupon.expirationDate)}
+              readViewOnly
+            />
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Usos máximos
-            </label>
-            <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
-              {coupon.maxUses}
-            </p>
+            <Input
+              label="Usos máximos"
+              value={String(coupon.maxUses)}
+              readViewOnly
+            />
           </div>
 
           <div className="border-t pt-4">
@@ -168,21 +165,19 @@ export default function CouponDetailsPage() {
             </h2>
             <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Porcentaje de descuento
-                </label>
-                <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
-                  {`${coupon.discount}%`}
-                </p>
+                <Input
+                  label="Porcentaje de descuento"
+                  value={`${coupon.discount}%`}
+                  readViewOnly
+                />
               </div>
 
               <div>
-                <label className="block text-[16px] font-medium text-gray-600">
-                  Compra mínima
-                </label>
-                <p className="mt-1 w-full rounded-md bg-gray-200 p-2 text-[16px]">
-                  {`$${coupon.minPurchase.toFixed(2)}`}
-                </p>
+                <Input
+                  label="Compra mínima"
+                  value={`$${coupon.minPurchase.toFixed(2)}`}
+                  readViewOnly
+                />
               </div>
             </div>
           </div>

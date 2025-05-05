@@ -13,6 +13,7 @@ import { api } from '@/lib/sdkConfig';
 import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { UserGender, UserRole } from '@pharmatech/sdk';
+import Input from '@/components/Input/Input';
 
 // Mapeo para mostrar etiquetas en el dropdown y obtener el valor que espera la API
 const roleMapping: Record<string, UserRole> = {
@@ -199,51 +200,45 @@ export default function NewUserPage() {
         </p>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Nombre
-            </label>
-            <input
+            <Input
+              label="Nombre"
               type="text"
               placeholder="Agrega el nombre"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              helperText={errors.firstName}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
             />
-            {errors.firstName && (
-              <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
-            )}
           </div>
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Apellido
-            </label>
-            <input
+            <Input
+              label="Apellido"
               type="text"
               placeholder="Agrega el apellido"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              helperText={errors.lastName}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
             />
-            {errors.lastName && (
-              <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
-            )}
           </div>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Cédula
-            </label>
-            <input
+            <Input
+              label="Cédula"
               type="text"
               placeholder="Agrega el número de cédula"
               value={documentId}
               onChange={(e) => setDocumentId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              helperText={errors.documentId}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
             />
-            {errors.documentId && (
-              <p className="mt-1 text-sm text-red-500">{errors.documentId}</p>
-            )}
           </div>
           <div>
             <label className="block text-[16px] font-medium text-gray-600">
@@ -298,34 +293,30 @@ export default function NewUserPage() {
         </div>
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Teléfono
-            </label>
-            <input
+            <Input
+              label="Teléfono"
               type="text"
               placeholder="Agrega número de teléfono"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              helperText={errors.phoneNumber}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
             />
-            {errors.phoneNumber && (
-              <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
-            )}
           </div>
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Correo electrónico
-            </label>
-            <input
+            <Input
+              label="Correo electrónico"
               type="email"
               placeholder="Agrega correo electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 text-[16px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              helperText={errors.email}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-            )}
           </div>
         </div>
       </div>
