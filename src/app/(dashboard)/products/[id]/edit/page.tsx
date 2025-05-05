@@ -218,9 +218,7 @@ export default function EditProductPage() {
               label="Nombre Genérico"
               placeholder="Ingresa el nombre genérico"
               value={genericName}
-              onChange={(
-                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-              ) => setGenericName(e.target.value)}
+              onChange={(e) => setGenericName(e.target.value)}
               helperText={errors.genericName}
               helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
@@ -250,9 +248,7 @@ export default function EditProductPage() {
               label="Nombre"
               placeholder="Ingresa el nombre del producto"
               value={name}
-              onChange={(
-                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-              ) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               helperText={errors.name}
               helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
@@ -264,9 +260,7 @@ export default function EditProductPage() {
               label="Prioridad"
               placeholder="Ingresa la prioridad"
               value={priority}
-              onChange={(
-                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-              ) => setPriority(e.target.value)}
+              onChange={(e) => setPriority(e.target.value)}
               helperText={errors.priority}
               helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
@@ -280,9 +274,7 @@ export default function EditProductPage() {
             label="Descripción"
             placeholder="Ingresa la descripción del producto"
             value={description}
-            onChange={(
-              e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-            ) => setDescription(e.target.value)}
+            onChange={(e) => setDescription(e.target.value)}
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"

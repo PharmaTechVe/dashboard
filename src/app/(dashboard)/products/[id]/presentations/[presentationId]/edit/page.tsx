@@ -181,9 +181,7 @@ export default function EditProductPresentationPage() {
             label="Precio"
             placeholder="Agrega el precio de esta presentación"
             value={price}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPrice(e.target.value)
-            }
+            onChange={(e) => setPrice(e.target.value)}
             helperText={errors.price}
             helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
