@@ -77,6 +77,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   const listStyle: React.CSSProperties =
     items.length > 10 ? { maxHeight: '500px', overflowY: 'auto' } : {};
 
+  const selectedItemLabel =
+    typeof items[0] === 'string'
+      ? itemSelected
+      : (items as DropdownItem[]).find((i) => i.value === itemSelected)?.label;
+
   return (
     <div ref={dropdownRef} className="relative" style={{ width, height }}>
       {title && (
@@ -101,7 +106,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           fontSize: FontSizes.b1.size,
         }}
       >
-        {itemSelected || placeholder}
+        {selectedItemLabel || placeholder}
         <ChevronDownIcon className="h-5 w-5 text-gray-600" />
       </button>
 
@@ -117,7 +122,7 @@ const Dropdown: React.FC<DropdownProps> = ({
               key={typeof item === 'string' ? index : item.value}
               className="cursor-pointer px-4 py-2 text-sm hover:bg-gray-100"
               onClick={() =>
-                handleSelect(typeof item === 'string' ? item : item.label)
+                handleSelect(typeof item === 'string' ? item : item.value)
               }
             >
               {typeof item === 'string' ? item : item.label}
