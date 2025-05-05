@@ -22,7 +22,11 @@ interface InputProps {
   borderSize?: string;
   borderColor?: string;
   readViewOnly?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isTextArea?: boolean;
+  rows?: number;
+  onChange?: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
 }
 
 const adjustColor = (color: string, amount: number) => {
@@ -62,6 +66,8 @@ const Input: React.FC<InputProps> = ({
   borderSize = '2px',
   borderColor = '#000000',
   readViewOnly = false,
+  isTextArea = false,
+  rows = 3,
   onChange,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -136,22 +142,47 @@ const Input: React.FC<InputProps> = ({
             <Icon className="h-5 w-5" />
           </div>
         )}
-
-        <input
-          type={
-            showPasswordToggle ? (passwordVisible ? 'text' : 'password') : type
-          }
-          placeholder={placeholder}
-          value={value}
-          disabled={disabled}
-          onChange={onChange}
-          onFocus={() => !disabled && setIsFocused(true)}
-          onBlur={() => !disabled && setIsFocused(false)}
-          className={`w-full bg-transparent outline-none ${
-            disabled ? 'cursor-not-allowed text-gray-400' : 'text-black'
-          } ${Icon && iconPosition === 'left' ? 'pl-10' : ''} ${Icon && iconPosition === 'right' ? 'pr-10' : ''}`}
-        />
-
+        {isTextArea ? (
+          <textarea
+            placeholder={placeholder}
+            value={value}
+            disabled={disabled}
+            onChange={(event) =>
+              onChange?.(
+                event as React.ChangeEvent<
+                  HTMLTextAreaElement | HTMLInputElement
+                >,
+              )
+            }
+            onFocus={() => !disabled && setIsFocused(true)}
+            onBlur={() => !disabled && setIsFocused(false)}
+            rows={rows}
+            className={`w-full resize-none bg-transparent outline-none ${
+              disabled ? 'cursor-not-allowed text-gray-400' : 'text-black'
+            } ${Icon && iconPosition === 'left' ? 'pl-10' : ''} ${
+              Icon && iconPosition === 'right' ? 'pr-10' : ''
+            }`}
+          />
+        ) : (
+          <input
+            type={
+              showPasswordToggle
+                ? passwordVisible
+                  ? 'text'
+                  : 'password'
+                : type
+            }
+            placeholder={placeholder}
+            value={value}
+            disabled={disabled}
+            onChange={onChange}
+            onFocus={() => !disabled && setIsFocused(true)}
+            onBlur={() => !disabled && setIsFocused(false)}
+            className={`w-full bg-transparent outline-none ${
+              disabled ? 'cursor-not-allowed text-gray-400' : 'text-black'
+            } ${Icon && iconPosition === 'left' ? 'pl-10' : ''} ${Icon && iconPosition === 'right' ? 'pr-10' : ''}`}
+          />
+        )}
         {Icon && iconPosition === 'right' && (
           <div
             className="absolute right-3 h-5 w-5"
