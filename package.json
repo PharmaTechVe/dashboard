@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@pharmatech/sdk": "^0.4.10",
+    "@pharmatech/sdk": "^0.4.13",
     "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",
@@ -28,6 +28,7 @@
     "react-datepicker": "^8.2.1",
     "react-dom": "^19.0.0",
     "react-toastify": "^11.0.5",
+    "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
@@ -40,6 +41,7 @@
     "@types/react": "^19",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19",
+    "@types/socket.io-client": "^1.4.36",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",

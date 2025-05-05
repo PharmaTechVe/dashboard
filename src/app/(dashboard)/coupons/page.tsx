@@ -155,7 +155,10 @@ export default function CouponsPage() {
   ];
 
   return (
-    <div className="mx-auto my-12">
+    <div
+      className="overflow-y-auto"
+      style={{ maxHeight: 'calc(100vh - 150px)' }}
+    >
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
