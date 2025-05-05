@@ -168,7 +168,7 @@ const Input: React.FC<InputProps> = ({
             onFocus={() => !disabled && setIsFocused(true)}
             onBlur={() => !disabled && setIsFocused(false)}
             rows={rows}
-            className={`w-full resize-none bg-transparent outline-none ${
+            className={`w-full bg-transparent outline-none ${
               disabled ? 'cursor-not-allowed text-gray-400' : 'text-black'
             } ${Icon && iconPosition === 'left' ? 'pl-10' : ''} ${
               Icon && iconPosition === 'right' ? 'pr-10' : ''
