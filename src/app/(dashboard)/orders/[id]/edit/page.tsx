@@ -18,6 +18,7 @@ import {
 } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
+import Image from 'next/image';
 
 export default function EditOrderStatusPage() {
   const params = useParams();
@@ -201,10 +202,12 @@ export default function EditOrderStatusPage() {
                   key={idx}
                   className="flex items-center space-x-4 rounded border p-2"
                 >
-                  <img
+                  <Image
                     src={detail.productPresentation.product.images?.[0]?.url}
                     alt="Producto"
                     className="h-12 w-12 rounded object-cover"
+                    width={48}
+                    height={48}
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium">
