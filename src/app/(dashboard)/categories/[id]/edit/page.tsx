@@ -168,6 +168,8 @@ export default function EditCategoryPage() {
             borderSize="1px"
             borderColor="#d1d5db"
             type="text"
+            isTextArea
+            rows={4}
           />
         </form>
       </div>

@@ -88,15 +88,26 @@ const Input: React.FC<InputProps> = ({
             {label}
           </label>
         )}
-
-        <div
-          className="text-gray-750 w-full rounded-md bg-gray-200 px-3 py-2"
-          style={{
-            fontSize: theme.FontSizes.b1.size,
-          }}
-        >
-          {value || placeholder}
-        </div>
+        {isTextArea ? (
+          <textarea
+            readOnly
+            value={value}
+            rows={rows}
+            className="w-full resize-none rounded-md bg-gray-200 px-3 py-2 text-black outline-none"
+            style={{
+              fontSize: theme.FontSizes.b1.size,
+            }}
+          />
+        ) : (
+          <input
+            readOnly
+            value={value}
+            className="w-full rounded-md bg-gray-200 px-3 py-2 text-black outline-none"
+            style={{
+              fontSize: theme.FontSizes.b1.size,
+            }}
+          />
+        )}
       </div>
     );
   }

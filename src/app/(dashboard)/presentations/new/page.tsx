@@ -184,6 +184,8 @@ export default function NewPresentationPage() {
             borderColor="#d1d5db"
             type="text"
             borderSize="1px"
+            isTextArea
+            rows={4}
           />
         </div>
       </div>
