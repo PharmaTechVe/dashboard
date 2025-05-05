@@ -127,7 +127,10 @@ export default function BranchesPage() {
   const stateOptions = ['Todos', ...states.map((s) => s.name)];
 
   return (
-    <div className="mx-auto my-12 max-h-[616px] max-w-[949px]">
+    <div
+      className="overflow-y-auto"
+      style={{ maxHeight: 'calc(100vh - 150px)' }}
+    >
       {error && (
         <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
       )}
