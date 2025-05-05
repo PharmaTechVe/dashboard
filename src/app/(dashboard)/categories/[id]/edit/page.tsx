@@ -102,7 +102,10 @@ export default function EditCategoryPage() {
           ]}
         />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Editar Categoría #{typeof id === 'string' ? id.slice(0, 3) : ''}
           </h1>
           <div className="flex gap-6">
@@ -147,7 +150,8 @@ export default function EditCategoryPage() {
               setErrors({ ...errors, name: '' });
             }}
             helperText={errors.name}
-            helperTextColor="text-red-500"
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
             borderColor="#d1d5db"
           />
 
@@ -160,9 +164,12 @@ export default function EditCategoryPage() {
               setErrors({ ...errors, description: '' });
             }}
             helperText={errors.description}
-            helperTextColor="text-red-500"
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
             borderColor="#d1d5db"
             type="text"
+            isTextArea
+            rows={4}
           />
         </form>
       </div>

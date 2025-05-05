@@ -17,6 +17,7 @@ import { Column } from '@/components/Table';
 import TableContainer from '@/components/TableContainer';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
+import Input from '@/components/Input/Input';
 
 type ProductPresentationItem = ProductPresentationResponse;
 export default function GenericProductDetailPage() {
@@ -141,7 +142,10 @@ export default function GenericProductDetailPage() {
       <div className="mx-auto mb-4 max-w-[904px]">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             {product.name}
           </h1>
           <div className="flex gap-6">
@@ -187,76 +191,59 @@ export default function GenericProductDetailPage() {
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="flex space-x-4">
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Nombre genérico
-            </label>
-            <input
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+            <Input
+              label="Nombre genérico"
               value={product.genericName}
-              readOnly
+              readViewOnly
             />
           </div>
 
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Fabricante
-            </label>
-            <input
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+            <Input
+              label="Fabricante"
               value={product.manufacturer.name}
-              readOnly
+              readViewOnly
             />
           </div>
         </div>
         <div className="mt-4 flex space-x-4">
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Nombre
-            </label>
-            <input
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-              value={product.name}
-              readOnly
-            />
+            <Input label="Nombre" value={product.name} readViewOnly />
           </div>
           <div className="w-1/2">
-            <label className="block text-[16px] font-medium text-gray-600">
-              Prioridad
-            </label>
-            <input
-              type="number"
-              className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+            <Input
+              label="Prioridad"
               placeholder="Priority"
-              value={product.priority}
-              readOnly
+              value={String(product.priority)}
+              readViewOnly
             />
           </div>
         </div>
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Descripción
-          </label>
-          <textarea
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+          <Input
+            label="Descripción"
+            placeholder="Sin descripción"
             value={product.description}
-            readOnly
+            readViewOnly
+            isTextArea
+            rows={5}
           />
         </div>
       </div>
       <div className="mx-auto my-8 mb-4 max-w-[904px]">
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Categoría del producto
         </p>
       </div>
       <div className="mx-auto max-w-[904px] rounded-xl bg-white px-6 py-4 pb-12 shadow-md">
         <div className="w-full">
-          <label className="block text-[16px] font-medium text-gray-600">
-            Categoría
-          </label>
-          <input
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
-            value={product.categories[0]?.name}
-            readOnly
+          <Input
+            label="Categoría"
+            value={product.categories[0]?.name || '-'}
+            readViewOnly
           />
         </div>
       </div>

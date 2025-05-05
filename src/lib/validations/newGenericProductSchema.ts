@@ -10,6 +10,9 @@ export const newGenericProductSchema = z.object({
     .refine((val) => /^\d+$/.test(val), {
       message: 'La prioridad debe ser un número entero válido',
     })
-    .transform((val) => parseInt(val, 10)),
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => val >= 1, {
+      message: 'La prioridad debe ser mayor o igual a 1',
+    }),
   manufacturerId: z.string().min(1, 'El ID del fabricante es requerido'),
 });
