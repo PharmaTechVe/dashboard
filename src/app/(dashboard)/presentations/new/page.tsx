@@ -129,9 +129,9 @@ export default function NewPresentationPage() {
             label="Nombre"
             placeholder="Agrega el nombre de la presentación"
             value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setName(e.target.value)
-            }
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+            ) => setName(e.target.value)}
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
@@ -160,9 +160,9 @@ export default function NewPresentationPage() {
               label="Cantidad del producto"
               placeholder="Agrega la cantidad de producto por unidad"
               value={quantity}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setQuantity(e.target.value)
-              }
+              onChange={(
+                e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+              ) => setQuantity(e.target.value)}
               helperText={errors.quantity}
               helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
@@ -176,9 +176,9 @@ export default function NewPresentationPage() {
             label="Descripción"
             placeholder="Agrega la descripción de la presentación"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setDescription(e.target.value)
-            }
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+            ) => setDescription(e.target.value)}
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"

@@ -220,13 +220,13 @@ export default function GenericProductDetailPage() {
           </div>
         </div>
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Descripción
-          </label>
-          <textarea
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:border-gray-200 focus:outline-none focus:ring-0"
+          <Input
+            label="Descripción"
+            placeholder="Sin descripción"
             value={product.description}
-            readOnly
+            readViewOnly
+            isTextArea
+            rows={5}
           />
         </div>
       </div>

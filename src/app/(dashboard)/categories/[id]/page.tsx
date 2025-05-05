@@ -142,13 +142,13 @@ export default function CategoryDetailsPage() {
         </div>
 
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Descripción
-          </label>
-          <textarea
-            className="mt-1 h-[120px] w-[808px] cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px] focus:outline-none"
+          <Input
+            label="Descripción"
+            placeholder="Sin descripción"
             value={category?.description || ''}
-            readOnly
+            readViewOnly
+            isTextArea
+            rows={5}
           />
         </div>
       </div>
