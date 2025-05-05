@@ -30,25 +30,33 @@ const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [itemSelected, setSelected] = useState<string | null>(selected);
+  const [dropUp, setDropUp] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (item: string) => {
     setSelected(item);
     setIsOpen(false);
-    if (onChange) onChange(item);
-    if (onToggle) onToggle(false);
+    onChange?.(item);
+    onToggle?.(false);
   };
 
   const toggleDropdown = () => {
     const newState = !isOpen;
     setIsOpen(newState);
-    if (onToggle) onToggle(newState);
+    onToggle?.(newState);
+
+    if (!newState || !dropdownRef.current) return;
+
+    const rect = dropdownRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Aproximadamente 200px de altura estimada para el dropdown
+    setDropUp(spaceBelow < 200 && spaceAbove > spaceBelow);
   };
 
   useEffect(() => {
-    if (selected !== null) {
-      setSelected(selected);
-    }
+    if (selected !== null) setSelected(selected);
   }, [selected]);
 
   useEffect(() => {
@@ -58,7 +66,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
-        if (onToggle) onToggle(false);
+        onToggle?.(false);
       }
     };
 
@@ -66,19 +74,11 @@ const Dropdown: React.FC<DropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onToggle]);
 
-  // Anotamos explícitamente el objeto de estilos
   const listStyle: React.CSSProperties =
     items.length > 10 ? { maxHeight: '500px', overflowY: 'auto' } : {};
 
   return (
-    <div
-      ref={dropdownRef}
-      className="relative"
-      style={{
-        width,
-        height,
-      }}
-    >
+    <div ref={dropdownRef} className="relative" style={{ width, height }}>
       {title && (
         <label
           className="mb-1 mt-1 block text-sm font-medium"
@@ -107,7 +107,9 @@ const Dropdown: React.FC<DropdownProps> = ({
 
       {isOpen && (
         <ul
-          className="absolute left-0 z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg"
+          className={`absolute left-0 z-10 w-full rounded-md border border-gray-300 bg-white shadow-lg ${
+            dropUp ? 'bottom-full mb-1' : 'mt-1'
+          }`}
           style={listStyle}
         >
           {items.map((item, index) => (

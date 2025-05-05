@@ -87,7 +87,10 @@ export default function NewCouponPage() {
       </div>
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Nuevo Cupón
           </h1>
           <div className="flex gap-4">
@@ -118,7 +121,10 @@ export default function NewCouponPage() {
             </Button>
           </div>
         </div>
-        <p className="text-[16px] font-medium text-gray-600">
+        <p
+          className="text-[16px] font-medium"
+          style={{ color: Colors.textMain }}
+        >
           Agrega la información del cupón
         </p>
         <div className="space-y-6">
@@ -128,8 +134,9 @@ export default function NewCouponPage() {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             helperText={errors.code}
-            helperTextColor="#E10000"
-            borderColor="#d1d5db"
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
+            borderColor="#E7E7E6"
           />
           <div className="flex flex-col gap-4 md:flex-row md:gap-6">
             <div className="w-full">
@@ -138,7 +145,10 @@ export default function NewCouponPage() {
               </label>
               <Calendar onDateSelect={(date) => setExpirationDate(date)} />
               {errors.expirationDate && (
-                <p className="mt-1 text-sm text-red-500">
+                <p
+                  className="mt-1 text-sm"
+                  style={{ color: Colors.semanticDanger }}
+                >
                   {errors.expirationDate}
                 </p>
               )}
@@ -149,8 +159,9 @@ export default function NewCouponPage() {
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
               helperText={errors.maxUses}
-              helperTextColor="#E10000"
-              borderColor="#d1d5db"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
               type="number"
             />
           </div>
@@ -161,8 +172,9 @@ export default function NewCouponPage() {
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
               helperText={errors.discount}
-              helperTextColor="#E10000"
-              borderColor="#d1d5db"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
               type="number"
             />
             <Input
@@ -171,8 +183,9 @@ export default function NewCouponPage() {
               value={minPurchase}
               onChange={(e) => setMinPurchase(e.target.value)}
               helperText={errors.minPurchase}
-              helperTextColor="#E10000"
-              borderColor="#d1d5db"
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
               type="number"
             />
           </div>

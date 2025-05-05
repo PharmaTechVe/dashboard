@@ -85,7 +85,10 @@ export default function NewPresentationPage() {
       </div>
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Nueva presentación
           </h1>
           <div className="flex space-x-4">
@@ -115,7 +118,10 @@ export default function NewPresentationPage() {
             </Button>
           </div>
         </div>
-        <p className="text-[16px] font-normal leading-6 text-[#393938]">
+        <p
+          className="text-[16px] font-normal leading-6"
+          style={{ color: Colors.textMain }}
+        >
           Agrega la información de la presentación
         </p>
         <div>
@@ -123,12 +129,13 @@ export default function NewPresentationPage() {
             label="Nombre"
             placeholder="Agrega el nombre de la presentación"
             value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setName(e.target.value)
-            }
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+            ) => setName(e.target.value)}
             helperText={errors.name}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
+            borderSize="1px"
           />
         </div>
         <div className="flex space-x-4">
@@ -153,13 +160,14 @@ export default function NewPresentationPage() {
               label="Cantidad del producto"
               placeholder="Agrega la cantidad de producto por unidad"
               value={quantity}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setQuantity(e.target.value)
-              }
+              onChange={(
+                e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+              ) => setQuantity(e.target.value)}
               helperText={errors.quantity}
-              helperTextColor="#E10000"
+              helperTextColor={Colors.semanticDanger}
               borderColor="#d1d5db"
               type="number"
+              borderSize="1px"
             />
           </div>
         </div>
@@ -168,13 +176,16 @@ export default function NewPresentationPage() {
             label="Descripción"
             placeholder="Agrega la descripción de la presentación"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setDescription(e.target.value)
-            }
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+            ) => setDescription(e.target.value)}
             helperText={errors.description}
-            helperTextColor="#E10000"
+            helperTextColor={Colors.semanticDanger}
             borderColor="#d1d5db"
             type="text"
+            borderSize="1px"
+            isTextArea
+            rows={4}
           />
         </div>
       </div>

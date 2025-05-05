@@ -11,12 +11,16 @@ import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import { UserGender, UserRole } from '@pharmatech/sdk';
+import Input from '@/components/Input/Input';
+import Dropdown from '@/components/Dropdown';
+import RadioButton from '@/components/RadioButton';
+import { FontSizes } from '@/styles/styles';
 
 const roleLabels: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
-  [UserRole.DELIVERY]: 'Repartidor',
+  [UserRole.DELIVERY]: 'Delivery',
 };
 
 const formatDate = (dateStr: string): string => {
@@ -82,6 +86,11 @@ export default function EditUserPage() {
   const handleSubmit = async () => {
     if (!gender) {
       toast.error('Por favor, selecciona un género');
+      return;
+    }
+    if (!role) {
+      setErrors((prev) => ({ ...prev, role: 'Por favor, selecciona un rol' }));
+      toast.error('Por favor, selecciona un rol');
       return;
     }
     const genero = gender === UserGender.MALE ? 'hombre' : 'mujer';
@@ -157,10 +166,16 @@ export default function EditUserPage() {
       <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)]">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-[28px] font-normal leading-[42px] text-[#393938]">
+            <h1
+              className="text-[28px] font-normal leading-[42px]"
+              style={{ color: Colors.textMain }}
+            >
               Usuario: #{id?.toString().slice(0, 3)}
             </h1>
-            <h5 className="text-[16px] font-normal leading-[42px] text-[#393938]">
+            <h5
+              className="text-[16px] font-normal leading-[42px]"
+              style={{ color: Colors.textMain }}
+            >
               Editar la información del Usuario
             </h5>
           </div>
@@ -182,112 +197,99 @@ export default function EditUserPage() {
           {/* Columna izquierda */}
           <div className="space-y-6">
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Nombre
-              </label>
-              <input
+              <Input
+                label="Nombre"
+                placeholder="Agrega el nombre"
                 type="text"
                 value={firstName ?? ''}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="h-10 w-full rounded-[6px] border border-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                helperText={errors.firstName}
+                helperTextColor={Colors.semanticDanger}
+                borderSize="1px"
+                borderColor={Colors.stroke}
               />
-              {errors.firstName && (
-                <p className="text-sm text-red-500">{errors.firstName}</p>
-              )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Cédula
-              </label>
-              <input
+              <Input
+                label="Cédula"
                 type="text"
                 value={documentId ?? ''}
                 onChange={(e) => setDocumentId(e.target.value)}
-                className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                disabled
+                helperText={errors.documentId}
+                helperTextColor={Colors.semanticDanger}
+                borderSize="1px"
+                borderColor={Colors.stroke}
+                readViewOnly
               />
-              {errors.documentId && (
-                <p className="text-sm text-red-500">{errors.documentId}</p>
-              )}
             </div>
 
             <div className="flex w-[249px] flex-col">
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Fecha de nacimiento
-              </label>
               <div className="relative">
-                <input
+                <Input
+                  label="Fecha de nacimiento"
                   type="text"
                   value={birthDate ?? ''}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                  helperText={errors.birthDate}
+                  helperTextColor={Colors.semanticDanger}
+                  borderColor={Colors.stroke}
+                  borderSize="1px"
                 />
-                {errors.birthDate && (
-                  <p className="text-sm text-red-500">{errors.birthDate}</p>
-                )}
               </div>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Teléfono
-              </label>
-              <input
-                type="text"
+              <Input
+                label="Teléfono"
                 placeholder="Agrega número de teléfono"
                 value={phoneNumber ?? ''}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                helperText={errors.phoneNumber}
+                helperTextColor={Colors.semanticDanger}
+                borderColor={Colors.stroke}
+                borderSize="1px"
               />
-              {errors.phoneNumber && (
-                <p className="text-sm text-red-500">{errors.phoneNumber}</p>
-              )}
             </div>
           </div>
 
           {/* Columna derecha */}
           <div className="space-y-6">
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Apellido
-              </label>
-              <input
+              <Input
+                label="Apellido"
+                placeholder="Agrega el apellido"
                 type="text"
                 value={lastName ?? ''}
                 onChange={(e) => setLastName(e.target.value)}
-                className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                helperText={errors.lastName}
+                helperTextColor={Colors.semanticDanger}
+                borderColor={Colors.stroke}
+                borderSize="1px"
               />
-              {errors.lastName && (
-                <p className="text-sm text-red-500">{errors.lastName}</p>
-              )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
+              <label
+                className="mb-2 block text-sm font-medium"
+                style={{
+                  color: Colors.textLowContrast,
+                  fontSize: FontSizes.b1.size,
+                }}
+              >
                 Género
               </label>
               <div className="flex h-10 items-center gap-4">
-                <label className="flex items-center gap-2 text-[16px] text-[#393938]">
-                  <input
-                    type="radio"
-                    name="gender"
-                    checked={gender === UserGender.MALE}
-                    onChange={() => setGender(UserGender.MALE)}
-                    className="relative h-5 w-5 appearance-none rounded-full border-2 border-[#1C2143] before:absolute before:left-1/2 before:top-1/2 before:block before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:transform before:rounded-full before:bg-white before:opacity-0 before:content-[''] checked:border-[#1C2143] checked:bg-[#1C2143] checked:before:opacity-100 focus:ring-0"
-                  />
-                  Hombre
-                </label>
-                <label className="flex items-center gap-2 text-[16px] text-[#393938]">
-                  <input
-                    type="radio"
-                    name="gender"
-                    checked={gender === UserGender.FEMALE}
-                    onChange={() => setGender(UserGender.FEMALE)}
-                    className="relative h-5 w-5 appearance-none rounded-full border-2 border-[rgba(28,33,67,0.5)] before:absolute before:left-1/2 before:top-1/2 before:block before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:transform before:rounded-full before:bg-white before:opacity-0 before:content-[''] checked:border-[#1C2143] checked:bg-[#1C2143] checked:before:opacity-100 focus:ring-0"
-                  />
-                  Mujer
-                </label>
+                <RadioButton
+                  text="Hombre"
+                  selected={gender === UserGender.MALE}
+                  onSelect={() => setGender(UserGender.MALE)}
+                />
+                <RadioButton
+                  text="Mujer"
+                  selected={gender === UserGender.FEMALE}
+                  onSelect={() => setGender(UserGender.FEMALE)}
+                />
                 {errors.gender && (
                   <p className="text-sm text-red-500">{errors.gender}</p>
                 )}
@@ -295,38 +297,43 @@ export default function EditUserPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Rol
-              </label>
-              <div className="relative">
-                <select
-                  value={role ?? ''}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="h-10 w-full appearance-none rounded-[6px] border border-[#E7E7E6] bg-white px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                >
-                  {Object.values(UserRole).map((roleValue) => (
-                    <option key={roleValue} value={roleValue}>
-                      {roleLabels[roleValue]}
-                    </option>
-                  ))}
-                </select>
+              <div>
+                <Dropdown
+                  title="Rol"
+                  placeholder="Selecciona un rol"
+                  items={Object.values(roleLabels)}
+                  selected={role ? roleLabels[role] : ''}
+                  width="w-auto"
+                  onChange={(label) => {
+                    const entry = Object.entries(roleLabels).find(
+                      ([, lbl]) => lbl === label,
+                    );
+                    if (entry) setRole(entry[0] as UserRole);
+                  }}
+                />
+                {errors.role && (
+                  <p
+                    className="text-sm"
+                    style={{ color: Colors.semanticDanger }}
+                  >
+                    {errors.role}
+                  </p>
+                )}
               </div>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#393938]">
-                Correo electrónico
-              </label>
-              <input
+              <Input
+                label="Correo electrónico"
                 type="email"
                 value={email ?? ''}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                disabled
+                helperText={errors.email}
+                helperTextColor={Colors.semanticDanger}
+                borderColor={Colors.stroke}
+                borderSize="1px"
+                readViewOnly
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
-              )}
             </div>
           </div>
         </div>
