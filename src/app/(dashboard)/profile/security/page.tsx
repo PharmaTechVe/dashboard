@@ -41,7 +41,7 @@ export default function SecurityPage() {
       if (!token) throw new Error('No token');
       await api.auth.updateCurrentPassword(currentPassword, newPassword, token);
       toast.success('Contraseña actualizada');
-      router.push('/admin/profile');
+      router.push('/profile');
     } catch (err) {
       console.error(err);
       toast.error('Error al actualizar la contraseña');
@@ -58,6 +58,7 @@ export default function SecurityPage() {
         value={currentPassword}
         onChange={(e) => setCurrentPassword(e.target.value)}
         helperText={errors.currentPassword}
+        borderColor="#E7E7E6"
       />
 
       <Input
@@ -68,6 +69,7 @@ export default function SecurityPage() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         helperText={errors.newPassword}
+        borderColor="#E7E7E6"
       />
 
       <Input
@@ -78,6 +80,7 @@ export default function SecurityPage() {
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         helperText={errors.confirmPassword}
+        borderColor="#E7E7E6"
       />
 
       <div className="flex justify-end">

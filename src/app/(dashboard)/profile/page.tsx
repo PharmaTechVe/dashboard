@@ -60,28 +60,31 @@ export default function ProfilePage() {
     <div className="font-poppins space-y-4 p-8 py-0 [&_input]:text-gray-500">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <p className="mb-2 font-normal">Nombre</p>
-          <Input value={profile.firstName} readViewOnly />
+          <Input label="Nombre" value={profile.firstName} readViewOnly />
         </div>
         <div>
-          <p className="mb-2 font-normal">Apellido</p>
-          <Input value={profile.lastName} readViewOnly />
+          <Input label="Apellido" value={profile.lastName} readViewOnly />
         </div>
         <div>
-          <p className="mb-2 font-normal">Cédula</p>
-          <Input value={profile.documentId} readViewOnly />
+          <Input label="Cédula" value={profile.documentId} readViewOnly />
         </div>
         <div>
-          <p className="mb-2 font-normal">Correo Electrónico</p>
-          <Input value={profile.email} readViewOnly />
+          <Input
+            label="Correo Electrónico"
+            value={profile.email}
+            readViewOnly
+          />
         </div>
         <div>
-          <p className="mb-2 font-normal">Fecha de Nacimiento</p>
+          <p className="mb-1 font-medium text-[#666666]">Fecha de Nacimiento</p>
           <Input value={birthDate} readViewOnly iconPosition="right" />
         </div>
         <div>
-          <p className="mb-2 font-normal">Número de Teléfono</p>
-          <Input value={profile.phoneNumber} readViewOnly />
+          <Input
+            label="Número de Teléfono"
+            value={profile.phoneNumber}
+            readViewOnly
+          />
         </div>
       </div>
       <div className="mt-8 flex justify-center py-8">

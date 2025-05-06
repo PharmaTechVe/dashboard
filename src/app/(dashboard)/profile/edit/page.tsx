@@ -1,4 +1,3 @@
-// src/app/(dashboard)/profile/edit/page.tsx
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -58,20 +57,22 @@ export default function EditProfilePage() {
   if (!profile) return null;
 
   const handleSubmit = async () => {
+    // Usando el esquema editProfileSchema para la validación
     const result = editProfileSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
-      telefono: phone,
-      fechaNacimiento: birthDate,
+      firstName,
+      lastName,
+      phone,
+      birthDate,
     });
 
     if (!result.success) {
+      // Manejamos los errores de validación
       const fe = result.error.flatten().fieldErrors;
       setErrors({
-        firstName: fe.nombre?.[0] || '',
-        lastName: fe.apellido?.[0] || '',
-        phone: fe.telefono?.[0] || '',
-        birthDate: fe.fechaNacimiento?.[0] || '',
+        firstName: fe.firstName?.[0] || '',
+        lastName: fe.lastName?.[0] || '',
+        phone: fe.phone?.[0] || '',
+        birthDate: fe.birthDate?.[0] || '',
       });
       toast.error('Por favor corrige los errores');
       return;
@@ -82,10 +83,10 @@ export default function EditProfilePage() {
       await api.user.update(
         user!.sub,
         {
-          firstName: data.nombre,
-          lastName: data.apellido,
-          phoneNumber: data.telefono,
-          birthDate: data.fechaNacimiento,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.phone,
+          birthDate: data.birthDate,
         },
         token!,
       );
@@ -102,8 +103,8 @@ export default function EditProfilePage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Nombre */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Nombre</p>
           <Input
+            label="Nombre"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             borderColor="#E7E7E6"
@@ -114,8 +115,8 @@ export default function EditProfilePage() {
         </div>
         {/* Apellido */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Apellido</p>
           <Input
+            label="Apellido"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             borderColor="#E7E7E6"
@@ -126,17 +127,28 @@ export default function EditProfilePage() {
         </div>
         {/* Cédula (solo lectura) */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Cédula</p>
-          <Input value={profile.documentId} readViewOnly />
+          <Input
+            label="Cédula"
+            type="text"
+            helperText={errors.documentId}
+            value={profile.documentId}
+            borderColor="#E7E7E6"
+            readViewOnly
+          />
         </div>
         {/* Correo (solo lectura) */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Correo Electrónico</p>
-          <Input value={profile.email} readViewOnly />
+          <Input
+            label="Correo Electrónico"
+            type="text"
+            helperText={errors.documentId}
+            value={profile.email}
+            borderColor="#E7E7E6"
+            readViewOnly
+          />
         </div>
-        {/* Fecha de Nacimiento */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Fecha de Nacimiento</p>
+          <p className="mb-1 font-medium text-[#666666]">Fecha de Nacimiento</p>
           <DatePicker1
             initialDate={birthDate}
             onDateSelect={(date) => setBirthDate(date)}
@@ -147,8 +159,8 @@ export default function EditProfilePage() {
         </div>
         {/* Teléfono */}
         <div className="flex flex-col">
-          <p className="mb-2 font-normal">Número de Teléfono</p>
           <Input
+            label="Número de Teléfono"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             borderColor="#E7E7E6"
