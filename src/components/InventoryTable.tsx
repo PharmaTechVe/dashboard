@@ -16,7 +16,7 @@ type Props = {
   onCancel?: () => void;
 };
 
-const CSVUploadTable: React.FC<Props> = ({
+const InventoryTable: React.FC<Props> = ({
   data,
   editableColumn,
   onConfirm,
@@ -152,4 +152,4 @@ const CSVUploadTable: React.FC<Props> = ({
   );
 };
 
-export default CSVUploadTable;
+export default InventoryTable;
