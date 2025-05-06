@@ -63,12 +63,12 @@ const InventoryTable: React.FC<Props> = ({
         <table className="w-full table-auto border-collapse">
           <thead className="rounded-t-xl bg-[#00144F] text-sm text-white">
             <tr>
-              <th className="w-[120px] p-3 text-left">¿Actualizar?</th>
               {headers.map((header) => (
                 <th key={header} className="p-3 text-left capitalize">
                   {header === editableColumn ? 'Stock' : header}
                 </th>
               ))}
+              <th className="w-[120px] p-3 text-left">¿Actualizar?</th>
             </tr>
           </thead>
           <tbody>
@@ -82,14 +82,6 @@ const InventoryTable: React.FC<Props> = ({
 
               return (
                 <tr key={index} className="border-b text-sm">
-                  <td className="p-3">
-                    <CheckButton
-                      checked={isSelected}
-                      onChange={(val) => handleSelect(index, val)}
-                      filled={Colors.primary}
-                      strokeColor={Colors.primary}
-                    />
-                  </td>
                   {headers.map((key) => (
                     <td key={key} className="p-3">
                       {key === editableColumn ? (
@@ -111,6 +103,14 @@ const InventoryTable: React.FC<Props> = ({
                       )}
                     </td>
                   ))}
+                  <td className="p-3">
+                    <CheckButton
+                      checked={isSelected}
+                      onChange={(val) => handleSelect(index, val)}
+                      filled={Colors.primary}
+                      strokeColor={Colors.primary}
+                    />
+                  </td>
                 </tr>
               );
             })}
