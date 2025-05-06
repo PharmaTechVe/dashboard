@@ -89,7 +89,7 @@ export default function ReportPreviewPage() {
         console.error('Error al obtener sucursales:', err);
       }
     })();
-  }, [selectedCity, token]);
+  }, [selectedCity, token, selectedState]);
 
   const params: ReportQueryParams = useMemo(() => {
     return { startDate, endDate, branchId };
