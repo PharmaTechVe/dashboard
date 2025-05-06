@@ -15,6 +15,14 @@ import {
 } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-toastify';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import Calendar from '@/components/Calendar';
 import Button from '@/components/Button';
 import Badge from '@/components/Badge';
@@ -26,6 +34,16 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [stats, setStats] = useState<DashboardResponse | null>(null);
+
+  const pieData = [
+    { name: 'Órdenes Abiertas', value: stats?.openOrders ?? 0 },
+    {
+      name: 'Órdenes Completadas',
+      value: stats?.completedOrders ?? 0,
+    },
+  ];
+
+  const COLORS = [Colors.secondaryLight, Colors.primary];
 
   // Fechas
   const getCurrentMonthDates = () => {
@@ -196,6 +214,31 @@ export default function DashboardPage() {
           value={stats?.totalNewUsers ?? 0}
         />
         <StatCard title="Total de Ventas" value={stats?.totalSales ?? 0} />
+      </div>
+      <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+        <h2 className="my-4 text-center text-lg font-semibold">
+          Distribución de Órdenes Abiertas
+        </h2>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              outerRadius={100}
+              label
+            >
+              {pieData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Tabla de órdenes */}
