@@ -67,7 +67,7 @@ export default function PDFReportTemplate<T>({
         ))}
 
         {totals.length > 0 && (
-          <View style={styles.summary}>
+          <View style={styles.summary} wrap={false} break={false}>
             {totals.map((item, idx) => (
               <View style={styles.summaryRow} key={idx}>
                 <Text>{item.label}:</Text>

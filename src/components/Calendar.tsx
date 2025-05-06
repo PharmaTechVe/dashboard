@@ -103,7 +103,7 @@ export default function DatePicker1({ onDateSelect }: DatePicker1Props) {
         />
       </div>
       {isCalendarOpen && (
-        <div className="relative mt-2 w-full max-w-md rounded-md bg-white p-4 shadow-lg sm:h-[532px] sm:h-auto sm:w-[509px]">
+        <div className="absolute z-50 mt-2 w-full max-w-md rounded-md bg-white p-4 shadow-lg sm:h-[532px] sm:h-auto sm:w-[509px]">
           <div className="mb-4 flex items-center justify-between px-4">
             <button
               onClick={handlePrevMonth}

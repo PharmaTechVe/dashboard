@@ -16,7 +16,7 @@ import {
   CityResponse,
   BranchResponse,
 } from '@pharmatech/sdk';
-// Constant that represents the ID of Venezuela.Used to Fetch states and cities.
+
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
 export default function ReportPreviewPage() {
@@ -101,7 +101,11 @@ export default function ReportPreviewPage() {
   >(api.report.getSalesReport, params, token ?? '');
 
   const columns: { key: keyof SalesReportItem; label: string }[] = [
-    { key: 'productName', label: 'Producto' },
+    { key: 'orderId', label: 'Id de Orden' },
+    { key: 'user', label: 'Cliente' },
+    { key: 'date', label: 'Fecha' },
+    { key: 'type', label: 'Tipo' },
+    { key: 'quantity', label: 'Cantidad' },
     { key: 'subtotal', label: 'Subtotal' },
     { key: 'discount', label: 'Descuento' },
     { key: 'total', label: 'Total' },
@@ -133,7 +137,15 @@ export default function ReportPreviewPage() {
         userName={userName}
         printDate={printDate}
         columns={columns}
-        data={reportData.items}
+        data={reportData.items.map((item) => {
+          const dateObj = new Date(item.date);
+          const formattedDate = dateObj.toLocaleDateString('es-VE');
+          return {
+            ...item,
+            orderId: `#${String(item.orderId).slice(0, 4)}`,
+            date: formattedDate,
+          };
+        })}
         totals={totals}
       />,
     ).toBlob();
@@ -143,23 +155,28 @@ export default function ReportPreviewPage() {
 
   return (
     <div className="p-6">
-      <h1 className="mb-4 text-xl font-bold">Reporte de Ventas</h1>
+      <h1 className="mb-6 text-center text-2xl font-bold">Reporte de Ventas</h1>
 
-      <div className="mb-4 flex flex-col gap-4 md:flex-row">
-        <div>
+      {/* Filtros de fecha */}
+      <div className="mb-6 flex flex-col items-center justify-center gap-4 md:flex-row">
+        <div className="relative">
           <label className="text-sm font-medium">Fecha inicio:</label>
           <DatePicker1 onDateSelect={setStartDate} />
         </div>
-        <div>
+        <div className="relative">
           <label className="text-sm font-medium">Fecha fin:</label>
           <DatePicker1 onDateSelect={setEndDate} />
         </div>
+      </div>
+
+      {/* Filtros de ubicación */}
+      <div className="mb-6 flex flex-col items-center justify-center gap-4 md:flex-row">
         <div>
           <label className="text-sm font-medium">Estado:</label>
           <select
             value={selectedState}
             onChange={(e) => setSelectedState(e.target.value)}
-            className="mt-1 w-full rounded border px-3 py-2"
+            className="mt-1 w-48 rounded border px-3 py-2"
           >
             <option value="">Selecciona un estado</option>
             {states.map((state) => (
@@ -174,7 +191,7 @@ export default function ReportPreviewPage() {
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="mt-1 w-full rounded border px-3 py-2"
+            className="mt-1 w-48 rounded border px-3 py-2"
             disabled={!selectedState}
           >
             <option value="">Selecciona una ciudad</option>
@@ -190,7 +207,7 @@ export default function ReportPreviewPage() {
           <select
             value={branchId ?? ''}
             onChange={(e) => setBranchId(e.target.value || undefined)}
-            className="mt-1 w-full rounded border px-3 py-2"
+            className="mt-1 w-48 rounded border px-3 py-2"
             disabled={!selectedCity}
           >
             <option value="">Todas</option>
@@ -203,12 +220,14 @@ export default function ReportPreviewPage() {
         </div>
       </div>
 
-      <button
-        onClick={handleDownload}
-        className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? 'Cargando reporte...' : 'Descargar Reporte PDF'}
-      </button>
+      <div className="flex justify-center">
+        <button
+          onClick={handleDownload}
+          className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? 'Cargando reporte...' : 'Descargar Reporte PDF'}
+        </button>
+      </div>
     </div>
   );
 }
