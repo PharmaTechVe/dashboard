@@ -23,8 +23,6 @@ export default function AddProductPresentationPage() {
 
   const { token } = useAuth();
   const [promos, setPromos] = useState<PromoResponse[]>([]);
-  const [selectedPresentation, setSelectedPresentation] = useState('');
-  const [selectedPromo, setSelectedPromo] = useState('');
   const [presentationId, setPresentationId] = useState('');
   const [promoId, setPromoId] = useState('');
   const [price, setPrice] = useState('');
@@ -51,25 +49,11 @@ export default function AddProductPresentationPage() {
     fetchData();
   }, [token]);
 
-  useEffect(() => {
-    const selected = presentations.find(
-      (p) =>
-        `${p.name} | ${p.quantity} ${p.measurementUnit}` ===
-        selectedPresentation,
-    );
-    setPresentationId(selected ? selected.id : '');
-  }, [selectedPresentation, presentations]);
-
-  useEffect(() => {
-    const selected = promos.find((p) => p.name === selectedPromo);
-    setPromoId(selected ? selected.id : '');
-  }, [selectedPromo, promos]);
-
   const handleSubmit = async () => {
     const result = newProductPresentationSchema.safeParse({
       presentationId,
       price: parseFloat(price),
-      promoId: promoId || undefined, // Aseguramos que promoId sea undefined si no se selecciona
+      promoId: promoId || undefined,
     });
 
     if (!result.success) {
@@ -159,13 +143,13 @@ export default function AddProductPresentationPage() {
           <Dropdown
             title="Presentación"
             placeholder="Selecciona una presentación para el producto"
-            width={'100%'}
+            width="100%"
             items={presentations.map((p) => ({
               label: `${p.name} | ${p.quantity} ${p.measurementUnit}`,
               value: p.id,
             }))}
-            selected={selectedPresentation}
-            onChange={setSelectedPresentation}
+            selected={presentationId}
+            onChange={(value) => setPresentationId(value)}
           />
           {errors.presentation && (
             <p className="mt-1 text-sm text-red-500">{errors.presentation}</p>
@@ -176,13 +160,13 @@ export default function AddProductPresentationPage() {
           <Dropdown
             title="Promoción"
             placeholder="Selecciona una promoción para la presentación"
-            width={'100%'}
+            width="100%"
             items={promos.map((promo) => ({
               label: promo.name,
               value: promo.id,
             }))}
-            selected={selectedPromo}
-            onChange={setSelectedPromo}
+            selected={promoId}
+            onChange={(value) => setPromoId(value)}
           />
         </div>
         <div>
