@@ -1,4 +1,3 @@
-// src/app/(dashboard)/profile/layout.tsx
 'use client';
 
 import React, { ReactNode, useEffect, useState } from 'react';
@@ -18,8 +17,6 @@ interface ProfileLayoutProps {
 const roleLabels: Record<string, string> = {
   admin: 'Administrador',
   superadmin: 'Superadministrador',
-  customer: 'Cliente',
-  // otros roles...
 };
 
 export default function ProfileLayout({ children }: ProfileLayoutProps) {
@@ -105,14 +102,10 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
 
   return (
     <div className="mt-12 flex flex-col items-center">
-      {/* Breadcrumb fuera del contenedor */}
       <div className="mb-4 w-[906px]">
         <Breadcrumb items={breadcrumbItems} />
       </div>
-
-      {/* Contenedor principal */}
       <div className="relative w-[906px] rounded-[16px] bg-white p-8 shadow-lg">
-        {/* Header: avatar + datos */}
         <div className="mx-6 my-2 flex items-center">
           <div className="relative h-24 w-24 rounded-full border-4 border-white bg-gray-100 shadow-md">
             <Image
@@ -175,7 +168,6 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
           </div>
         </div>
 
-        {/* Tabs */}
         <nav className="mx-6 mt-6 flex w-[804px] border-b">
           <Link
             href="/profile"
@@ -199,7 +191,6 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
           </Link>
         </nav>
 
-        {/* Contenido */}
         <div className="p-6">{children}</div>
       </div>
     </div>

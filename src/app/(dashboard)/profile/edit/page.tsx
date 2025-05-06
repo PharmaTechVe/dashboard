@@ -25,7 +25,6 @@ export default function EditProfilePage() {
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
 
-  // Carga inicial del perfil
   const fetchProfile = useCallback(async () => {
     if (!user?.sub || !token) return;
     try {
@@ -57,7 +56,6 @@ export default function EditProfilePage() {
   if (!profile) return null;
 
   const handleSubmit = async () => {
-    // Usando el esquema editProfileSchema para la validación
     const result = editProfileSchema.safeParse({
       firstName,
       lastName,
@@ -66,7 +64,6 @@ export default function EditProfilePage() {
     });
 
     if (!result.success) {
-      // Manejamos los errores de validación
       const fe = result.error.flatten().fieldErrors;
       setErrors({
         firstName: fe.firstName?.[0] || '',
@@ -101,7 +98,6 @@ export default function EditProfilePage() {
   return (
     <div className="font-poppins space-y-6 p-8 py-0 [&_input]:text-gray-500">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Nombre */}
         <div className="flex flex-col">
           <Input
             label="Nombre"
@@ -113,7 +109,6 @@ export default function EditProfilePage() {
             <p className="text-sm text-red-500">{errors.firstName}</p>
           )}
         </div>
-        {/* Apellido */}
         <div className="flex flex-col">
           <Input
             label="Apellido"
@@ -125,7 +120,6 @@ export default function EditProfilePage() {
             <p className="text-sm text-red-500">{errors.lastName}</p>
           )}
         </div>
-        {/* Cédula (solo lectura) */}
         <div className="flex flex-col">
           <Input
             label="Cédula"
@@ -136,7 +130,6 @@ export default function EditProfilePage() {
             readViewOnly
           />
         </div>
-        {/* Correo (solo lectura) */}
         <div className="flex flex-col">
           <Input
             label="Correo Electrónico"
@@ -157,7 +150,6 @@ export default function EditProfilePage() {
             <p className="text-sm text-red-500">{errors.birthDate}</p>
           )}
         </div>
-        {/* Teléfono */}
         <div className="flex flex-col">
           <Input
             label="Número de Teléfono"

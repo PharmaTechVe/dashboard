@@ -1,4 +1,3 @@
-// src/app/(dashboard)/profile/security/page.tsx
 'use client';
 
 import { useState } from 'react';

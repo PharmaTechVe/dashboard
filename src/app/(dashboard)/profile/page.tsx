@@ -1,4 +1,3 @@
-// src/app/(dashboard)/profile/page.tsx
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -47,7 +46,6 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   const bd = profile.profile?.birthDate;
-  // formatea la fecha como DD/MM/YYYY
   const birthDate = bd
     ? new Date(bd).toLocaleDateString('es-ES', {
         day: '2-digit',
