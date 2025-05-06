@@ -27,6 +27,7 @@ import Calendar from '@/components/Calendar';
 import Badge from '@/components/Badge';
 import { Colors, FontSizes } from '@/styles/styles';
 import { useRouter } from 'next/navigation';
+import { getCurrentMonthDates, getPreviousPeriod } from '@/lib/utils/DateUtils';
 
 export default function DashboardPage() {
   const { token, user } = useAuth();
@@ -44,32 +45,6 @@ export default function DashboardPage() {
   ];
 
   const COLORS = [Colors.secondaryLight, Colors.primary];
-
-  // Fechas
-  const getCurrentMonthDates = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    return { firstDay, lastDay };
-  };
-
-  const getPreviousPeriod = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    const diffInMs = endDate.getTime() - startDate.getTime();
-    const previousEnd = new Date(startDate.getTime() - 1);
-    const previousStart = new Date(previousEnd.getTime() - diffInMs);
-
-    return {
-      startDate: previousStart.toISOString().split('T')[0],
-      endDate: previousEnd.toISOString().split('T')[0],
-    };
-  };
 
   const { firstDay, lastDay } = getCurrentMonthDates();
   const [fromDate, setFromDate] = useState<string>(firstDay);
