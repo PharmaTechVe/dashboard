@@ -24,7 +24,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import Calendar from '@/components/Calendar';
-import Button from '@/components/Button';
 import Badge from '@/components/Badge';
 import { Colors, FontSizes } from '@/styles/styles';
 import { useRouter } from 'next/navigation';
@@ -34,6 +33,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [stats, setStats] = useState<DashboardResponse | null>(null);
+  const [prevStats, setPrevStats] = useState<DashboardResponse | null>(null);
 
   const pieData = [
     { name: 'Órdenes Abiertas', value: stats?.openOrders ?? 0 },
@@ -57,6 +57,20 @@ export default function DashboardPage() {
     return { firstDay, lastDay };
   };
 
+  const getPreviousPeriod = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const diffInMs = endDate.getTime() - startDate.getTime();
+    const previousEnd = new Date(startDate.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - diffInMs);
+
+    return {
+      startDate: previousStart.toISOString().split('T')[0],
+      endDate: previousEnd.toISOString().split('T')[0],
+    };
+  };
+
   const { firstDay, lastDay } = getCurrentMonthDates();
   const [fromDate, setFromDate] = useState<string>(firstDay);
   const [toDate, setToDate] = useState<string>(lastDay);
@@ -72,6 +86,10 @@ export default function DashboardPage() {
 
       const response = await api.report.getDashboard(params, token);
       setStats(response);
+
+      const prevRange = getPreviousPeriod(fromDate, toDate);
+      const prevResponse = await api.report.getDashboard(prevRange, token);
+      setPrevStats(prevResponse);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
       toast.error('Error al cargar el resumen del dashboard');
@@ -187,60 +205,105 @@ export default function DashboardPage() {
             onDateSelect={(date) => setToDate(date)}
           />
         </div>
-        <Button
-          onClick={fetchDashboardStats}
-          color={Colors.primary}
-          textColor={Colors.textWhite}
-          paddingX={4}
-          paddingY={2}
-          textSize="base"
-          width="auto"
-          height="42px"
-          className="self-end"
-        >
-          Filtrar
-        </Button>
       </div>
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCard title="Órdenes Activas" value={stats?.openOrders ?? 0} />
+        <StatCard
+          title="Órdenes Activas"
+          value={stats?.openOrders ?? 0}
+          previousValue={prevStats?.openOrders}
+        />
         <StatCard
           title="Órdenes Completadas"
           value={stats?.completedOrders ?? 0}
+          previousValue={prevStats?.completedOrders}
         />
         <StatCard
           title="Total de Nuevos Clientes"
           value={stats?.totalNewUsers ?? 0}
+          previousValue={prevStats?.totalNewUsers}
         />
-        <StatCard title="Total de Ventas" value={stats?.totalSales ?? 0} />
+        <StatCard
+          title="Total de Ventas"
+          value={stats?.totalSales ?? 0}
+          previousValue={prevStats?.totalSales}
+          prefix="$"
+        />
       </div>
-      <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
-        <h2 className="my-4 text-center text-lg font-semibold">
-          Distribución de Órdenes Abiertas
-        </h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              outerRadius={100}
-              label
-            >
-              {pieData.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Gráfico de órdenes actuales */}
+        <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+          <h2 className="my-4 text-center text-lg font-semibold">
+            Distribución de Órdenes Abiertas
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={100}
+                label
+              >
+                {pieData.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
 
+        {/* Gráfico de órdenes del periodo anterior */}
+        <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+          <h2 className="my-4 text-center text-lg font-semibold">
+            Distribución del Periodo Anterior
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={[
+                  {
+                    name: 'Órdenes Abiertas',
+                    value: prevStats?.openOrders ?? 0,
+                  },
+                  {
+                    name: 'Órdenes Completadas',
+                    value: prevStats?.completedOrders ?? 0,
+                  },
+                ]}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={100}
+                label
+              >
+                {[
+                  {
+                    name: 'Órdenes Abiertas',
+                    value: prevStats?.openOrders ?? 0,
+                  },
+                  {
+                    name: 'Órdenes Completadas',
+                    value: prevStats?.completedOrders ?? 0,
+                  },
+                ].map((_, index) => (
+                  <Cell
+                    key={`cell-prev-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
       {/* Tabla de órdenes */}
       <TableContainer<OrderResponse>
         title="Órdenes"
