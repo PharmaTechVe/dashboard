@@ -72,7 +72,7 @@ export default function EditOrderStatusPage() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [isConnected, socket]);
 
   const fetchOrderData = useCallback(async () => {
     if (!token || !id) return;
