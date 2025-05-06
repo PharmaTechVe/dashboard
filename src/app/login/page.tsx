@@ -15,7 +15,7 @@ export default function LoginPage() {
   // 🔐 Si ya está autenticado, redirige (previene acceso al login)
   useEffect(() => {
     if (!loading && token && user) {
-      router.replace('/products');
+      router.replace('/dashboard');
     }
   }, [token, user, loading, router]);
 
