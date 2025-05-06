@@ -22,6 +22,10 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
 } from 'recharts';
 import Calendar from '@/components/Calendar';
 import Badge from '@/components/Badge';
@@ -276,6 +280,81 @@ export default function DashboardPage() {
               <Tooltip />
               <Legend />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Comparación Total de Ventas */}
+        <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+          <h2 className="my-4 text-center text-lg font-semibold">
+            Comparación de Ventas
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart
+              data={
+                [
+                  {
+                    name: 'Actual',
+                    value: stats?.totalSales ?? 0,
+                  },
+                  {
+                    name: 'Anterior',
+                    value: prevStats?.totalSales ?? 0,
+                  },
+                ] as { name: string; value: number }[]
+              }
+            >
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value">
+                {[stats?.totalSales ?? 0, prevStats?.totalSales ?? 0].map(
+                  (_, index) => (
+                    <Cell
+                      key={`bar-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ),
+                )}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Comparación Total de Clientes */}
+        <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+          <h2 className="my-4 text-center text-lg font-semibold">
+            Comparación de Nuevos Clientes
+          </h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart
+              data={[
+                {
+                  name: 'Actual',
+                  value: stats?.totalNewUsers ?? 0,
+                },
+                {
+                  name: 'Anterior',
+                  value: prevStats?.totalNewUsers ?? 0,
+                },
+              ]}
+            >
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value">
+                {[stats?.totalSales ?? 0, prevStats?.totalSales ?? 0].map(
+                  (_, index) => (
+                    <Cell
+                      key={`bar-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ),
+                )}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
