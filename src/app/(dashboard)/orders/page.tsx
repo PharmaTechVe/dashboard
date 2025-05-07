@@ -13,6 +13,7 @@ import {
   OrderStatus,
   OrderType,
 } from '@pharmatech/sdk';
+import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
 
@@ -60,6 +61,18 @@ export default function OrdersPage() {
     { value: OrderType.PICKUP, label: 'Pickup' },
     { value: OrderType.DELIVERY, label: 'Delivery' },
   ] as const;
+
+  const statusColorMap: Record<
+    OrderStatus,
+    'primary' | 'warning' | 'danger' | 'success' | 'info'
+  > = {
+    [OrderStatus.REQUESTED]: 'warning',
+    [OrderStatus.IN_PROGRESS]: 'info',
+    [OrderStatus.APPROVED]: 'primary',
+    [OrderStatus.CANCELED]: 'danger',
+    [OrderStatus.READY_FOR_PICKUP]: 'primary',
+    [OrderStatus.COMPLETED]: 'success',
+  };
 
   const handleStatusChange = (label: string) => {
     const opt = statusOptions.find((o) => o.label === label);
@@ -137,20 +150,15 @@ export default function OrdersPage() {
       render: (o) => (
         <Badge
           variant="filled"
-          color={
-            o.status === OrderStatus.COMPLETED
-              ? 'success'
-              : o.status === OrderStatus.REQUESTED
-                ? 'warning'
-                : 'info'
-          }
+          color={statusColorMap[o.status]}
           size="small"
           borderRadius="rounded"
         >
-          {o.status}
+          {orderStatusTranslationMap[o.status]}
         </Badge>
       ),
     },
+
     { key: 'type', label: 'Tipo', render: (o) => o.type },
     {
       key: 'totalPrice',
