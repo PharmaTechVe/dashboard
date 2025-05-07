@@ -11,7 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
 import { useAuth } from '@/context/AuthContext';
-import { fixToNoon } from '@/lib/utils/useFormatDate';
+import { parseApiDate } from '@/lib/utils/useFormatDate';
 
 export default function NewPromotionPage() {
   const router = useRouter();
@@ -49,8 +49,8 @@ export default function NewPromotionPage() {
       const validationData = {
         name: name.trim(),
         discount: Number(discount),
-        startAt: fixToNoon(startAt),
-        expiredAt: fixToNoon(expiredAt),
+        startAt: startAt,
+        expiredAt: expiredAt,
       };
 
       const validationResult = promoSchema.safeParse(validationData);
@@ -164,7 +164,7 @@ export default function NewPromotionPage() {
             <label className="block text-[16px] font-medium text-gray-600">
               Fecha de Inicio
             </label>
-            <Calendar onDateSelect={(date) => setStartAt(new Date(date))} />
+            <Calendar onDateSelect={(date) => setStartAt(parseApiDate(date))} />
             {errors.startAt && (
               <p className="mt-1 text-sm text-red-500">{errors.startAt}</p>
             )}
@@ -173,7 +173,9 @@ export default function NewPromotionPage() {
             <label className="block text-[16px] font-medium text-gray-600">
               Fecha de Finalización
             </label>
-            <Calendar onDateSelect={(date) => setExpiredAt(new Date(date))} />
+            <Calendar
+              onDateSelect={(date) => setExpiredAt(parseApiDate(date))}
+            />
             {errors.expiredAt && (
               <p className="mt-1 text-sm text-red-500">{errors.expiredAt}</p>
             )}

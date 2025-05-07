@@ -10,7 +10,7 @@ import { Pagination, PromoResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
-import { formatDateSafe } from '@/lib/utils/useFormatDate';
+import { formatDateSafe, parseApiDate } from '@/lib/utils/useFormatDate';
 
 // Presets de rango de expiración que el backend acepta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -95,11 +95,15 @@ export default function PromosPage() {
   const totalPages = Math.ceil(totalItems / limit);
 
   // calcular estado para columna
-  const calcStatus = (start: Date, end: Date): 'Activa' | 'Finalizada' => {
-    const now = new Date();
-    return now >= start && now <= end ? 'Activa' : 'Finalizada';
-  };
 
+  const calcStatus = (
+    start: string | Date,
+    end: string | Date,
+  ): 'Activa' | 'Finalizada' => {
+    const now = new Date();
+    const parsedEnd = parseApiDate(end);
+    return now <= parsedEnd ? 'Activa' : 'Finalizada';
+  };
   // definición de columnas
   const columns: Column<PromoResponse>[] = [
     { key: 'name', label: 'Nombre', render: (p: PromoResponse) => p.name },
@@ -122,7 +126,7 @@ export default function PromosPage() {
       key: 'status',
       label: 'Estado',
       render: (p: PromoResponse) => {
-        const status = calcStatus(new Date(p.startAt), new Date(p.expiredAt));
+        const status = calcStatus(p.startAt, p.expiredAt);
         return (
           <Badge
             variant="filled"
