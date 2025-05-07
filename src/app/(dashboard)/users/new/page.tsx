@@ -14,6 +14,7 @@ import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { UserGender, UserRole } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
+import { convertSlashDateToIso } from '@/lib/utils/useFormatDate';
 
 // Mapeo para mostrar etiquetas en el dropdown y obtener el valor que espera la API
 const roleMapping: Record<string, UserRole> = {
@@ -21,14 +22,6 @@ const roleMapping: Record<string, UserRole> = {
   'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
   Cliente: UserRole.CUSTOMER,
   Delivery: UserRole.DELIVERY,
-};
-
-// Función para convertir fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
-const formatDate = (dateStr: string): string => {
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return dateStr;
-  const [day, month, year] = parts;
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -93,7 +86,7 @@ export default function NewUserPage() {
       email,
       cedula: documentId,
       telefono: phoneNumber,
-      fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
+      fechaNacimiento: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
       genero,
     });
 
@@ -127,7 +120,7 @@ export default function NewUserPage() {
       }
 
       const mappedRole = roleMapping[role] || UserRole.CUSTOMER;
-      const formattedBirthDate = formatDate(birthDate);
+      const formattedBirthDate = convertSlashDateToIso(birthDate);
 
       const payload = {
         firstName,
