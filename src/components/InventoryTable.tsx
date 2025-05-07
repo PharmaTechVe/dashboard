@@ -7,7 +7,9 @@ import Button from '@/components/Button';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
+import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 type CSVRow = Record<string, string | number | boolean>;
 type CSVRowWithSelection = CSVRow & { selected: boolean };
@@ -58,6 +60,7 @@ const InventoryTable: React.FC<Props> = ({
     'stock',
   ];
   const { token } = useAuth();
+  const router = useRouter();
   const handleConfirm = async (rows: UpdateStockRow[]): Promise<void> => {
     try {
       const payload: {
@@ -77,6 +80,9 @@ const InventoryTable: React.FC<Props> = ({
 
       toast.success('Inventario actualizado');
       clearTable();
+      setTimeout(() => {
+        router.push('/products');
+      }, REDIRECTION_TIMEOUT);
     } catch (error) {
       console.error('Error actualizando inventario:', error);
       toast.error('Error actualizando inventario');
