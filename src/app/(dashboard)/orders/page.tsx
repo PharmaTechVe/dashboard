@@ -61,6 +61,27 @@ export default function OrdersPage() {
     { value: OrderType.DELIVERY, label: 'Delivery' },
   ] as const;
 
+  const statusColorMap: Record<
+    OrderStatus,
+    'primary' | 'warning' | 'danger' | 'success' | 'info'
+  > = {
+    [OrderStatus.REQUESTED]: 'warning',
+    [OrderStatus.IN_PROGRESS]: 'info',
+    [OrderStatus.APPROVED]: 'primary',
+    [OrderStatus.CANCELED]: 'danger',
+    [OrderStatus.READY_FOR_PICKUP]: 'primary',
+    [OrderStatus.COMPLETED]: 'success',
+  };
+
+  const statusTranslationMap: Record<OrderStatus, string> = {
+    [OrderStatus.REQUESTED]: 'Solicitado',
+    [OrderStatus.IN_PROGRESS]: 'En proceso',
+    [OrderStatus.APPROVED]: 'Aprobada',
+    [OrderStatus.CANCELED]: 'Cancelada',
+    [OrderStatus.READY_FOR_PICKUP]: 'Lista para Retiro',
+    [OrderStatus.COMPLETED]: 'Completado',
+  };
+
   const handleStatusChange = (label: string) => {
     const opt = statusOptions.find((o) => o.label === label);
     setSelectedStatus(opt?.value ?? '');
@@ -137,20 +158,15 @@ export default function OrdersPage() {
       render: (o) => (
         <Badge
           variant="filled"
-          color={
-            o.status === OrderStatus.COMPLETED
-              ? 'success'
-              : o.status === OrderStatus.REQUESTED
-                ? 'warning'
-                : 'info'
-          }
+          color={statusColorMap[o.status]}
           size="small"
           borderRadius="rounded"
         >
-          {o.status}
+          {statusTranslationMap[o.status]}
         </Badge>
       ),
     },
+
     { key: 'type', label: 'Tipo', render: (o) => o.type },
     {
       key: 'totalPrice',
