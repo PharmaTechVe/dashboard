@@ -15,6 +15,7 @@ import {
 } from '@pharmatech/sdk';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import { formatDateSafe } from '@/lib/utils/useFormatDate';
 
 export default function OrdersPage() {
   const { token } = useAuth();
@@ -72,15 +73,6 @@ export default function OrdersPage() {
     setSelectedType(opt?.value ?? '');
     setPage(1);
   };
-
-  // formatea fechas
-  const formatDate = (input: string | Date) =>
-    new Date(input).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-
   // trae órdenes usando SOLO los filtros que el backend expone (q + status + type)
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -124,12 +116,12 @@ export default function OrdersPage() {
     {
       key: 'createdAt',
       label: 'Creación',
-      render: (o) => formatDate(o.createdAt),
+      render: (o) => formatDateSafe(o.createdAt),
     },
     {
       key: 'updatedAt',
       label: 'Actualización',
-      render: (o) => formatDate(o.updatedAt),
+      render: (o) => formatDateSafe(o.updatedAt),
     },
     {
       key: 'status',

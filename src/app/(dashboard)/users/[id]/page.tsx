@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
 import { UserList, UserRole } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
+import { formatDateSafe } from '@/lib/utils/useFormatDate';
 
 const roleLabels = {
   [UserRole.ADMIN]: 'Administrador',
@@ -79,9 +80,8 @@ export default function UserDetailsPage() {
   const handleCancel = () => setShowModal(false);
 
   const formattedBirthDate = user?.profile?.birthDate
-    ? new Date(user.profile.birthDate).toLocaleDateString('es-ES')
+    ? formatDateSafe(user.profile.birthDate)
     : '';
-
   const displayGender =
     user?.profile?.gender === 'm'
       ? 'Masculino'

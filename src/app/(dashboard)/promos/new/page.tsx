@@ -11,6 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { promoSchema } from '@/lib/validations/promoSchema';
 import { useAuth } from '@/context/AuthContext';
+import { fixToNoon } from '@/lib/utils/useFormatDate';
 
 export default function NewPromotionPage() {
   const router = useRouter();
@@ -48,8 +49,8 @@ export default function NewPromotionPage() {
       const validationData = {
         name: name.trim(),
         discount: Number(discount),
-        startAt,
-        expiredAt,
+        startAt: fixToNoon(startAt),
+        expiredAt: fixToNoon(expiredAt),
       };
 
       const validationResult = promoSchema.safeParse(validationData);

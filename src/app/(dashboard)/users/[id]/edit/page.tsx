@@ -15,19 +15,13 @@ import Input from '@/components/Input/Input';
 import Dropdown from '@/components/Dropdown';
 import RadioButton from '@/components/RadioButton';
 import { FontSizes } from '@/styles/styles';
+import { convertSlashDateToIso } from '@/lib/utils/useFormatDate';
 
 const roleLabels: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
   [UserRole.DELIVERY]: 'Delivery',
-};
-
-const formatDate = (dateStr: string): string => {
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return dateStr;
-  const [day, month, year] = parts;
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 export default function EditUserPage() {
@@ -101,7 +95,7 @@ export default function EditUserPage() {
       email,
       cedula: documentId,
       telefono: phoneNumber,
-      fechaNacimiento: birthDate ? formatDate(birthDate) : null,
+      fechaNacimiento: birthDate ? convertSlashDateToIso(birthDate) : null,
       genero,
     });
 
@@ -132,7 +126,7 @@ export default function EditUserPage() {
         firstName: firstName ?? undefined,
         lastName: lastName ?? undefined,
         phoneNumber: phoneNumber ?? undefined,
-        birthDate: birthDate ? formatDate(birthDate) : undefined,
+        birthDate: birthDate ? convertSlashDateToIso(birthDate) : undefined,
         gender,
         role: role ?? undefined,
       };

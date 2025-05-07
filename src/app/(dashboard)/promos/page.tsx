@@ -10,6 +10,7 @@ import { Pagination, PromoResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import { formatDateSafe } from '@/lib/utils/useFormatDate';
 
 // Presets de rango de expiración que el backend acepta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -110,14 +111,12 @@ export default function PromosPage() {
     {
       key: 'startAt',
       label: 'Inicio',
-      render: (p: PromoResponse) =>
-        new Date(p.startAt).toLocaleDateString('es-ES'),
+      render: (p: PromoResponse) => formatDateSafe(p.startAt),
     },
     {
       key: 'expiredAt',
       label: 'Fin',
-      render: (p: PromoResponse) =>
-        new Date(p.expiredAt).toLocaleDateString('es-ES'),
+      render: (p: PromoResponse) => formatDateSafe(p.expiredAt),
     },
     {
       key: 'status',
