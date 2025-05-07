@@ -2,17 +2,15 @@
 
 import { useRef } from 'react';
 import { useCsvUploader } from '@/lib/utils/useCsvUploader';
+import InventoryTable from '@/components/InventoryTable';
+import FileUploader from '@/components/FileUploader';
 
 export default function CsvUploader() {
   const { csvData, fileName, loading, parseCsv, clearCsv } = useCsvUploader();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      parseCsv(file);
-    }
+  const handleFileSelect = (file: File) => {
+    parseCsv(file);
   };
 
   const handleClearCsv = () => {
@@ -22,17 +20,22 @@ export default function CsvUploader() {
     }
   };
 
+  const handleConfirm = (rows: object[]) => {
+    console.log('Filas confirmadas:', rows);
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 p-4">
       <h2 className="text-lg font-semibold">Importar Inventario CSV</h2>
-      <input
-        type="file"
+
+      <FileUploader
+        onFileSelect={handleFileSelect}
         accept=".csv"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        className="rounded border p-2"
+        label="Selecciona un archivo CSV para cargar"
       />
+
       {loading && <p>Cargando archivo...</p>}
+
       {fileName && (
         <div className="mt-4 flex flex-col items-center">
           <p className="font-medium">Archivo cargado: {fileName}</p>
@@ -46,40 +49,13 @@ export default function CsvUploader() {
       )}
 
       {csvData.length > 0 && (
-        <div className="mt-6 flex w-full flex-col gap-6">
-          {/* Tabla */}
-          <div className="overflow-auto">
-            <table className="min-w-full border text-sm">
-              <thead>
-                <tr>
-                  {Object.keys(csvData[0]).map((key) => (
-                    <th key={key} className="border bg-gray-100 px-2 py-1">
-                      {key}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {csvData.map((row, index) => (
-                  <tr key={index}>
-                    {Object.values(row).map((value, i) => (
-                      <td key={i} className="border px-2 py-1">
-                        {String(value)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* JSON */}
-          <div className="w-full rounded bg-gray-100 p-4 text-sm">
-            <h3 className="mb-2 text-base font-semibold">JSON Parseado</h3>
-            <pre className="overflow-x-auto">
-              {JSON.stringify(csvData, null, 2)}
-            </pre>
-          </div>
+        <div className="mt-6 w-full">
+          <InventoryTable
+            data={csvData}
+            editableColumn="stock"
+            onConfirm={handleConfirm}
+            onCancel={handleClearCsv}
+          />
         </div>
       )}
     </div>
