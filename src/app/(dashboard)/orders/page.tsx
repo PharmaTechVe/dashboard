@@ -13,6 +13,7 @@ import {
   OrderStatus,
   OrderType,
 } from '@pharmatech/sdk';
+import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
 
@@ -71,15 +72,6 @@ export default function OrdersPage() {
     [OrderStatus.CANCELED]: 'danger',
     [OrderStatus.READY_FOR_PICKUP]: 'primary',
     [OrderStatus.COMPLETED]: 'success',
-  };
-
-  const statusTranslationMap: Record<OrderStatus, string> = {
-    [OrderStatus.REQUESTED]: 'Solicitado',
-    [OrderStatus.IN_PROGRESS]: 'En proceso',
-    [OrderStatus.APPROVED]: 'Aprobada',
-    [OrderStatus.CANCELED]: 'Cancelada',
-    [OrderStatus.READY_FOR_PICKUP]: 'Lista para Retiro',
-    [OrderStatus.COMPLETED]: 'Completado',
   };
 
   const handleStatusChange = (label: string) => {
@@ -162,7 +154,7 @@ export default function OrdersPage() {
           size="small"
           borderRadius="rounded"
         >
-          {statusTranslationMap[o.status]}
+          {orderStatusTranslationMap[o.status]}
         </Badge>
       ),
     },

@@ -20,6 +20,10 @@ import {
   UserRole,
   OrderType,
 } from '@pharmatech/sdk';
+import {
+  orderStatusTranslationMap,
+  orderDeliveryStatusTranslationMap,
+} from '@/lib/utils/orderTranslations';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
 
@@ -37,6 +41,7 @@ export default function EditOrderStatusPage() {
       },
     },
   });
+
   const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
@@ -200,7 +205,7 @@ export default function EditOrderStatusPage() {
               selected={orderStatus}
               onChange={(value) => setOrderStatus(value as OrderStatus)}
               items={Object.values(OrderStatus).map((statusKey) => ({
-                label: statusKey,
+                label: orderStatusTranslationMap[statusKey],
                 value: statusKey,
               }))}
             />
@@ -217,7 +222,7 @@ export default function EditOrderStatusPage() {
                   }
                   items={Object.values(OrderDeliveryStatus).map(
                     (statusKey) => ({
-                      label: statusKey,
+                      label: orderDeliveryStatusTranslationMap[statusKey],
                       value: statusKey,
                     }),
                   )}

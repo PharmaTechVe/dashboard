@@ -20,6 +20,10 @@ import {
 } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
+import {
+  orderStatusTranslationMap,
+  orderDeliveryStatusTranslationMap,
+} from '@/lib/utils/orderTranslations';
 
 export default function ViewOrderStatusPage() {
   const params = useParams();
@@ -35,6 +39,7 @@ export default function ViewOrderStatusPage() {
   const [selectedDeliveryUserId, setSelectedDeliveryUserId] = useState<
     string | null
   >(null);
+
   const [loading, setLoading] = useState(true);
 
   const fetchOrderData = useCallback(async () => {
@@ -134,7 +139,7 @@ export default function ViewOrderStatusPage() {
             <Input
               label="Estado de la Orden"
               placeholder="Estado de la orden"
-              value={orderStatus || ''}
+              value={orderStatus ? orderStatusTranslationMap[orderStatus] : ''}
               readViewOnly
             />
 
@@ -143,7 +148,11 @@ export default function ViewOrderStatusPage() {
                 <Input
                   label="Estado del Delivery"
                   placeholder="Estado del delivery"
-                  value={deliveryStatus || ''}
+                  value={
+                    deliveryStatus
+                      ? orderDeliveryStatusTranslationMap[deliveryStatus]
+                      : ''
+                  }
                   readViewOnly
                 />
                 <Input
