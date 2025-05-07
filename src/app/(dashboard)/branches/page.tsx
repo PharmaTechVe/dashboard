@@ -1,154 +1,173 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import TableContainer from '@/components/TableContainer';
 import Dropdown from '@/components/Dropdown';
-import { Column } from '@/components/Table';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { Pagination, BranchResponse, StateResponse } from '@pharmatech/sdk';
 
-interface BranchItem {
-  id: string;
-  name: string;
-  address: string;
-  city: {
-    id: string;
-    name: string;
-  };
-  latitude: number;
-  longitude: number;
-}
-
-interface BranchResponse {
-  results: BranchItem[];
-  count: number;
-  next: string | null;
-  previous: string | null;
-}
-
-interface StateItem {
-  id: string;
-  name: string;
-}
+const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
+const DEBOUNCE_MS = 500;
 
 export default function BranchesPage() {
-  const [branches, setBranches] = useState<BranchItem[]>([]);
-  const [states, setStates] = useState<string[]>(['Todos']);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-
-  const { token, user } = useAuth();
   const router = useRouter();
+  const { token, user } = useAuth();
 
+  // Búsqueda y filtro de estado
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedStateId, setSelectedStateId] = useState<string>('');
+
+  // Paginación de sucursales
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
+  // Datos
+  const [branches, setBranches] = useState<BranchResponse[]>([]);
+  const [states, setStates] = useState<StateResponse[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const handleSearch = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(q.trim());
+      setCurrentPage(1);
+    }, DEBOUNCE_MS);
+  };
+
+  const handleStateChange = (label: string) => {
+    const found = states.find((s) => s.name === label);
+    setSelectedStateId(found ? found.id : '');
+    setCurrentPage(1);
+  };
+
+  // Carga de estados (únicamente para el dropdown)
+  const fetchStates = useCallback(async () => {
+    if (!token) return;
+    try {
+      const resp = await api.state.findAll({
+        page: 1,
+        limit: 100,
+        countryId: COUNTRY_ID,
+      });
+      setStates(resp.results);
+    } catch (err: unknown) {
+      console.error('Error fetching states:', err);
+    }
+  }, [token]);
+
+  // Carga de sucursales con paginación dinámica
   const fetchBranches = useCallback(
-    async (page: number, limit: number) => {
+    async (page: number, limit: number, q: string, stateId: string) => {
+      if (!token) return;
+      setIsLoading(true);
+      setError(null);
       try {
-        if (!token) return;
-
-        const response: BranchResponse = await api.branch.findAll({
+        const params: Parameters<typeof api.branch.findAll>[0] = {
           page,
           limit,
-        });
+          ...(q ? { q } : {}),
+          ...(stateId ? { stateId } : {}),
+        };
+        const response: Pagination<BranchResponse> =
+          await api.branch.findAll(params);
         setBranches(response.results);
         setTotalItems(response.count);
-      } catch (error) {
-        console.error('Error al obtener sucursales:', error);
+      } catch (err: unknown) {
+        console.error('Error fetching branches:', err);
+        setError('No se pudieron cargar las sucursales.');
+      } finally {
+        setIsLoading(false);
       }
     },
     [token],
   );
 
-  const fetchStates = useCallback(async () => {
-    try {
-      if (!token) return;
-
-      const response = await api.state.findAll({
-        page: 1,
-        limit: 24,
-        countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
-      });
-
-      const stateNames = response.results.map((state: StateItem) => state.name);
-      setStates(['Todos', ...stateNames]);
-    } catch (error) {
-      console.error('Error al obtener estados:', error);
+  // Efectos
+  useEffect(() => {
+    if (token && user?.sub) {
+      fetchStates();
     }
-  }, [token]);
+  }, [fetchStates, token, user]);
 
   useEffect(() => {
-    if (!token || !user?.sub) return;
-
-    fetchBranches(currentPage, itemsPerPage);
-    fetchStates();
-  }, [currentPage, itemsPerPage, token, user, fetchBranches, fetchStates]);
+    if (token && user?.sub) {
+      fetchBranches(currentPage, itemsPerPage, searchQuery, selectedStateId);
+    }
+  }, [
+    fetchBranches,
+    currentPage,
+    itemsPerPage,
+    searchQuery,
+    selectedStateId,
+    token,
+    user,
+  ]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const columns: Column<BranchItem>[] = [
-    {
-      key: 'name',
-      label: 'Nombre',
-      render: (item) => item.name,
-    },
+  const branchColumns = [
+    { key: 'name', label: 'Nombre', render: (b: BranchResponse) => b.name },
     {
       key: 'address',
       label: 'Ubicación',
-      render: (item) => item.address,
+      render: (b: BranchResponse) => b.address,
     },
     {
       key: 'city',
       label: 'Ciudad',
-      render: (item) => item.city.name,
+      render: (b: BranchResponse) => b.city.name,
     },
   ];
 
-  const handleAddBranch = () => {
-    router.push('/branches/new');
-  };
-
-  const handleView = (item: BranchItem) => {
-    router.push(`/branches/${item.id}`);
-  };
-
-  const handleEdit = (item: BranchItem) => {
-    router.push(`/branches/${item.id}/edit`);
-  };
+  const stateOptions = ['Todos', ...states.map((s) => s.name)];
 
   return (
-    <div className="mx-auto my-12 max-h-[616px] max-w-[949px]">
-      <div className="[&>ul]:max-h-60 [&>ul]:overflow-y-auto">
-        <TableContainer
-          title="Sucursales"
-          dropdownComponent={
-            <Dropdown
-              title="Estado"
-              items={states}
-              onChange={(val) => console.log('Filtrar por estado:', val)}
-            />
-          }
-          addButtonText="Agregar Sucursal"
-          onAddClick={handleAddBranch}
-          onSearch={(query) => console.log('Buscando sucursal:', query)}
-          tableData={branches}
-          tableColumns={columns}
-          onEdit={handleEdit}
-          onView={handleView}
-          pagination={{
-            currentPage,
-            totalPages,
-            totalItems,
-            itemsPerPage,
-            onPageChange: (page) => setCurrentPage(page),
-            onItemsPerPageChange: (val) => {
-              setItemsPerPage(val);
-              setCurrentPage(1);
-            },
-            itemsPerPageOptions: [3, 5, 10, 15, 20],
-          }}
-        />
-      </div>
+    <div
+      className="overflow-y-auto"
+      style={{ maxHeight: 'calc(100vh - 150px)' }}
+    >
+      {error && (
+        <div className="mb-4 rounded bg-red-100 p-2 text-red-700">{error}</div>
+      )}
+
+      <TableContainer
+        title="Sucursales"
+        onSearch={handleSearch}
+        dropdownComponent={
+          <Dropdown
+            title="Estado"
+            items={stateOptions}
+            onChange={handleStateChange}
+          />
+        }
+        addButtonText="Agregar Sucursal"
+        onAddClick={() => router.push('/branches/new')}
+        tableData={branches}
+        tableColumns={branchColumns}
+        onView={(b) => router.push(`/branches/${b.id}`)}
+        onEdit={(b) => router.push(`/branches/${b.id}/edit`)}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
+          onItemsPerPageChange: (val) => {
+            setItemsPerPage(val);
+            setCurrentPage(1);
+          },
+          itemsPerPageOptions: [5, 10, 15, 20],
+        }}
+      />
+
+      {isLoading && (
+        <div className="mt-4 text-center">Cargando sucursales...</div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import LoginForm from './LoginForm';
 import Image from 'next/image';
 import Head from 'next/head';
-import { ToastContainer } from 'react-toastify';
+import Loading from '../(dashboard)/loading';
 
 export default function LoginPage() {
   const { token, user, loading } = useAuth();
@@ -15,13 +15,13 @@ export default function LoginPage() {
   // 🔐 Si ya está autenticado, redirige (previene acceso al login)
   useEffect(() => {
     if (!loading && token && user) {
-      router.replace('/products');
+      router.replace('/dashboard');
     }
   }, [token, user, loading, router]);
 
   // 🚫 Si aún carga contexto, muestra estado
   if (loading) {
-    return <h1 className="p-4 text-lg">Verificando sesión...</h1>;
+    return <Loading />;
   }
 
   // ⛔ Prevención extra: no renderiza login si ya hay sesión
@@ -53,7 +53,6 @@ export default function LoginPage() {
           <LoginForm />
         </div>
       </div>
-      <ToastContainer />
     </>
   );
 }

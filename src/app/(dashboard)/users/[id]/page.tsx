@@ -12,54 +12,14 @@ import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
-
-enum UserRole {
-  ADMIN = 'admin',
-  BRANCH_ADMIN = 'branch_admin',
-  CUSTOMER = 'customer',
-  DELIVERY = 'delivery',
-}
+import { UserList, UserRole } from '@pharmatech/sdk';
+import Input from '@/components/Input/Input';
 
 const roleLabels = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.BRANCH_ADMIN]: 'Administrador de Sucursal',
   [UserRole.CUSTOMER]: 'Cliente',
   [UserRole.DELIVERY]: 'Repartidor',
-};
-
-type ApiUserResponse = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  documentId: string;
-  phoneNumber: string;
-  role: string;
-  isValidated: boolean;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  lastOrderDate: Date | null;
-  profile: {
-    birthDate?: Date | string;
-    gender?: string;
-    profilePicture?: string;
-  };
-};
-
-type UserList = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  documentId: string;
-  phoneNumber: string;
-  role: string;
-  profile: {
-    birthDate?: Date | string;
-    gender?: 'm' | 'f';
-    profilePicture?: string;
-  };
 };
 
 export default function UserDetailsPage() {
@@ -78,27 +38,8 @@ export default function UserDetailsPage() {
     }
 
     try {
-      const userData: ApiUserResponse = await api.user.getProfile(id, token);
-
-      const processedUser: UserList = {
-        id: userData.id,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        documentId: userData.documentId,
-        phoneNumber: userData.phoneNumber,
-        role: userData.role,
-        profile: {
-          birthDate: userData.profile?.birthDate,
-          gender:
-            userData.profile?.gender === 'm' || userData.profile?.gender === 'f'
-              ? userData.profile.gender
-              : undefined,
-          profilePicture: userData.profile?.profilePicture,
-        },
-      };
-
-      setUser(processedUser);
+      const userData = await api.user.getProfile(id, token);
+      setUser(userData);
       setError(null);
     } catch (err) {
       console.error('Error al cargar el usuario:', err);
@@ -177,14 +118,18 @@ export default function UserDetailsPage() {
         <div className="mx-auto max-w-[904px] rounded-[16px] bg-white p-12 shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_10px_15px_rgba(0,0,0,0.1)]">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="font-poppins text-[28px] font-normal leading-[42px] text-[#393938]">
+              <h1
+                className="font-poppins text-[28px] font-normal leading-[42px]"
+                style={{ color: Colors.textMain }}
+              >
                 Usuario: #{user.id.slice(0, 3)}
               </h1>
             </div>
             <div className="flex gap-6">
               <button
                 onClick={() => setShowModal(true)}
-                className="font-poppins flex h-[44px] w-[196px] items-center justify-center rounded-[6px] border border-[#E10000] bg-white text-[16px] font-medium leading-[24px] text-[#E10000] transition-colors hover:bg-red-50"
+                className="font-poppins flex h-[44px] w-[196px] items-center justify-center rounded-[6px] border border-[#E10000] bg-white text-[16px] font-medium leading-[24px] transition-colors hover:bg-red-50"
+                style={{ color: Colors.semanticDanger }}
               >
                 Eliminar Usuario
               </button>
@@ -208,46 +153,30 @@ export default function UserDetailsPage() {
             {/* Columna izquierda */}
             <div className="space-y-6">
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Nombre
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                  value={user.firstName}
-                  readOnly
-                />
+                <Input label="Nombre" value={user.firstName} readViewOnly />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Cédula
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                <Input
+                  label="Cédula"
                   value={user.documentId || ''}
-                  readOnly
+                  readViewOnly
                 />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Fecha de nacimiento
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                <Input
+                  label="Fecha de nacimiento"
                   value={formattedBirthDate}
-                  readOnly
+                  readViewOnly
                 />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Teléfono
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                <Input
+                  label="Teléfono"
                   value={user.phoneNumber || ''}
-                  readOnly
+                  readViewOnly
                 />
               </div>
             </div>
@@ -255,46 +184,26 @@ export default function UserDetailsPage() {
             {/* Columna derecha */}
             <div className="space-y-6">
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Apellido
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                  value={user.lastName}
-                  readOnly
-                />
+                <Input label="Apellido" value={user.lastName} readViewOnly />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Género
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
-                  value={displayGender}
-                  readOnly
-                />
+                <Input label="Género" value={displayGender} readViewOnly />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Rol
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                <Input
+                  label="Rol"
                   value={roleLabels[user.role as UserRole] || user.role}
-                  readOnly
+                  readViewOnly
                 />
               </div>
 
               <div>
-                <label className="font-poppins mb-1 block text-sm font-medium text-[#393938]">
-                  Correo electrónico
-                </label>
-                <input
-                  className="font-poppins h-10 w-full rounded-[6px] border border-[#E7E7E6] bg-[#E7E7E6] px-5 py-2 text-[16px] text-[#6E6D6C] focus:outline-none focus:ring-0"
+                <Input
+                  label="Correo electrónico"
                   value={user.email || ''}
-                  readOnly
+                  readViewOnly
                 />
               </div>
             </div>

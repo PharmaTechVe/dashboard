@@ -11,6 +11,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/Input/Input';
 
 export default function ViewProductPresentationPage() {
   const params = useParams();
@@ -97,7 +98,10 @@ export default function ViewProductPresentationPage() {
       <div className="mx-auto mb-4 max-w-[904px]">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Ver presentación
           </h1>
           <div className="flex gap-6">
@@ -142,35 +146,24 @@ export default function ViewProductPresentationPage() {
       />
       <div className="mx-auto max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Presentación
-          </label>
-          <input
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+          <Input
+            label="Presentación"
             value={`${presentation.presentation.name} | ${presentation.presentation.quantity} ${presentation.presentation.measurementUnit}`}
-            readOnly
+            readViewOnly
           />
         </div>
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Promoción
-          </label>
-          <input
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+          <Input
+            label="Promoción"
             value={presentation.promo?.name || 'Sin promoción'}
-            readOnly
+            readViewOnly
           />
         </div>
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Precio
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            className="mt-1 w-full cursor-default select-none rounded-md bg-gray-200 p-2 text-[16px]"
+          <Input
+            label="Precio"
             value={presentation.price.toFixed(2)}
-            readOnly
+            readViewOnly
           />
         </div>
       </div>

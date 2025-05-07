@@ -88,7 +88,7 @@ export default function AdminNavBar() {
           size={40}
           withDropdown={true}
           dropdownOptions={[
-            { label: 'Perfil', route: '/admin/profile' },
+            { label: 'Perfil', route: '/profile' },
             // "Cerrar sesión" se añade automáticamente desde el componente Avatar si hay token
           ]}
         />

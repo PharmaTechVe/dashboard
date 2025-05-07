@@ -12,36 +12,31 @@ import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
+import { StateResponse, CityResponse, BranchResponse } from '@pharmatech/sdk';
+import Input from '@/components/Input/Input';
 
-interface StateItem {
-  id: string;
-  name: string;
-}
-
-interface CityItem {
-  id: string;
-  name: string;
-}
+/// This is a constant that represents the ID of Venezuela.
+const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
 export default function EditBranchPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? '');
   const { token } = useAuth();
+  const router = useRouter();
+
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
 
-  const [states, setStates] = useState<StateItem[]>([]);
-  const [cities, setCities] = useState<CityItem[]>([]);
+  const [branch, setBranch] = useState<BranchResponse | null>(null);
+  const [states, setStates] = useState<StateResponse[]>([]);
+  const [cities, setCities] = useState<CityResponse[]>([]);
 
   const [selectedStateName, setSelectedStateName] = useState('');
   const [selectedCityName, setSelectedCityName] = useState('');
   const [stateId, setStateId] = useState('');
   const [cityId, setCityId] = useState('');
-
-  const router = useRouter();
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fetchStates = useCallback(async () => {
@@ -53,7 +48,7 @@ export default function EditBranchPage() {
     const response = await api.state.findAll({
       page: 1,
       limit: 24,
-      countryId: '1238bc2a-45a5-47e4-9cc1-68d573089ca1',
+      countryId: COUNTRY_ID,
     });
     setStates(response.results);
   }, [token, id]);
@@ -81,14 +76,14 @@ export default function EditBranchPage() {
     }
 
     try {
-      const branch = await api.branch.getById(id, token);
-      setName(branch.name);
-      setAddress(branch.address);
-      setLatitude(String(branch.latitude));
-      setLongitude(String(branch.longitude));
-
-      setSelectedStateName(branch.city.state.name);
-      setSelectedCityName(branch.city.name);
+      const fetchedBranch = await api.branch.getById(id, token);
+      setBranch(fetchedBranch);
+      setName(fetchedBranch.name);
+      setAddress(fetchedBranch.address);
+      setLatitude(fetchedBranch.latitude.toString());
+      setLongitude(fetchedBranch.longitude.toString());
+      setSelectedStateName(fetchedBranch.city.state.name);
+      setSelectedCityName(fetchedBranch.city.name);
     } catch (error) {
       console.error('Error al cargar la sucursal:', error);
     }
@@ -115,6 +110,8 @@ export default function EditBranchPage() {
   }, [selectedCityName, cities]);
 
   const handleSubmit = async () => {
+    if (!branch) return;
+
     const result = newBranchSchema.safeParse({
       name,
       address,
@@ -174,10 +171,14 @@ export default function EditBranchPage() {
           ]}
         />
       </div>
+      {/* revisar width y height */}
 
       <div className="mx-auto max-h-[687px] max-w-[904px] space-y-4 rounded-xl bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-[28px] font-normal leading-none text-[#393938]">
+          <h1
+            className="text-[28px] font-normal leading-none"
+            style={{ color: Colors.textMain }}
+          >
             Editar Sucursal
           </h1>
           <Button
@@ -195,16 +196,16 @@ export default function EditBranchPage() {
         </div>
 
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Nombre
-          </label>
-          <input
-            className="mt-1 w-[808px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
-            placeholder="Nombre de la sucursal"
+          <Input
+            label="Nombre"
+            placeholder="Agrega el nombre de la sucursal"
             value={name}
+            helperText={errors.name}
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
+            borderColor="#E7E7E6"
             onChange={(e) => setName(e.target.value)}
           />
-          {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -214,10 +215,13 @@ export default function EditBranchPage() {
               title="Estado"
               placeholder="Selecciona el Estado"
               items={states.map((s) => ({ label: s.name, value: s.id }))}
+              width="w-auto"
               onChange={setSelectedStateName}
             />
             {errors.stateId && (
-              <p className="text-sm text-red-500">{errors.stateId}</p>
+              <p className="text-sm" style={{ color: Colors.semanticDanger }}>
+                {errors.stateId}
+              </p>
             )}
           </div>
           <div>
@@ -226,57 +230,54 @@ export default function EditBranchPage() {
               title="Ciudad"
               placeholder="Selecciona la Ciudad"
               items={cities.map((c) => ({ label: c.name, value: c.id }))}
+              width="w-auto"
               onChange={setSelectedCityName}
             />
             {errors.cityId && (
-              <p className="text-sm text-red-500">{errors.cityId}</p>
+              <p className="text-sm" style={{ color: Colors.semanticDanger }}>
+                {errors.cityId}
+              </p>
             )}
           </div>
         </div>
 
         <div>
-          <label className="block text-[16px] font-medium text-gray-600">
-            Dirección
-          </label>
-          <input
-            className="mt-1 w-[808px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+          <Input
+            label="Dirección"
             placeholder="Dirección"
             value={address}
+            helperText={errors.address}
+            helperTextColor={Colors.semanticDanger}
+            borderSize="1px"
+            borderColor="#E7E7E6"
             onChange={(e) => setAddress(e.target.value)}
           />
-          {errors.address && (
-            <p className="text-sm text-red-500">{errors.address}</p>
-          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Latitud
-            </label>
-            <input
-              className="mt-1 w-[249px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+            <Input
+              label="Latitud"
               placeholder="Latitud"
               value={latitude}
+              helperText={errors.latitude}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
               onChange={(e) => setLatitude(e.target.value)}
             />
-            {errors.latitude && (
-              <p className="text-sm text-red-500">{errors.latitude}</p>
-            )}
           </div>
           <div>
-            <label className="block text-[16px] font-medium text-gray-600">
-              Longitud
-            </label>
-            <input
-              className="mt-1 w-[249px] rounded-md border border-gray-300 p-2 text-[16px] focus:border-gray-400 focus:outline-none focus:ring-0"
+            <Input
+              label="Longitud"
               placeholder="Longitud"
               value={longitude}
+              helperText={errors.longitude}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
               onChange={(e) => setLongitude(e.target.value)}
             />
-            {errors.longitude && (
-              <p className="text-sm text-red-500">{errors.longitude}</p>
-            )}
           </div>
         </div>
       </div>

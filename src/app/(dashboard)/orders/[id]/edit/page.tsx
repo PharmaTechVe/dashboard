@@ -5,8 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumb';
 import Button from '@/components/Button';
 import Dropdown from '@/components/Dropdown';
+import OrderProductList from '@/components/OrderProductList';
+import OrderInfoPanel from '@/components/OrderInfoPanel';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
+import io from 'socket.io-client';
+import { SOCKET_URL } from '@/lib/socket-url';
 import { toast } from 'react-toastify';
 import {
   OrderStatus,
@@ -14,7 +18,12 @@ import {
   OrderDetailedResponse,
   UserList,
   UserRole,
+  OrderType,
 } from '@pharmatech/sdk';
+import {
+  orderStatusTranslationMap,
+  orderDeliveryStatusTranslationMap,
+} from '@/lib/utils/orderTranslations';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
 
@@ -23,8 +32,17 @@ export default function EditOrderStatusPage() {
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
   const { token } = useAuth();
+  const socket = io(SOCKET_URL, {
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: `Bearer ${token}`,
+        },
+      },
+    },
+  });
 
-  const [, setOrder] = useState<OrderDetailedResponse | null>(null);
+  const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
@@ -33,6 +51,33 @@ export default function EditOrderStatusPage() {
     string | null
   >(null);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+
+  type SocketError = {
+    message: string;
+    data: { id: string };
+  };
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+      console.log('Socket connected: ', isConnected);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Socket connected: ', isConnected);
+    });
+
+    socket.on('error', (error: SocketError) => {
+      console.error('Socket error: ', error);
+      toast.error('Error de conexión con el servidor');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isConnected, socket]);
 
   const fetchOrderData = useCallback(async () => {
     if (!token || !id) return;
@@ -43,12 +88,7 @@ export default function EditOrderStatusPage() {
       setOrderStatus(orderData.status);
 
       const deliveryRes = await api.deliveryService.findAll(
-        {
-          page: 1,
-          limit: 10,
-          q: '',
-          branchId: orderData.branch?.id,
-        },
+        { page: 1, limit: 10, q: '', branchId: orderData.branch?.id },
         token,
       );
 
@@ -82,8 +122,7 @@ export default function EditOrderStatusPage() {
     if (!token || !id) return;
 
     try {
-      await api.order.update(id, { status: orderStatus }, token);
-      console.log('Orden actualizada:', id);
+      socket.emit('updateOrder', { id, status: orderStatus });
       console.log('DeliveryId', selectedDeliveryUserId);
       if (deliveryId && deliveryStatus) {
         await api.deliveryService.update(
@@ -110,9 +149,10 @@ export default function EditOrderStatusPage() {
     { label: `Editar Orden #${id.slice(0, 6)}`, href: '' },
   ];
 
-  if (loading) {
+  if (loading || !order) {
     return <Loading />;
   }
+  const isDelivery = order.type === OrderType.DELIVERY;
 
   return (
     <>
@@ -149,48 +189,60 @@ export default function EditOrderStatusPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[904px] space-y-6 rounded-xl bg-white p-6 shadow-md">
-        <Dropdown
-          title="Estado de la Orden"
-          placeholder="Selecciona el estado"
-          width="100%"
-          selected={orderStatus}
-          onChange={(value) => setOrderStatus(value as OrderStatus)}
-          items={Object.values(OrderStatus).map((statusKey) => ({
-            label: statusKey,
-            value: statusKey,
-          }))}
-        />
+      <div className="mx-auto flex max-w-[904px] flex-col gap-6 lg:flex-row">
+        <div className="w-full space-y-6 lg:w-2/3">
+          <OrderInfoPanel
+            branch={order.branch}
+            selectedDeliveryUserId={selectedDeliveryUserId}
+            deliveryUsers={deliveryUsers}
+          />
 
-        {deliveryId && (
-          <>
+          <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
             <Dropdown
-              title="Estado del Delivery"
-              placeholder="Selecciona el estado del delivery"
+              title="Estado de la Orden"
+              placeholder="Selecciona el estado"
               width="100%"
-              selected={deliveryStatus}
-              onChange={(value) =>
-                setDeliveryStatus(value as OrderDeliveryStatus)
-              }
-              items={Object.values(OrderDeliveryStatus).map((statusKey) => ({
-                label: statusKey,
+              selected={orderStatus}
+              onChange={(value) => setOrderStatus(value as OrderStatus)}
+              items={Object.values(OrderStatus).map((statusKey) => ({
+                label: orderStatusTranslationMap[statusKey],
                 value: statusKey,
               }))}
             />
 
-            <Dropdown
-              title="Asignar Repartidor"
-              placeholder="Selecciona un repartidor"
-              width="100%"
-              selected={selectedDeliveryUserId ?? ''}
-              onChange={(value) => setSelectedDeliveryUserId(value as string)}
-              items={deliveryUsers.map((user) => ({
-                label: user.id,
-                value: user.id,
-              }))}
-            />
-          </>
-        )}
+            {isDelivery && (
+              <>
+                <Dropdown
+                  title="Estado del Delivery"
+                  placeholder="Selecciona el estado del delivery"
+                  width="100%"
+                  selected={deliveryStatus}
+                  onChange={(value) =>
+                    setDeliveryStatus(value as OrderDeliveryStatus)
+                  }
+                  items={Object.values(OrderDeliveryStatus).map(
+                    (statusKey) => ({
+                      label: orderDeliveryStatusTranslationMap[statusKey],
+                      value: statusKey,
+                    }),
+                  )}
+                />
+                <Dropdown
+                  title="Asignar Repartidor"
+                  placeholder="Selecciona un repartidor"
+                  width="100%"
+                  selected={selectedDeliveryUserId ?? ''}
+                  onChange={(value) => setSelectedDeliveryUserId(value)}
+                  items={deliveryUsers.map((user) => ({
+                    label: user.firstName + ' ' + user.lastName,
+                    value: user.id,
+                  }))}
+                />
+              </>
+            )}
+          </div>
+        </div>
+        <OrderProductList details={order.details} />
       </div>
     </>
   );
