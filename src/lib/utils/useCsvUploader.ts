@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import Papa from 'papaparse';
+import { api } from '@/lib/sdkConfig';
 
 type CsvRow = Record<string, string | number>;
 
@@ -10,46 +10,58 @@ export function useCsvUploader() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const formatCsv = (rawData: Record<string, unknown>[]): CsvRow[] => {
-    return rawData.map((row) => {
-      const formattedRow: CsvRow = {};
-
-      for (const key in row) {
-        const value = row[key];
-        if (typeof value === 'string') {
-          formattedRow[key] = value.trim();
-        } else if (typeof value === 'number') {
-          formattedRow[key] = value;
-        } else if (value !== undefined && value !== null) {
-          formattedRow[key] = String(value).trim();
-        }
-      }
-
-      return formattedRow;
-    });
-  };
-
-  const parseCsv = useCallback((file: File) => {
+  const parseCsv = async (file: File) => {
     setLoading(true);
+    setCsvData([]);
+    try {
+      const text = await file.text();
+      const rows = text
+        .split('\n')
+        .slice(1)
+        .map((line) => {
+          const [uuid, expirationDate, stock] = line.split(',');
+          if (!uuid || !expirationDate || !stock) {
+            console.warn('Línea inválida en el CSV:', line);
+            return null;
+          }
+          return {
+            uuid: uuid.trim(),
+            expirationDate: expirationDate.trim(),
+            stock: parseInt(stock.trim()),
+          };
+        });
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      quoteChar: '"',
-      dynamicTyping: true,
-      complete: (result) => {
-        const rawData = result.data as Record<string, unknown>[];
-        const formatted = formatCsv(rawData);
-        setCsvData(formatted);
-        setFileName(file.name);
-        setLoading(false);
-      },
-      error: (error) => {
-        console.error('Error parseando el CSV:', error);
-        setLoading(false);
-      },
-    });
-  }, []);
+      const enrichedRows = await Promise.all(
+        rows.map(async (row) => {
+          if (!row) return null;
+          try {
+            const res = await api.product.getProducts({ id: [row.uuid] });
+            return {
+              ...row,
+              productName: res.results[0]?.product?.name || 'No encontrado',
+              presentationName:
+                res.results[0]?.presentation?.name || 'No encontrado',
+            };
+          } catch (err) {
+            console.error('Error al enriquecer fila del CSV:', err);
+            return {
+              ...row,
+              productName: 'No encontrado',
+              presentationName: 'No encontrado',
+            };
+          }
+        }),
+      );
+
+      // Filtrar valores null antes de asignar a setCsvData
+      setCsvData(enrichedRows.filter((row) => row !== null) as CsvRow[]);
+      setFileName(file.name);
+    } catch (err) {
+      console.error('Error leyendo CSV:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const clearCsv = useCallback(() => {
     setCsvData([]);

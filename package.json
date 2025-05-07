@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@pharmatech/sdk": "^0.4.15",
+    "@pharmatech/sdk": "^0.4.16",
     "@react-pdf/renderer": "^4.3.0",
     "blob-stream": "^0.1.3",
     "cloudinary": "^2.6.0",

@@ -5,6 +5,9 @@ import CheckButton from '@/components/CheckButton';
 import Input from '@/components/Input/Input';
 import Button from '@/components/Button';
 import { Colors } from '@/styles/styles';
+import { api } from '@/lib/sdkConfig';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/context/AuthContext';
 
 type CSVRow = Record<string, string | number | boolean>;
 type CSVRowWithSelection = CSVRow & { selected: boolean };
@@ -19,7 +22,6 @@ type Props = {
 const InventoryTable: React.FC<Props> = ({
   data,
   editableColumn,
-  onConfirm,
   onCancel,
 }) => {
   const [rows, setRows] = useState<CSVRowWithSelection[]>(
@@ -43,10 +45,45 @@ const InventoryTable: React.FC<Props> = ({
     newRows[index].selected = isSelected;
     setRows(newRows);
   };
+  interface UpdateStockRow {
+    uuid: string;
+    expirationDate: string;
+    stock: number;
+  }
+  const columnOrder = [
+    'uuid',
+    'productName',
+    'presentationName',
+    'expirationDate',
+    'stock',
+  ];
+  const { token } = useAuth();
+  const handleConfirm = async (rows: UpdateStockRow[]): Promise<void> => {
+    try {
+      const payload: {
+        inventories: {
+          productPresentationId: string;
+          quantity: number;
+          expirationDate: Date;
+        }[];
+      } = {
+        inventories: rows.map((row) => ({
+          productPresentationId: row.uuid,
+          quantity: row.stock,
+          expirationDate: new Date(row.expirationDate),
+        })),
+      };
+      await api.inventory.bulkUpdate(payload, token!);
 
-  const headers = Object.keys(data[0] || {}).filter(
-    (key) => key !== 'selected',
-  );
+      toast.success('Inventario actualizado');
+      clearTable();
+    } catch (error) {
+      console.error('Error actualizando inventario:', error);
+      toast.error('Error actualizando inventario');
+    }
+  };
+
+  const headers = columnOrder.filter((key) => key in (data[0] || {}));
   const hasSelected = rows.some((r) => r.selected);
 
   const hasInvalidStock = rows.some(
@@ -56,6 +93,15 @@ const InventoryTable: React.FC<Props> = ({
         String(r[editableColumn]).trim() === '' ||
         Number(r[editableColumn]) === 0),
   );
+  const clearTable = () => {
+    setRows((prevRows) =>
+      prevRows.map((row) => ({
+        ...row,
+        selected: false,
+        [editableColumn]: '',
+      })),
+    );
+  };
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-md">
@@ -130,14 +176,14 @@ const InventoryTable: React.FC<Props> = ({
         </Button>
         <Button
           onClick={() =>
-            onConfirm(
+            handleConfirm(
               rows
-                .filter((r) => r.selected)
-                .map((row) => {
-                  const { selected, ...rest } = row;
-                  void selected;
-                  return rest;
-                }),
+                .filter((row) => row.selected)
+                .map((row) => ({
+                  uuid: String(row.uuid),
+                  expirationDate: String(row.expirationDate),
+                  stock: Number(row[editableColumn]),
+                })),
             )
           }
           variant="submit"
