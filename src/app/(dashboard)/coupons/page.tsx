@@ -9,6 +9,7 @@ import { api } from '@/lib/sdkConfig';
 import { Pagination, CouponResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
+import { toast } from 'react-toastify';
 
 // Presets de rango de expiración que el backend soporta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -154,6 +155,64 @@ export default function CouponsPage() {
     },
   ];
 
+  const handleSetExpiredAtToday = async (coupons: CouponResponse[]) => {
+    api.promo
+      .bulkUpdate(
+        {
+          ids: coupons.map((p) => p.id),
+          expiredAt: new Date(),
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Cupones expirados');
+        fetchCoupons(
+          currentPage,
+          itemsPerPage,
+          searchQuery,
+          selectedExpirationPeriod,
+        );
+      })
+      .catch((err) => {
+        console.error('Error al expirar los cupones:', err);
+        toast.error('Error al expirar los cupones');
+      });
+  };
+
+  const handleDeleteCoupon = async (coupons: CouponResponse[]) => {
+    api.promo
+      .bulkDelete(
+        {
+          ids: coupons.map((p) => p.id),
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Cupones eliminados');
+        fetchCoupons(
+          currentPage,
+          itemsPerPage,
+          searchQuery,
+          selectedExpirationPeriod,
+        );
+      })
+      .catch((err) => {
+        console.error('Error al eliminar los cupones:', err);
+        toast.error('Error al eliminar los cupones');
+      });
+  };
+
+  const actions = [
+    {
+      label: 'Expirar hoy',
+      onClick: handleSetExpiredAtToday,
+    },
+    {
+      label: 'Eliminar',
+      onClick: handleDeleteCoupon,
+    },
+  ];
+
   return (
     <div
       className="overflow-y-auto"
@@ -168,6 +227,7 @@ export default function CouponsPage() {
         onAddClick={() => router.push('/coupons/new')}
         addButtonText="Agregar Cupón"
         onSearch={handleSearch}
+        actions={actions}
         dropdownComponent={
           <Dropdown
             title="Expira en"
@@ -191,9 +251,8 @@ export default function CouponsPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <div className="mt-4 text-center">Cargando cupones...</div>}
     </div>
   );
 }

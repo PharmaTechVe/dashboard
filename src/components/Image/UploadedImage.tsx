@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Loader from '../Loader';
 
 type UploadedImage = {
   id: string;
@@ -67,7 +68,7 @@ export default function UploadedImages({ productId }: UploadedImagesProps) {
     fetchImages();
   }, [productId, token]);
 
-  if (loading) return <p className="text-gray-500">Cargando imágenes...</p>;
+  if (loading) return <Loader />;
 
   return (
     <div className="mx-auto h-auto w-[904px] overflow-auto rounded-lg bg-white p-8">

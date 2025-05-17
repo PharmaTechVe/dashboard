@@ -15,7 +15,6 @@ interface TableContainerProps<T> {
   tableColumns: Column<T>[];
   onEdit?: (item: T) => void;
   onView?: (item: T) => void;
-  onSelect?: (selected: T[]) => void;
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -31,6 +30,11 @@ interface TableContainerProps<T> {
     rowBorder?: string;
   };
   addButtonText?: string;
+  actions?: {
+    label: string;
+    onClick: (values: T[]) => void;
+  }[];
+  isLoading?: boolean;
 }
 
 export default function TableContainer<T>({
@@ -42,11 +46,13 @@ export default function TableContainer<T>({
   tableColumns,
   onEdit,
   onView,
-  onSelect,
   pagination,
   customColors,
   addButtonText = 'Agregar Producto',
+  actions,
+  isLoading = false,
 }: TableContainerProps<T>) {
+  const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
   const dropdownOptionsCount = pagination.itemsPerPageOptions.length;
@@ -70,9 +76,12 @@ export default function TableContainer<T>({
       {/* Contenedor para ActionsTable */}
       <div className="mb-4">
         <ActionsTable
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
           addButtonText={addButtonText}
           onAddClick={onAddClick}
           onSearch={onSearch}
+          actions={actions}
         />
       </div>
 
@@ -81,6 +90,8 @@ export default function TableContainer<T>({
         <Table
           data={tableData}
           columns={tableColumns}
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
           customColors={{
             headerBg: customColors?.headerBg || 'bg-[#2D397B]',
             headerText: customColors?.headerText || 'text-white',
@@ -88,7 +99,6 @@ export default function TableContainer<T>({
           }}
           onEdit={onEdit}
           onView={onView}
-          onSelect={onSelect}
           pagination={{
             currentPage: pagination.currentPage,
             totalPages: pagination.totalPages,
@@ -97,6 +107,7 @@ export default function TableContainer<T>({
             onPageChange: pagination.onPageChange,
             onItemsPerPageChange: pagination.onItemsPerPageChange,
           }}
+          isLoading={isLoading}
         />
       </div>
 

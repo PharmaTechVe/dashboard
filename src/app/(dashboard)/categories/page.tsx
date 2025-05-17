@@ -113,11 +113,8 @@ export default function CategoriesPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando categorías...</div>
-      )}
     </div>
   );
 }
