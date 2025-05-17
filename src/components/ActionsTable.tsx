@@ -11,12 +11,17 @@ interface ActionsTableProps {
   addButtonText: string;
   onAddClick?: () => void;
   onSearch?: (query: string) => void;
+  actions?: {
+    label: string;
+    onClick: () => void;
+  }[];
 }
 
 export default function ActionTable({
   addButtonText,
   onAddClick,
   onSearch,
+  actions,
 }: ActionsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -28,15 +33,32 @@ export default function ActionTable({
   return (
     <div className="flex w-full items-center justify-between gap-4">
       {/* Botón de "Acciones" */}
-      <div>
-        <button
-          type="button"
-          className="border-stroke text-TextMain flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
-        >
-          <EllipsisVerticalIcon className="text-TextMain h-5 w-5" />
-          <span>Acciones</span>
-        </button>
-      </div>
+      {actions && actions.length > 0 && (
+        <div>
+          <button
+            type="button"
+            className="border-stroke text-TextMain flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
+          >
+            <EllipsisVerticalIcon className="text-TextMain h-5 w-5" />
+            <span>Acciones</span>
+            <div className="absolute right-0 mt-2 w-48 rounded-md bg-white shadow-lg">
+              <ul className="py-1">
+                {actions.map((action, index) => (
+                  <li key={index}>
+                    <button
+                      type="button"
+                      onClick={action.onClick}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {action.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Contenedor del SearchBar y botón  */}
       <div className="flex w-full items-center justify-end gap-4">

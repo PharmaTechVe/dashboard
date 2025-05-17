@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
 import { Colors } from '@/styles/styles';
 import CheckButton from './CheckButton';
@@ -33,8 +33,9 @@ interface TableProps<T> {
   };
   onEdit?: (item: T) => void;
   onView?: (item: T) => void;
-  onSelect?: (selected: T[]) => void;
   pagination?: PaginationProps;
+  selectedRows: number[];
+  setSelectedRows: (rows: number[]) => void;
 }
 
 function getValueSafely<T>(item: T, key: string): unknown {
@@ -52,19 +53,15 @@ const Table = <T,>({
   customColors,
   onEdit,
   onView,
-  onSelect,
   pagination,
+  selectedRows,
+  setSelectedRows,
 }: TableProps<T>) => {
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
-
   const isAllSelected = data.length > 0 && selectedRows.length === data.length;
 
   const toggleSelectAll = () => {
     const newSelected = isAllSelected ? [] : data.map((_, i) => i);
     setSelectedRows(newSelected);
-    if (onSelect) {
-      onSelect(newSelected.map((i) => data[i]));
-    }
   };
 
   const toggleSelectRow = (index: number) => {
@@ -75,9 +72,6 @@ const Table = <T,>({
       newSelected = [...selectedRows, index];
     }
     setSelectedRows(newSelected);
-    if (onSelect) {
-      onSelect(newSelected.map((i) => data[i]));
-    }
   };
 
   return (

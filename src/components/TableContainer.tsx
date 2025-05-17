@@ -15,7 +15,6 @@ interface TableContainerProps<T> {
   tableColumns: Column<T>[];
   onEdit?: (item: T) => void;
   onView?: (item: T) => void;
-  onSelect?: (selected: T[]) => void;
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -42,11 +41,11 @@ export default function TableContainer<T>({
   tableColumns,
   onEdit,
   onView,
-  onSelect,
   pagination,
   customColors,
   addButtonText = 'Agregar Producto',
 }: TableContainerProps<T>) {
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
   const dropdownOptionsCount = pagination.itemsPerPageOptions.length;
@@ -81,6 +80,8 @@ export default function TableContainer<T>({
         <Table
           data={tableData}
           columns={tableColumns}
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
           customColors={{
             headerBg: customColors?.headerBg || 'bg-[#2D397B]',
             headerText: customColors?.headerText || 'text-white',
@@ -88,7 +89,6 @@ export default function TableContainer<T>({
           }}
           onEdit={onEdit}
           onView={onView}
-          onSelect={onSelect}
           pagination={{
             currentPage: pagination.currentPage,
             totalPages: pagination.totalPages,
