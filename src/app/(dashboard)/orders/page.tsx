@@ -16,7 +16,6 @@ import {
 import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
-import Loader from '@/components/Loader';
 
 export default function OrdersPage() {
   const { token } = useAuth();
@@ -286,9 +285,8 @@ export default function OrdersPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <Loader />}
     </div>
   );
 }

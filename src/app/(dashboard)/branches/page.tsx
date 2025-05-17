@@ -7,7 +7,6 @@ import Dropdown from '@/components/Dropdown';
 import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
 import { Pagination, BranchResponse, StateResponse } from '@pharmatech/sdk';
-import Loader from '@/components/Loader';
 
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 const DEBOUNCE_MS = 500;
@@ -164,9 +163,8 @@ export default function BranchesPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <Loader />}
     </div>
   );
 }

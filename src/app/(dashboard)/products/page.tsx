@@ -12,7 +12,6 @@ import {
   CategoryResponse,
 } from '@pharmatech/sdk';
 import { toast } from 'react-toastify';
-import Loader from '@/components/Loader';
 
 export default function GenericProductListPage() {
   const router = useRouter();
@@ -166,9 +165,8 @@ export default function GenericProductListPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <Loader />}
     </div>
   );
 }

@@ -8,7 +8,6 @@ import { api } from '@/lib/sdkConfig';
 import { PresentationResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-toastify';
-import Loader from '@/components/Loader';
 
 export default function PresentationListPage() {
   const { user } = useAuth();
@@ -108,9 +107,8 @@ export default function PresentationListPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <Loader />}
     </div>
   );
 }

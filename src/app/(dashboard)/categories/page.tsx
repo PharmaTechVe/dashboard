@@ -8,7 +8,6 @@ import { api } from '@/lib/sdkConfig';
 import { useAuth } from '@/context/AuthContext';
 import { Pagination, CategoryResponse } from '@pharmatech/sdk';
 import { toast } from 'react-toastify';
-import Loader from '@/components/Loader';
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -114,9 +113,8 @@ export default function CategoriesPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && <Loader />}
     </div>
   );
 }
