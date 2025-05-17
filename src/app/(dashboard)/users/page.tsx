@@ -8,6 +8,7 @@ import { api } from '@/lib/sdkConfig';
 import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 const roleTranslations: Record<string, string> = {
   '': 'Todos',
@@ -212,9 +213,7 @@ export default function UsersPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando usuarios...</div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }

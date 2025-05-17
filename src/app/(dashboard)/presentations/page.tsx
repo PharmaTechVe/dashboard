@@ -8,6 +8,7 @@ import { api } from '@/lib/sdkConfig';
 import { PresentationResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 export default function PresentationListPage() {
   const { user } = useAuth();
@@ -109,9 +110,7 @@ export default function PresentationListPage() {
         }}
       />
 
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando presentaciones...</div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }

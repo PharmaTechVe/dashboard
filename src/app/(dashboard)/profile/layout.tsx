@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation';
 import { UserList } from '@pharmatech/sdk';
 import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 interface ProfileLayoutProps {
   children: ReactNode;
@@ -48,7 +49,7 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
     })();
   }, [user, token]);
 
-  if (!profile) return <p className="p-6 text-center">Cargando perfil…</p>;
+  if (!profile) return <Loader />;
 
   const handleImageUpload = async (file: File) => {
     setUploading(true);

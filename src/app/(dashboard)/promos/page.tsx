@@ -10,6 +10,7 @@ import { Pagination, PromoResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 // Presets de rango de expiración que el backend acepta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -226,9 +227,7 @@ export default function PromosPage() {
         }}
       />
 
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando promociones...</div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }

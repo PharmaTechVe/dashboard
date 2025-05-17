@@ -10,6 +10,7 @@ import { Pagination, CouponResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 // Presets de rango de expiración que el backend soporta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -253,7 +254,7 @@ export default function CouponsPage() {
         }}
       />
 
-      {isLoading && <div className="mt-4 text-center">Cargando cupones...</div>}
+      {isLoading && <Loader />}
     </div>
   );
 }

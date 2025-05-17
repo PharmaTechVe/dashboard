@@ -12,6 +12,7 @@ import {
   CategoryResponse,
 } from '@pharmatech/sdk';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 export default function GenericProductListPage() {
   const router = useRouter();
@@ -167,7 +168,7 @@ export default function GenericProductListPage() {
         }}
       />
 
-      {isLoading && <div className="mt-4 text-center">Cargando productos…</div>}
+      {isLoading && <Loader />}
     </div>
   );
 }
