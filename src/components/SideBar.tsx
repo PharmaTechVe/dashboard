@@ -5,7 +5,6 @@ import Image from 'next/image';
 import {
   Bars3BottomLeftIcon,
   Bars3BottomRightIcon,
-  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   SquaresPlusIcon,
   Square3Stack3DIcon,
@@ -19,9 +18,9 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import '@/styles/globals.css';
 import theme from '@/styles/styles';
-import Avatar from '@/components/Avatar';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/sdkConfig';
+import { UserRole } from '@pharmatech/sdk';
 
 interface SubMenuItem {
   name: string;
@@ -39,7 +38,7 @@ interface MenuItem {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const [profilePicture, setProfilePicture] = useState<string | undefined>();
+  const [userRole, setUserRole] = useState<string>(UserRole.BRANCH_ADMIN);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -47,7 +46,6 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-    if (isOpen) setOpenSubmenu(null);
   };
 
   useEffect(() => {
@@ -56,7 +54,7 @@ const Sidebar = () => {
 
       try {
         const profile = await api.user.getProfile(user.sub, token);
-        setProfilePicture(profile.profile?.profilePicture || '');
+        setUserRole(profile.role);
       } catch (err) {
         console.error('Error al obtener la imagen de perfil:', err);
       }
@@ -87,7 +85,7 @@ const Sidebar = () => {
       icon: <ChartBarIcon className="h-6 w-6" />,
       route: '/orders',
       subItems: [
-        { name: 'Listado', route: '/orders/' },
+        { name: 'Listado', route: '/orders' },
         { name: 'Reembolsos', route: '/orders/refunds' },
         { name: 'Asignación', route: '/orders/assign' },
       ],
@@ -101,17 +99,22 @@ const Sidebar = () => {
         { name: 'Cupones', route: '/coupons' },
       ],
     },
-    {
-      name: 'Sucursales',
-      icon: <BuildingStorefrontIcon className="h-6 w-6" />,
-      route: '/branches',
-    },
-    {
-      name: 'Usuarios',
-      icon: <UsersIcon className="h-6 w-6" />,
-      route: '/users',
-    },
   ];
+
+  if (userRole === UserRole.ADMIN) {
+    generalMenuItems.push(
+      {
+        name: 'Sucursales',
+        icon: <BuildingStorefrontIcon className="h-6 w-6" />,
+        route: '/branches',
+      },
+      {
+        name: 'Usuarios',
+        icon: <UsersIcon className="h-6 w-6" />,
+        route: '/users',
+      },
+    );
+  }
 
   const reportMenuItems: MenuItem[] = [
     {
@@ -124,12 +127,6 @@ const Sidebar = () => {
 
   const otherMenuItems: MenuItem[] = [
     {
-      name: 'Configuración',
-      icon: <Cog6ToothIcon className="h-6 w-6" />,
-      route: '/settings',
-      color: 'text-gray-400 hover:bg-[#5E6780] hover:text-white',
-    },
-    {
       name: 'Cerrar sesión',
       icon: <ArrowRightOnRectangleIcon className="h-6 w-6" />,
       route: '/logout',
@@ -139,7 +136,6 @@ const Sidebar = () => {
 
   const handleNavigation = (route: string) => {
     router.push(route);
-    setOpenSubmenu(null);
   };
 
   return (
@@ -236,7 +232,7 @@ const Sidebar = () => {
                   )}
 
                   {isOpen && item.subItems && openSubmenu === item.name && (
-                    <div className="ml-6 flex flex-col gap-2 transition-all duration-300 ease-out">
+                    <div className="ml-6 mt-2 flex flex-col gap-2 transition-all duration-300 ease-out">
                       {item.subItems.map((sub, index) => {
                         const isSubActive = pathname === sub.route;
                         return (
@@ -325,7 +321,7 @@ const Sidebar = () => {
       </div>
 
       {/* Footer Avatar */}
-      <div className="mt-auto p-4 transition-all duration-300 ease-out">
+      {/* <div className="mt-auto p-4 transition-all duration-300 ease-out">
         {isOpen && user && (
           <div className="flex items-center gap-3">
             <Avatar
@@ -341,7 +337,7 @@ const Sidebar = () => {
             </div>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
