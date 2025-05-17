@@ -319,25 +319,6 @@ const Sidebar = () => {
           })}
         </nav>
       </div>
-
-      {/* Footer Avatar */}
-      {/* <div className="mt-auto p-4 transition-all duration-300 ease-out">
-        {isOpen && user && (
-          <div className="flex items-center gap-3">
-            <Avatar
-              name={user.name}
-              imageUrl={profilePicture}
-              size={48}
-              withDropdown={true}
-              dropdownOptions={[{ label: 'Perfil', route: '/admin/profile' }]}
-            />
-            <div className="text-sm text-white">
-              <p className="font-bold">{user.name}</p>
-              <p>{user.email}</p>
-            </div>
-          </div>
-        )}
-      </div> */}
     </div>
   );
 };
