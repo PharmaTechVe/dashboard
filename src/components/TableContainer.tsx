@@ -75,6 +75,7 @@ export default function TableContainer<T>({
       <div className="mb-4">
         <ActionsTable
           selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
           addButtonText={addButtonText}
           onAddClick={onAddClick}
           onSearch={onSearch}

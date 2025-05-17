@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   EllipsisVerticalIcon,
   PlusIcon,
@@ -8,53 +8,85 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
+type Action<T> = {
+  label: string;
+  onClick: (values: T[]) => void;
+};
+
 interface ActionsTableProps<T> {
   addButtonText: string;
   selectedRows: T[];
+  setSelectedRows: (rows: T[]) => void;
   onAddClick?: () => void;
   onSearch?: (query: string) => void;
-  actions?: {
-    label: string;
-    onClick: (values: T[]) => void;
-  }[];
+  actions?: Action<T>[];
 }
 
 export default function ActionTable<T>({
   addButtonText,
   selectedRows,
+  setSelectedRows,
   onAddClick,
   onSearch,
   actions,
 }: ActionsTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const handleSearchClick = useCallback(() => {
     onSearch?.(searchTerm);
     console.log('Buscando:', searchTerm);
   }, [onSearch, searchTerm]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        actionsRef.current &&
+        !actionsRef.current.contains(event.target as Node)
+      ) {
+        setIsActionsOpen(false);
+      }
+    }
+    if (isActionsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isActionsOpen]);
+
+  const onActionClick = (action: Action<T>) => {
+    if (selectedRows.length > 0) {
+      action.onClick(selectedRows);
+      setSelectedRows([]);
+    } else {
+      toast.error('No hay filas seleccionadas');
+    }
+    setIsActionsOpen(false);
+  };
+
   return (
     <div className="flex w-full items-center justify-between gap-4">
       {/* Botón de "Acciones" */}
       {actions && actions.length > 0 && (
-        <div>
+        <div ref={actionsRef} className="relative">
           <button
             type="button"
+            onClick={() => setIsActionsOpen((open) => !open)}
             className="border-stroke text-TextMain flex items-center gap-2 rounded-md border bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-300"
           >
             <EllipsisVerticalIcon className="text-TextMain h-5 w-5" />
             <span>Acciones</span>
-            <div className="absolute right-0 mt-2 w-48 rounded-md bg-white shadow-lg">
+          </button>
+          {isActionsOpen && (
+            <div className="left absolute z-10 mt-2 w-full rounded-md bg-white shadow-lg">
               <ul className="py-1">
                 {actions.map((action, index) => (
                   <li key={index}>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (selectedRows) action.onClick(selectedRows);
-                        else toast.error('No hay filas seleccionadas');
-                      }}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => onActionClick(action)}
+                      className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                     >
                       {action.label}
                     </button>
@@ -62,7 +94,7 @@ export default function ActionTable<T>({
                 ))}
               </ul>
             </div>
-          </button>
+          )}
         </div>
       )}
 
