@@ -30,6 +30,10 @@ interface TableContainerProps<T> {
     rowBorder?: string;
   };
   addButtonText?: string;
+  actions?: {
+    label: string;
+    onClick: (values: T[]) => void;
+  }[];
 }
 
 export default function TableContainer<T>({
@@ -44,8 +48,9 @@ export default function TableContainer<T>({
   pagination,
   customColors,
   addButtonText = 'Agregar Producto',
+  actions,
 }: TableContainerProps<T>) {
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownItemHeight = 35; // px
   const dropdownOptionsCount = pagination.itemsPerPageOptions.length;
@@ -69,9 +74,11 @@ export default function TableContainer<T>({
       {/* Contenedor para ActionsTable */}
       <div className="mb-4">
         <ActionsTable
+          selectedRows={selectedRows}
           addButtonText={addButtonText}
           onAddClick={onAddClick}
           onSearch={onSearch}
+          actions={actions}
         />
       </div>
 

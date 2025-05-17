@@ -6,23 +6,26 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
-interface ActionsTableProps {
+interface ActionsTableProps<T> {
   addButtonText: string;
+  selectedRows: T[];
   onAddClick?: () => void;
   onSearch?: (query: string) => void;
   actions?: {
     label: string;
-    onClick: () => void;
+    onClick: (values: T[]) => void;
   }[];
 }
 
-export default function ActionTable({
+export default function ActionTable<T>({
   addButtonText,
+  selectedRows,
   onAddClick,
   onSearch,
   actions,
-}: ActionsTableProps) {
+}: ActionsTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearchClick = useCallback(() => {
@@ -47,7 +50,10 @@ export default function ActionTable({
                   <li key={index}>
                     <button
                       type="button"
-                      onClick={action.onClick}
+                      onClick={() => {
+                        if (selectedRows) action.onClick(selectedRows);
+                        else toast.error('No hay filas seleccionadas');
+                      }}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       {action.label}
