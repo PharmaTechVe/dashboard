@@ -7,6 +7,8 @@ import Dropdown from '@/components/Dropdown';
 import { api } from '@/lib/sdkConfig';
 import { Pagination, UserList, UserRole } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 const roleTranslations: Record<string, string> = {
   '': 'Todos',
@@ -119,6 +121,60 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
 
+  const handleRoleUpdate = async (users: UserList[], userRole: UserRole) => {
+    api.user
+      .bulkUpdate(
+        {
+          users: users.map((u) => u.id),
+          role: userRole,
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Usuarios actualizados');
+        fetchUsers(currentPage, itemsPerPage, searchQuery, selectedRole);
+      })
+      .catch((err) => {
+        console.error('Error al actualizar el rol de los usuarios:', err);
+        toast.error('Error al actualizar el rol de los usuarios');
+      });
+  };
+
+  const handleRoleUpdateToCustomer = async (users: UserList[]) => {
+    handleRoleUpdate(users, UserRole.CUSTOMER);
+  };
+
+  const handleRoleUpdateToDelivery = async (users: UserList[]) => {
+    handleRoleUpdate(users, UserRole.DELIVERY);
+  };
+
+  const handleRoleUpdateToBranchAdmin = async (users: UserList[]) => {
+    handleRoleUpdate(users, UserRole.BRANCH_ADMIN);
+  };
+
+  const handleRoleUpdateToAdmin = async (users: UserList[]) => {
+    handleRoleUpdate(users, UserRole.ADMIN);
+  };
+
+  const actions = [
+    {
+      label: 'Cambiar a Cliente',
+      onClick: handleRoleUpdateToCustomer,
+    },
+    {
+      label: 'Cambiar a Repartidor',
+      onClick: handleRoleUpdateToDelivery,
+    },
+    {
+      label: 'Cambiar a Administrador de Sucursal',
+      onClick: handleRoleUpdateToBranchAdmin,
+    },
+    {
+      label: 'Cambiar a Administrador',
+      onClick: handleRoleUpdateToAdmin,
+    },
+  ];
+
   return (
     <div
       className="overflow-y-auto"
@@ -132,6 +188,7 @@ export default function UsersPage() {
         onAddClick={() => router.push('/users/new')}
         addButtonText="Agregar Usuario"
         onSearch={handleSearch}
+        actions={actions}
         dropdownComponent={
           <Dropdown
             title="Rol"
@@ -156,9 +213,7 @@ export default function UsersPage() {
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
       />
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando usuarios...</div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Pagination, PromoResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 // Presets de rango de expiración que el backend acepta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -138,6 +139,54 @@ export default function PromosPage() {
     },
   ];
 
+  const handleSetExpiredAtToday = async (promos: PromoResponse[]) => {
+    api.promo
+      .bulkUpdate(
+        {
+          ids: promos.map((p) => p.id),
+          expiredAt: new Date(),
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Promociones expiradas');
+        fetchPromos();
+      })
+      .catch((err) => {
+        console.error('Error al expirar las promociones:', err);
+        toast.error('Error al expirar las promociones');
+      });
+  };
+
+  const handleDeletePromos = async (promos: PromoResponse[]) => {
+    api.promo
+      .bulkDelete(
+        {
+          ids: promos.map((p) => p.id),
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Promociones eliminadas');
+        fetchPromos();
+      })
+      .catch((err) => {
+        console.error('Error al eliminar las promociones:', err);
+        toast.error('Error al eliminar las promociones');
+      });
+  };
+
+  const actions = [
+    {
+      label: 'Expirar hoy',
+      onClick: handleSetExpiredAtToday,
+    },
+    {
+      label: 'Eliminar',
+      onClick: handleDeletePromos,
+    },
+  ];
+
   return (
     <div
       className="overflow-y-auto"
@@ -150,6 +199,7 @@ export default function PromosPage() {
       <TableContainer<PromoResponse>
         title="Promociones"
         onSearch={handleSearch}
+        actions={actions}
         dropdownComponent={
           <Dropdown
             title="Expira en"
@@ -177,9 +227,7 @@ export default function PromosPage() {
         }}
       />
 
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando promociones...</div>
-      )}
+      {isLoading && <Loader />}
     </div>
   );
 }

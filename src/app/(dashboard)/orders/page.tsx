@@ -16,6 +16,7 @@ import {
 import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import Loader from '@/components/Loader';
 
 export default function OrdersPage() {
   const { token } = useAuth();
@@ -167,6 +168,71 @@ export default function OrdersPage() {
     },
   ];
 
+  const handleStatusUpdate = async (
+    users: OrderResponse[],
+    status: OrderStatus,
+  ) => {
+    api.order
+      .bulkUpdate(
+        {
+          orders: users.map((u) => u.id),
+          status: status,
+        },
+        token!,
+      )
+      .then(() => {
+        toast.success('Órdenes actualizadas');
+        fetchOrders();
+      })
+      .catch((err) => {
+        console.error('Error al actualizar el status de las órdenes:', err);
+        toast.error('Error al actualizar el status de las órdenes');
+      });
+  };
+
+  const handleStatusUpdateToApproved = async (users: OrderResponse[]) => {
+    handleStatusUpdate(users, OrderStatus.APPROVED);
+  };
+
+  const handleStatusUpdateToCanceled = async (users: OrderResponse[]) => {
+    handleStatusUpdate(users, OrderStatus.CANCELED);
+  };
+
+  const handleStatusUpdateToReadyForPickup = async (users: OrderResponse[]) => {
+    handleStatusUpdate(users, OrderStatus.READY_FOR_PICKUP);
+  };
+
+  const handleStatusUpdateToCompleted = async (users: OrderResponse[]) => {
+    handleStatusUpdate(users, OrderStatus.COMPLETED);
+  };
+
+  const handleStatusUpdateToInProgress = async (users: OrderResponse[]) => {
+    handleStatusUpdate(users, OrderStatus.IN_PROGRESS);
+  };
+
+  const actions = [
+    {
+      label: 'Aprobar',
+      onClick: handleStatusUpdateToApproved,
+    },
+    {
+      label: 'Cancelar',
+      onClick: handleStatusUpdateToCanceled,
+    },
+    {
+      label: 'Listar para Retiro',
+      onClick: handleStatusUpdateToReadyForPickup,
+    },
+    {
+      label: 'Completar',
+      onClick: handleStatusUpdateToCompleted,
+    },
+    {
+      label: 'Marcar como En Proceso',
+      onClick: handleStatusUpdateToInProgress,
+    },
+  ];
+
   return (
     <div
       className="overflow-y-auto"
@@ -179,6 +245,7 @@ export default function OrdersPage() {
       <TableContainer<OrderResponse>
         title="Órdenes"
         onSearch={onSearch}
+        actions={actions}
         dropdownComponent={
           <div className="flex space-x-2">
             <Dropdown
@@ -221,7 +288,7 @@ export default function OrdersPage() {
         }}
       />
 
-      {isLoading && <div className="mt-4 text-center">Cargando órdenes...</div>}
+      {isLoading && <Loader />}
     </div>
   );
 }

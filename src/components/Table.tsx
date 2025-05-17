@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { PencilSquareIcon, EyeIcon } from '@heroicons/react/24/solid';
 import { Colors } from '@/styles/styles';
 import CheckButton from './CheckButton';
@@ -33,8 +33,9 @@ interface TableProps<T> {
   };
   onEdit?: (item: T) => void;
   onView?: (item: T) => void;
-  onSelect?: (selected: T[]) => void;
   pagination?: PaginationProps;
+  selectedRows: T[];
+  setSelectedRows: (rows: T[]) => void;
 }
 
 function getValueSafely<T>(item: T, key: string): unknown {
@@ -52,32 +53,25 @@ const Table = <T,>({
   customColors,
   onEdit,
   onView,
-  onSelect,
   pagination,
+  selectedRows,
+  setSelectedRows,
 }: TableProps<T>) => {
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
-
   const isAllSelected = data.length > 0 && selectedRows.length === data.length;
 
   const toggleSelectAll = () => {
-    const newSelected = isAllSelected ? [] : data.map((_, i) => i);
+    const newSelected = isAllSelected ? [] : data;
     setSelectedRows(newSelected);
-    if (onSelect) {
-      onSelect(newSelected.map((i) => data[i]));
-    }
   };
 
-  const toggleSelectRow = (index: number) => {
-    let newSelected: number[];
-    if (selectedRows.includes(index)) {
-      newSelected = selectedRows.filter((i) => i !== index);
+  const toggleSelectRow = (item: T) => {
+    let newSelected: T[];
+    if (selectedRows.includes(item)) {
+      newSelected = selectedRows.filter((i) => i !== item);
     } else {
-      newSelected = [...selectedRows, index];
+      newSelected = [...selectedRows, item];
     }
     setSelectedRows(newSelected);
-    if (onSelect) {
-      onSelect(newSelected.map((i) => data[i]));
-    }
   };
 
   return (
@@ -113,7 +107,7 @@ const Table = <T,>({
 
         <tbody>
           {data.map((item, index) => {
-            const isSelected = selectedRows.includes(index);
+            const isSelected = selectedRows.includes(item);
             return (
               <tr
                 key={index}
@@ -124,7 +118,7 @@ const Table = <T,>({
                 <td className="px-4 py-2 text-center">
                   <CheckButton
                     checked={isSelected}
-                    onChange={() => toggleSelectRow(index)}
+                    onChange={() => toggleSelectRow(item)}
                     strokeColor={Colors.stroke}
                   />
                 </td>
