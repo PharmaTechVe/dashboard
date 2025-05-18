@@ -8,11 +8,11 @@ import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
-import { format } from 'date-fns';
 import { CouponResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
 import Input from '@/components/Input/Input';
+import { formatDateSafe } from '@/lib/utils/useFormatDate';
 
 export default function CouponDetailsPage() {
   const params = useParams();
@@ -64,14 +64,6 @@ export default function CouponDetailsPage() {
       toast.error('Error al eliminar el cupón');
     } finally {
       setShowDeleteModal(false);
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    try {
-      return format(date, 'dd/MM/yyyy');
-    } catch {
-      return date.toString();
     }
   };
 
@@ -146,7 +138,7 @@ export default function CouponDetailsPage() {
           <div>
             <Input
               label="Fecha de finalización"
-              value={formatDate(coupon.expirationDate)}
+              value={formatDateSafe(coupon.expirationDate)}
               readViewOnly
             />
           </div>

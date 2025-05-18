@@ -17,6 +17,8 @@ import {
   Bar,
   XAxis,
   YAxis,
+  LineChart,
+  Line,
 } from 'recharts';
 import Calendar from '@/components/Calendar';
 import { Colors, FontSizes } from '@/styles/styles';
@@ -27,6 +29,9 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<DashboardResponse | null>(null);
   const [prevStats, setPrevStats] = useState<DashboardResponse | null>(null);
+  const [sales, setSales] = useState<
+    { date: string; total: number; predictedTotal: number }[]
+  >([]);
 
   const pieData = [
     { name: 'Órdenes Abiertas', value: stats?.openOrders ?? 0 },
@@ -64,9 +69,46 @@ export default function DashboardPage() {
     }
   }, [token, fromDate, toDate]);
 
+  const fetchSales = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const params: ReportQueryParams = {
+        startDate: fromDate || '',
+        endDate: toDate || '',
+      };
+
+      const response = await api.report.getSalesReport(params, token);
+      setSales(
+        response.items.map((item) => ({
+          date: item.date.split('T')[0],
+          total: item.total,
+          predictedTotal: 0,
+        })),
+      );
+      const prediction = await api.salesPrediction.getPredictedSales(
+        { days: 5 },
+        token,
+      );
+      setSales((prevSales) => [
+        ...prevSales,
+        ...prediction.map((item) => ({
+          date: item.date.split('T')[0],
+          predictedTotal: Math.round(item.predictedTotal / 1000),
+          total: 0,
+        })),
+      ]);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      toast.error('Error al cargar las ventas');
+    } finally {
+    }
+  }, [token, fromDate, toDate]);
+
   useEffect(() => {
     fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    fetchSales();
+  }, [fetchDashboardStats, fetchSales]);
 
   return (
     <div className="mx-auto max-w-full space-y-6 p-6">
@@ -270,6 +312,26 @@ export default function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+      <div className="mx-auto w-full rounded-xl bg-white p-6 shadow-md">
+        <h2 className="my-4 text-center text-lg font-semibold">
+          Predicción de Ventas
+        </h2>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart
+            width={730}
+            height={250}
+            data={sales}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="total" stroke={COLORS[1]} />
+            <Line type="monotone" dataKey="predictedTotal" stroke={COLORS[0]} />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

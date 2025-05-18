@@ -8,11 +8,11 @@ import ModalConfirm from '@/components/ModalConfirm';
 import { Colors } from '@/styles/styles';
 import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
-import { format } from 'date-fns';
 import { PromoResponse } from '@pharmatech/sdk/types';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
 import Input from '@/components/Input/Input';
+import { formatDateSafe } from '@/lib/utils/useFormatDate';
 
 export default function PromoDetailsPage() {
   const params = useParams();
@@ -75,14 +75,6 @@ export default function PromoDetailsPage() {
   };
 
   const handleCancelDelete = () => setShowDeleteModal(false);
-
-  const formatDate = (date: Date) => {
-    try {
-      return format(date, 'dd/MM/yyyy');
-    } catch {
-      return date.toString();
-    }
-  };
 
   if (!promo) {
     return <Loading />;
@@ -168,7 +160,7 @@ export default function PromoDetailsPage() {
             <div>
               <Input
                 label="Fecha de Inicio"
-                value={formatDate(new Date(promo.startAt))}
+                value={formatDateSafe(promo.startAt)}
                 readViewOnly
               />
             </div>
@@ -176,7 +168,7 @@ export default function PromoDetailsPage() {
             <div>
               <Input
                 label="Fecha de Finalización"
-                value={formatDate(new Date(promo.expiredAt))}
+                value={formatDateSafe(promo.expiredAt)}
                 readViewOnly
               />
             </div>

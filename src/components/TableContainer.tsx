@@ -34,6 +34,7 @@ interface TableContainerProps<T> {
     label: string;
     onClick: (values: T[]) => void;
   }[];
+  isLoading?: boolean;
 }
 
 export default function TableContainer<T>({
@@ -49,6 +50,7 @@ export default function TableContainer<T>({
   customColors,
   addButtonText = 'Agregar Producto',
   actions,
+  isLoading = false,
 }: TableContainerProps<T>) {
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -105,6 +107,7 @@ export default function TableContainer<T>({
             onPageChange: pagination.onPageChange,
             onItemsPerPageChange: pagination.onItemsPerPageChange,
           }}
+          isLoading={isLoading}
         />
       </div>
 
