@@ -90,25 +90,25 @@ export default function EditUserPage() {
     const genero = gender === UserGender.MALE ? 'hombre' : 'mujer';
 
     const result = registerSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
+      firstName: firstName,
+      lastName: lastName,
       email,
-      cedula: documentId,
-      telefono: phoneNumber,
-      fechaNacimiento: birthDate ? convertSlashDateToIso(birthDate) : null,
-      genero,
+      documentId: documentId,
+      phoneNumber: phoneNumber,
+      birthDate: birthDate ? convertSlashDateToIso(birthDate) : null,
+      gender: genero,
     });
 
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
-        firstName: fieldErrors.nombre?.[0] || '',
-        lastName: fieldErrors.apellido?.[0] || '',
+        firstName: fieldErrors.firstName?.[0] || '',
+        lastName: fieldErrors.lastName?.[0] || '',
         email: fieldErrors.email?.[0] || '',
-        documentId: fieldErrors.cedula?.[0] || '',
-        phoneNumber: fieldErrors.telefono?.[0] || '',
-        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
-        gender: fieldErrors.genero?.[0] || '',
+        documentId: fieldErrors.documentId?.[0] || '',
+        phoneNumber: fieldErrors.phoneNumber?.[0] || '',
+        birthDate: fieldErrors.birthDate?.[0] || '',
+        gender: fieldErrors.gender?.[0] || '',
       });
       toast.error('Por favor, revisa los errores en el formulario');
       return;

@@ -81,25 +81,25 @@ export default function NewUserPage() {
 
     // Prepara los datos para la validación usando el schema
     const result = registerSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
+      firstName: firstName,
+      lastName: lastName,
       email,
-      cedula: documentId,
-      telefono: phoneNumber,
-      fechaNacimiento: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
-      genero,
+      documentId: documentId,
+      phoneNumber: phoneNumber,
+      birthDate: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
+      gender: genero,
     });
 
     if (!result.success) {
       const { fieldErrors } = result.error.flatten();
       setErrors({
-        firstName: fieldErrors.nombre?.[0] || '',
-        lastName: fieldErrors.apellido?.[0] || '',
+        firstName: fieldErrors.firstName?.[0] || '',
+        lastName: fieldErrors.lastName?.[0] || '',
         email: fieldErrors.email?.[0] || '',
-        documentId: fieldErrors.cedula?.[0] || '',
-        phoneNumber: fieldErrors.telefono?.[0] || '',
-        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
-        gender: fieldErrors.genero?.[0] || '',
+        documentId: fieldErrors.documentId?.[0] || '',
+        phoneNumber: fieldErrors.phoneNumber?.[0] || '',
+        birthDate: fieldErrors.birthDate?.[0] || '',
+        gender: fieldErrors.gender?.[0] || '',
       });
       toast.error('Por favor, revisa los errores en el formulario');
       return;
