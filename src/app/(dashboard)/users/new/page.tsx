@@ -337,6 +337,7 @@ export default function NewUserPage() {
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
               borderColor="#E7E7E6"
+              showPasswordToggle
             />
           </div>
           <div>
@@ -350,6 +351,7 @@ export default function NewUserPage() {
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
               borderColor="#E7E7E6"
+              showPasswordToggle
             />
           </div>
         </div>
