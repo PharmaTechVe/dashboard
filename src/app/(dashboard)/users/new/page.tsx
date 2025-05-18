@@ -68,6 +68,8 @@ export default function NewUserPage() {
   const [role, setRole] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -90,11 +92,13 @@ export default function NewUserPage() {
     const result = registerSchema.safeParse({
       nombre: firstName,
       apellido: lastName,
-      email,
+      email: email,
       cedula: documentId,
       telefono: phoneNumber,
       fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
       genero,
+      password: password,
+      confirmPassword: confirmPassword,
     });
 
     if (!result.success) {
@@ -107,6 +111,8 @@ export default function NewUserPage() {
         phoneNumber: fieldErrors.telefono?.[0] || '',
         birthDate: fieldErrors.fechaNacimiento?.[0] || '',
         gender: fieldErrors.genero?.[0] || '',
+        password: fieldErrors.password?.[0] || '',
+        confirmPassword: fieldErrors.confirmPassword?.[0] || '',
       });
       toast.error('Por favor, revisa los errores en el formulario');
       return;
@@ -132,7 +138,7 @@ export default function NewUserPage() {
       const payload = {
         firstName,
         lastName,
-        email,
+        email: email,
         documentId,
         phoneNumber: phoneNumber.trim(),
         birthDate: formattedBirthDate,
@@ -152,6 +158,8 @@ export default function NewUserPage() {
       setRole('');
       setPhoneNumber('');
       setEmail('');
+      setConfirmPassword('');
+      setPassword('');
       setErrors({});
 
       setTimeout(() => {
@@ -313,6 +321,32 @@ export default function NewUserPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               helperText={errors.email}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
+            />
+          </div>
+          <div>
+            <Input
+              label="Contraseña"
+              type="password"
+              placeholder="Agrega contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              helperText={errors.password}
+              helperTextColor={Colors.semanticDanger}
+              borderSize="1px"
+              borderColor="#E7E7E6"
+            />
+          </div>
+          <div>
+            <Input
+              label="Confirmacion Contraseña"
+              type="password"
+              placeholder="Agrega contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              helperText={errors.confirmPassword}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
               borderColor="#E7E7E6"
