@@ -8,5 +8,6 @@ export const loginSchema = z.object({
   password: z
     .string()
     .nonempty('La contraseña es obligatoria')
-    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .max(255, 'La contraseña no puede exceder los 255 caracteres'),
 });
