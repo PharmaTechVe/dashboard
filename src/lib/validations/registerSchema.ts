@@ -2,27 +2,27 @@ import { z } from 'zod';
 
 export const registerSchema = z
   .object({
-    nombre: z
+    firstName: z
       .string()
+      .nonempty('El nombre es obligatorio')
       .min(2, 'El nombre debe tener al menos 2 caracteres')
       .max(50, 'El nombre no puede exceder los 50 caracteres')
-      .regex(/^[a-zA-Z\s]+$/, 'El nombre solo puede contener letras')
-      .nonempty('El nombre es obligatorio'),
-    apellido: z
+      .regex(/^[a-zA-Z\s]+$/, 'El nombre solo puede contener letras'),
+    lastName: z
       .string()
+      .nonempty('El apellido es obligatorio')
       .min(2, 'El apellido debe tener al menos 2 caracteres')
       .max(50, 'El apellido no puede exceder los 50 caracteres')
-      .regex(/^[a-zA-Z\s]+$/, 'El apellido solo puede contener letras')
-      .nonempty('El apellido es obligatorio'),
+      .regex(/^[a-zA-Z\s]+$/, 'El apellido solo puede contener letras'),
     email: z
       .string()
       .nonempty('El email es obligatorio')
       .email('Formato de email inválido'),
-    cedula: z
+    documentId: z
       .string()
       .nonempty('La cédula es obligatoria')
       .regex(/^\d+$/, 'La cédula debe contener solo números'),
-    telefono: z
+    phoneNumber: z
       .string()
       .transform((value) => (value?.trim() === '' ? null : value))
       .nullable()
@@ -30,7 +30,7 @@ export const registerSchema = z
         (value) => value === null || /^\d{8,15}$/.test(value),
         'El teléfono debe tener entre 8 y 15 dígitos numéricos',
       ),
-    fechaNacimiento: z
+    birthDate: z
       .string()
       .nonempty('La fecha de nacimiento es obligatoria')
       .regex(
@@ -54,7 +54,7 @@ export const registerSchema = z
           message: 'Debes tener al menos 14 años',
         },
       ),
-    genero: z
+    gender: z
       .string()
       .transform((value) => (value?.trim() === '' ? null : value))
       .nullable()
@@ -67,12 +67,13 @@ export const registerSchema = z
     password: z
       .string()
       .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .regex(/[A-Z]/, 'Debe tener al menos una letra mayúscula')
-      .regex(/[a-z]/, 'Debe tener al menos una letra minúscula')
-      .regex(/\d/, 'Debe tener al menos un número')
-      .regex(/[!@#$%^&*]/, 'Debe tener al menos un símbolo especial (!@#$%^&*)')
+      .max(255, 'La contraseña no puede exceder los 255 caracteres')
       .optional(),
-    confirmPassword: z.string().optional(),
+    confirmPassword: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .max(255, 'La contraseña no puede exceder los 255 caracteres')
+      .optional(),
   })
   .refine(
     (data) => {
