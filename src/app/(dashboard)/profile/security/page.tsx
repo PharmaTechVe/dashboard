@@ -57,7 +57,6 @@ export default function SecurityPage() {
         value={currentPassword}
         onChange={(e) => setCurrentPassword(e.target.value)}
         helperText={errors.currentPassword}
-        borderColor="#E7E7E6"
       />
 
       <Input
@@ -68,7 +67,6 @@ export default function SecurityPage() {
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
         helperText={errors.newPassword}
-        borderColor="#E7E7E6"
       />
 
       <Input
@@ -79,7 +77,6 @@ export default function SecurityPage() {
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         helperText={errors.confirmPassword}
-        borderColor="#E7E7E6"
       />
 
       <div className="flex justify-end">

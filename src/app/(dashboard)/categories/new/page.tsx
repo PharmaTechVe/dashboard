@@ -116,7 +116,6 @@ export default function NewCategoryPage() {
             }}
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             borderSize="1px"
           />
 
@@ -130,7 +129,6 @@ export default function NewCategoryPage() {
             }}
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             type="text"
             borderSize="1px"
             isTextArea

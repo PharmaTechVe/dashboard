@@ -142,7 +142,6 @@ export default function NewPromotionPage() {
             onChange={(e) => setName(e.target.value)}
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
           />
         </div>
         <div>
@@ -155,7 +154,6 @@ export default function NewPromotionPage() {
             }
             helperText={errors.discount}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             type="number"
           />
         </div>
