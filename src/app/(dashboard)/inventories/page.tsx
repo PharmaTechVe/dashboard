@@ -12,8 +12,8 @@ import {
   InventoryResponse,
 } from '@pharmatech/sdk';
 import { toast } from 'react-toastify';
-import Input from '@/components/Input/Input';
 import { formatDateSafe } from '@/lib/utils/useFormatDate';
+import InventoryStock from '@/components/Input/InventoryStock';
 
 export default function InventoryListPage() {
   const { token, user } = useAuth();
@@ -56,8 +56,12 @@ export default function InventoryListPage() {
     const params: Parameters<typeof api.inventory.findAll>[0] = {
       page: currentPage,
       limit: itemsPerPage,
-      ...(selectedBranchId ? { branchId: selectedBranchId } : {}),
     };
+    if (user.role == UserRole.BRANCH_ADMIN) {
+      params.branchId = user.branch?.id;
+    } else {
+      params.branchId = selectedBranchId ? selectedBranchId : undefined;
+    }
     try {
       const response: Pagination<InventoryResponse> =
         await api.inventory.findAll(params);
@@ -105,15 +109,9 @@ export default function InventoryListPage() {
       {
         key: 'stockQuantity',
         label: 'Existencia',
-        render: (i: InventoryResponse) => {
-          //const [value, setValue] = useState(i.stockQuantity);
-          return (
-            <Input
-              value={i.stockQuantity.toString()}
-              //onChange={(e) => setValue(Number(e.target.value))}
-            />
-          );
-        },
+        render: (i: InventoryResponse) => (
+          <InventoryStock inventoryId={i.id} stock={i.stockQuantity} />
+        ),
       },
     ];
     if (user?.role == UserRole.ADMIN) {
