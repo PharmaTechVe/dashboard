@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BellIcon, QueueListIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
 import Avatar from '@/components/Avatar';
 import SearchBar from '@/components/SearchBar';
 import { Colors } from '@/styles/styles';
@@ -59,7 +59,6 @@ export default function AdminNavBar() {
           />
         </div>
         <div className="ml-4 flex items-center gap-6">
-          <QueueListIcon className="h-6 w-6 cursor-pointer text-gray-700" />
           <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
           <div className="flex flex-col items-start text-sm">
             <span className="font-semibold text-gray-700">Cargando...</span>
@@ -88,7 +87,6 @@ export default function AdminNavBar() {
 
       {/* Íconos + Usuario */}
       <div className="ml-4 flex items-center gap-6">
-        <QueueListIcon className="h-6 w-6 cursor-pointer text-gray-700" />
         <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
 
         <div className="flex flex-col items-start text-sm">
