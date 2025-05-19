@@ -22,20 +22,17 @@ export default function OrdersPage() {
   const { token } = useAuth();
   const router = useRouter();
 
-  // datos y paginación
   const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [query, setQuery] = useState<string>(''); // buscador libre (q)
+  const [query, setQuery] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('');
   const [selectedType, setSelectedType] = useState<OrderType | ''>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
-  // estados de carga y error
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // debounce para búsqueda
   const DEBOUNCE_MS = 500;
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const onSearch = (q: string) => {
@@ -46,7 +43,6 @@ export default function OrdersPage() {
     }, DEBOUNCE_MS);
   };
 
-  // opciones de estado y tipo
   const statusOptions = [
     { value: '', label: 'Todos' },
     { value: OrderStatus.REQUESTED, label: 'Solicitado' },
@@ -86,7 +82,7 @@ export default function OrdersPage() {
     setSelectedType(opt?.value ?? '');
     setPage(1);
   };
-  // trae órdenes usando SOLO los filtros que el backend expone (q + status + type)
+
   const fetchOrders = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
@@ -117,7 +113,6 @@ export default function OrdersPage() {
     }
   }, [page, limit, query, selectedStatus, selectedType, token]);
 
-  // recarga al cambiar filtros o paginación
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -259,8 +254,6 @@ export default function OrdersPage() {
             />
           </div>
         }
-        onAddClick={() => router.push('/orders/new')}
-        addButtonText="Agregar orden"
         tableData={orders}
         tableColumns={columns}
         onView={(o) => router.push(`/orders/${o.id}`)}
