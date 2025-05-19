@@ -26,6 +26,10 @@ interface User {
   role: string;
   isValidated: boolean;
   profilePicture?: string;
+  branch?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface AuthContextType {
@@ -79,7 +83,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const profile = await api.user.getProfile(decoded.sub, token);
-
       if (!['admin', 'branch_admin'].includes(profile.role.toLowerCase())) {
         toast.error('Acceso denegado: no tienes permisos de administrador');
         return null;
@@ -92,6 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: profile.email,
         role: profile.role,
         isValidated: profile.isValidated ?? false,
+        branch: {
+          id: profile.branch?.id,
+          name: profile.branch?.name,
+        },
       };
     } catch (error) {
       console.error('Error al obtener perfil del usuario:', error);
