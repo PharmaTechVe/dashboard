@@ -152,7 +152,6 @@ export default function EditCategoryPage() {
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#d1d5db"
           />
 
           <Input
@@ -166,7 +165,6 @@ export default function EditCategoryPage() {
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#d1d5db"
             type="text"
             isTextArea
             rows={4}

@@ -200,7 +200,6 @@ export default function EditUserPage() {
                 helperText={errors.firstName}
                 helperTextColor={Colors.semanticDanger}
                 borderSize="1px"
-                borderColor={Colors.stroke}
               />
             </div>
 
@@ -213,7 +212,6 @@ export default function EditUserPage() {
                 helperText={errors.documentId}
                 helperTextColor={Colors.semanticDanger}
                 borderSize="1px"
-                borderColor={Colors.stroke}
                 readViewOnly
               />
             </div>
@@ -227,7 +225,6 @@ export default function EditUserPage() {
                   onChange={(e) => setBirthDate(e.target.value)}
                   helperText={errors.birthDate}
                   helperTextColor={Colors.semanticDanger}
-                  borderColor={Colors.stroke}
                   borderSize="1px"
                 />
               </div>
@@ -241,7 +238,6 @@ export default function EditUserPage() {
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 helperText={errors.phoneNumber}
                 helperTextColor={Colors.semanticDanger}
-                borderColor={Colors.stroke}
                 borderSize="1px"
               />
             </div>
@@ -258,7 +254,6 @@ export default function EditUserPage() {
                 onChange={(e) => setLastName(e.target.value)}
                 helperText={errors.lastName}
                 helperTextColor={Colors.semanticDanger}
-                borderColor={Colors.stroke}
                 borderSize="1px"
               />
             </div>
@@ -324,7 +319,6 @@ export default function EditUserPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 helperText={errors.email}
                 helperTextColor={Colors.semanticDanger}
-                borderColor={Colors.stroke}
                 borderSize="1px"
                 readViewOnly
               />

@@ -184,7 +184,6 @@ export default function EditProductPresentationPage() {
             onChange={(e) => setPrice(e.target.value)}
             helperText={errors.price}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             borderSize="1px"
             type="number"
           />

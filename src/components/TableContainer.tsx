@@ -9,8 +9,8 @@ import { Colors } from '@/styles/styles';
 interface TableContainerProps<T> {
   title: string;
   dropdownComponent?: React.ReactNode;
-  onAddClick: () => void;
-  onSearch: (query: string) => void;
+  onAddClick?: () => void;
+  onSearch?: (query: string) => void;
   tableData: T[];
   tableColumns: Column<T>[];
   onEdit?: (item: T) => void;
@@ -108,6 +108,7 @@ export default function TableContainer<T>({
             onItemsPerPageChange: pagination.onItemsPerPageChange,
           }}
           isLoading={isLoading}
+          showSelector={actions ? true : false}
         />
       </div>
 

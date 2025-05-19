@@ -165,7 +165,6 @@ export default function EditPromoPage() {
             onChange={(e) => setTempName(e.target.value)}
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
           />
 
           <Input
@@ -179,7 +178,6 @@ export default function EditPromoPage() {
             }
             helperText={errors.discount}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             type="number"
           />
 

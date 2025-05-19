@@ -188,7 +188,6 @@ export default function NewBranchPage() {
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#E7E7E6"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -233,7 +232,6 @@ export default function NewBranchPage() {
             helperText={errors.address}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#E7E7E6"
             onChange={(e) => setAddress(e.target.value)}
           />
         </div>
@@ -247,7 +245,6 @@ export default function NewBranchPage() {
               helperText={errors.latitude}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
               onChange={(e) => setLatitude(e.target.value)}
             />
           </div>
@@ -259,7 +256,6 @@ export default function NewBranchPage() {
               helperText={errors.longitude}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
               onChange={(e) => setLongitude(e.target.value)}
             />
           </div>

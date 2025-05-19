@@ -202,7 +202,6 @@ export default function NewUserPage() {
               helperText={errors.firstName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -215,7 +214,6 @@ export default function NewUserPage() {
               helperText={errors.lastName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
         </div>
@@ -230,7 +228,6 @@ export default function NewUserPage() {
               helperText={errors.documentId}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -295,7 +292,6 @@ export default function NewUserPage() {
               helperText={errors.phoneNumber}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -308,7 +304,6 @@ export default function NewUserPage() {
               helperText={errors.email}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
         </div>

@@ -136,7 +136,6 @@ export default function NewCouponPage() {
             helperText={errors.code}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#E7E7E6"
           />
           <div className="flex flex-col gap-4 md:flex-row md:gap-6">
             <div className="w-full">
@@ -161,7 +160,6 @@ export default function NewCouponPage() {
               helperText={errors.maxUses}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
               type="number"
             />
           </div>
@@ -174,7 +172,6 @@ export default function NewCouponPage() {
               helperText={errors.discount}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
               type="number"
             />
             <Input
@@ -185,7 +182,6 @@ export default function NewCouponPage() {
               helperText={errors.minPurchase}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
               type="number"
             />
           </div>

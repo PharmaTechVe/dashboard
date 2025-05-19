@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import theme from '@/styles/styles';
+import theme, { Colors } from '@/styles/styles';
 
 type IconType = React.FC<React.SVGProps<SVGSVGElement>>;
 
@@ -64,7 +64,7 @@ const Input: React.FC<InputProps> = ({
   showPasswordToggle = false,
   showPasswordToggleIconColor = 'text-gray-500',
   borderSize = '2px',
-  borderColor = '#000000',
+  borderColor = Colors.stroke,
   readViewOnly = false,
   isTextArea = false,
   rows = 3,

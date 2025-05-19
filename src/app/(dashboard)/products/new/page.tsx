@@ -153,7 +153,6 @@ export default function NewGenericProductPage() {
               helperText={errors.genericName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#d1d5db"
             />
           </div>
           <div className="w-1/2">
@@ -180,7 +179,6 @@ export default function NewGenericProductPage() {
               helperText={errors.name}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#d1d5db"
             />
           </div>
           <div className="w-1/2">
@@ -192,7 +190,6 @@ export default function NewGenericProductPage() {
               helperText={errors.priority}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#d1d5db"
               type="number"
             />
           </div>
@@ -206,7 +203,6 @@ export default function NewGenericProductPage() {
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
             borderSize="1px"
-            borderColor="#d1d5db"
             type="text"
             isTextArea
             rows={4}
