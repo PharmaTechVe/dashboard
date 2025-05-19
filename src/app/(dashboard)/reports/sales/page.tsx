@@ -38,8 +38,7 @@ export default function ReportPreviewPage() {
 
     (async () => {
       try {
-        const profile = await api.user.getProfile(user.sub, token);
-        setUserName(`${profile.firstName} ${profile.lastName}`);
+        setUserName(user.name);
 
         const stateResponse = await api.state.findAll({
           page: 1,

@@ -6,7 +6,6 @@ import Avatar from '@/components/Avatar';
 import SearchBar from '@/components/SearchBar';
 import { Colors } from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/sdkConfig';
 
 interface AdminProfile {
   name: string;
@@ -30,24 +29,15 @@ export default function AdminNavBar() {
       return;
     }
 
-    (async () => {
-      try {
-        const profile = await api.user.getProfile(user.sub, token);
-
-        // Adaptar el perfil a nuestro modelo esperado
-        const adaptedProfile: AdminProfile = {
-          name: `${profile.firstName} ${profile.lastName}`,
-          email: profile.email,
-          profile: {
-            profilePicture: profile.profile.profilePicture,
-          },
-        };
-
-        setUserData(adaptedProfile);
-      } catch (err) {
-        console.error('Error al obtener perfil del admin:', err);
-        setUserData(null);
-      }
+    (() => {
+      const adaptedProfile: AdminProfile = {
+        name: user.name,
+        email: user.email,
+        profile: {
+          profilePicture: user.profilePicture || '',
+        },
+      };
+      setUserData(adaptedProfile);
     })();
   }, [token, user]);
 
@@ -87,10 +77,7 @@ export default function AdminNavBar() {
           imageUrl={userData.profile.profilePicture}
           size={40}
           withDropdown={true}
-          dropdownOptions={[
-            { label: 'Perfil', route: '/profile' },
-            // "Cerrar sesión" se añade automáticamente desde el componente Avatar si hay token
-          ]}
+          dropdownOptions={[{ label: 'Perfil', route: '/profile' }]}
         />
       </div>
     </nav>

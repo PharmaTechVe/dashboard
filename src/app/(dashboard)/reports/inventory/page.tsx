@@ -34,10 +34,8 @@ export default function InventoryReportPreview() {
 
   useEffect(() => {
     if (!token || !user?.sub) return;
-
     (async () => {
-      const profile = await api.user.getProfile(user.sub, token);
-      setUserName(`${profile.firstName} ${profile.lastName}`);
+      setUserName(user.name);
 
       const stateRes = await api.state.findAll({
         page: 1,
