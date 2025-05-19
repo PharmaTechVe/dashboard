@@ -79,9 +79,8 @@ const Sidebar = () => {
       icon: <ChartBarIcon className="h-6 w-6" />,
       route: '/orders',
       subItems: [
+        { name: 'Solicitadas', route: '/orders/requests' },
         { name: 'Listado', route: '/orders' },
-        { name: 'Reembolsos', route: '/orders/refunds' },
-        { name: 'Asignación', route: '/orders/assign' },
       ],
     },
     {
