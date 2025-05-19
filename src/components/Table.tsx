@@ -38,6 +38,7 @@ interface TableProps<T> {
   selectedRows: T[];
   setSelectedRows: (rows: T[]) => void;
   isLoading?: boolean;
+  showSelector?: boolean;
 }
 
 function getValueSafely<T>(item: T, key: string): unknown {
@@ -59,6 +60,7 @@ const Table = <T,>({
   selectedRows,
   setSelectedRows,
   isLoading = false,
+  showSelector = true,
 }: TableProps<T>) => {
   const isAllSelected = data.length > 0 && selectedRows.length === data.length;
 
@@ -89,14 +91,16 @@ const Table = <T,>({
           }`}
         >
           <tr>
-            <th className="px-4 py-2 text-center">
-              <CheckButton
-                checked={isAllSelected}
-                onChange={toggleSelectAll}
-                strokeColor={Colors.iconWhite}
-                filled={Colors.iconWhite}
-              />
-            </th>
+            {showSelector && (
+              <th className="px-4 py-2 text-center">
+                <CheckButton
+                  checked={isAllSelected}
+                  onChange={toggleSelectAll}
+                  strokeColor={Colors.stroke}
+                  filled={Colors.iconWhite}
+                />
+              </th>
+            )}
             {columns.map((column) => (
               <th key={column.key} className="px-4 py-2 text-left">
                 {column.label}
@@ -127,13 +131,16 @@ const Table = <T,>({
                     customColors?.rowBorder || 'border-gray-200'
                   } border-b bg-white`}
                 >
-                  <td className="px-4 py-2 text-center">
-                    <CheckButton
-                      checked={isSelected}
-                      onChange={() => toggleSelectRow(item)}
-                      strokeColor={Colors.stroke}
-                    />
-                  </td>
+                  {' '}
+                  {showSelector && (
+                    <td className="px-4 py-2 text-center">
+                      <CheckButton
+                        checked={isSelected}
+                        onChange={() => toggleSelectRow(item)}
+                        strokeColor={Colors.stroke}
+                      />
+                    </td>
+                  )}
                   {columns.map((column) => (
                     <td key={column.key} className="px-4 py-2 text-left">
                       {column.render

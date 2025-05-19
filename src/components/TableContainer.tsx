@@ -108,6 +108,7 @@ export default function TableContainer<T>({
             onItemsPerPageChange: pagination.onItemsPerPageChange,
           }}
           isLoading={isLoading}
+          showSelector={actions ? true : false}
         />
       </div>
 
