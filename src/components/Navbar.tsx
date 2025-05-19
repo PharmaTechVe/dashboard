@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar';
 import SearchBar from '@/components/SearchBar';
 import { Colors } from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
+import Loader from './Loader';
 
 interface AdminProfile {
   name: string;
@@ -41,7 +42,32 @@ export default function AdminNavBar() {
     })();
   }, [token, user]);
 
-  if (!token || !userData) return null;
+  if (!token || !userData)
+    return (
+      <div className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">
+        <div className="max-w-xl flex-1">
+          <SearchBar
+            onSearch={handleSearch}
+            width="100%"
+            height="40px"
+            borderRadius="8px"
+            backgroundColor="#FFFFFF"
+            textColorDrop={Colors.textMain}
+            textplaceholderColor={Colors.placeholder}
+            inputPlaceholder="Buscar en el panel"
+            disableDropdown
+          />
+        </div>
+        <div className="ml-4 flex items-center gap-6">
+          <QueueListIcon className="h-6 w-6 cursor-pointer text-gray-700" />
+          <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
+          <div className="flex flex-col items-start text-sm">
+            <span className="font-semibold text-gray-700">Cargando...</span>
+          </div>
+          <Loader />
+        </div>
+      </div>
+    );
 
   return (
     <nav className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">

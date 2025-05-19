@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: profile.email,
         role: profile.role,
         isValidated: profile.isValidated ?? false,
+        profilePicture: profile.profile.profilePicture,
         branch: {
           id: profile.branch?.id,
           name: profile.branch?.name,
