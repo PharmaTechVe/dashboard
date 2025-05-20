@@ -31,9 +31,9 @@ export default function NewBranchPage() {
   const [cityId, setCityId] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-// No branches data available, so markers will be empty
-const markers: BranchMarker[] = [];
-const mapCenter = { lat: 10.0653, lng: -69.3235 };
+  // No branches data available, so markers will be empty
+  const markers: BranchMarker[] = [];
+  const mapCenter = { lat: 10.0653, lng: -69.3235 };
 
   const fetchStates = async () => {
     try {
@@ -266,12 +266,11 @@ const mapCenter = { lat: 10.0653, lng: -69.3235 };
           </div>
           <div>
             <GoogleMaps
-          markers={markers}
-          center={mapCenter}
-          mapWidth="200%"
-          mapHeight="220px"
-        />
-
+              markers={markers}
+              center={mapCenter}
+              mapWidth="200%"
+              mapHeight="220px"
+            />
           </div>
         </div>
       </div>
