@@ -83,13 +83,13 @@ export default function NewUserPage() {
 
     // Prepara los datos para la validación usando el schema
     const result = registerSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
-      email: email,
-      cedula: documentId,
-      telefono: phoneNumber,
-      fechaNacimiento: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
-      genero,
+      firstName: firstName,
+      lastName: lastName,
+      email,
+      documentId: documentId,
+      phoneNumber: phoneNumber,
+      birthDate: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
+      gender: genero,
       password: password,
       confirmPassword: confirmPassword,
     });
@@ -97,13 +97,13 @@ export default function NewUserPage() {
     if (!result.success) {
       const { fieldErrors } = result.error.flatten();
       setErrors({
-        firstName: fieldErrors.nombre?.[0] || '',
-        lastName: fieldErrors.apellido?.[0] || '',
+        firstName: fieldErrors.firstName?.[0] || '',
+        lastName: fieldErrors.lastName?.[0] || '',
         email: fieldErrors.email?.[0] || '',
-        documentId: fieldErrors.cedula?.[0] || '',
-        phoneNumber: fieldErrors.telefono?.[0] || '',
-        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
-        gender: fieldErrors.genero?.[0] || '',
+        documentId: fieldErrors.documentId?.[0] || '',
+        phoneNumber: fieldErrors.phoneNumber?.[0] || '',
+        birthDate: fieldErrors.birthDate?.[0] || '',
+        gender: fieldErrors.gender?.[0] || '',
         password: fieldErrors.password?.[0] || '',
         confirmPassword: fieldErrors.confirmPassword?.[0] || '',
       });
@@ -137,6 +137,7 @@ export default function NewUserPage() {
         birthDate: formattedBirthDate,
         gender,
         role: mappedRole,
+        //password
       };
 
       console.log('Payload a enviar:', payload);
@@ -210,7 +211,6 @@ export default function NewUserPage() {
               helperText={errors.firstName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -223,7 +223,6 @@ export default function NewUserPage() {
               helperText={errors.lastName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
         </div>
@@ -238,7 +237,6 @@ export default function NewUserPage() {
               helperText={errors.documentId}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -303,7 +301,6 @@ export default function NewUserPage() {
               helperText={errors.phoneNumber}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -316,7 +313,6 @@ export default function NewUserPage() {
               helperText={errors.email}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>

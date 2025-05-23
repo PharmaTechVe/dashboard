@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BellIcon, QueueListIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
 import Avatar from '@/components/Avatar';
 import SearchBar from '@/components/SearchBar';
 import { Colors } from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/sdkConfig';
+import Loader from './Loader';
 
 interface AdminProfile {
   name: string;
@@ -30,28 +30,43 @@ export default function AdminNavBar() {
       return;
     }
 
-    (async () => {
-      try {
-        const profile = await api.user.getProfile(user.sub, token);
-
-        // Adaptar el perfil a nuestro modelo esperado
-        const adaptedProfile: AdminProfile = {
-          name: `${profile.firstName} ${profile.lastName}`,
-          email: profile.email,
-          profile: {
-            profilePicture: profile.profile.profilePicture,
-          },
-        };
-
-        setUserData(adaptedProfile);
-      } catch (err) {
-        console.error('Error al obtener perfil del admin:', err);
-        setUserData(null);
-      }
+    (() => {
+      const adaptedProfile: AdminProfile = {
+        name: user.name,
+        email: user.email,
+        profile: {
+          profilePicture: user.profilePicture || '',
+        },
+      };
+      setUserData(adaptedProfile);
     })();
   }, [token, user]);
 
-  if (!token || !userData) return null;
+  if (!token || !userData)
+    return (
+      <div className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">
+        <div className="max-w-xl flex-1">
+          <SearchBar
+            onSearch={handleSearch}
+            width="100%"
+            height="40px"
+            borderRadius="8px"
+            backgroundColor="#FFFFFF"
+            textColorDrop={Colors.textMain}
+            textplaceholderColor={Colors.placeholder}
+            inputPlaceholder="Buscar en el panel"
+            disableDropdown
+          />
+        </div>
+        <div className="ml-4 flex items-center gap-6">
+          <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
+          <div className="flex flex-col items-start text-sm">
+            <span className="font-semibold text-gray-700">Cargando...</span>
+          </div>
+          <Loader />
+        </div>
+      </div>
+    );
 
   return (
     <nav className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">
@@ -72,7 +87,6 @@ export default function AdminNavBar() {
 
       {/* Íconos + Usuario */}
       <div className="ml-4 flex items-center gap-6">
-        <QueueListIcon className="h-6 w-6 cursor-pointer text-gray-700" />
         <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
 
         <div className="flex flex-col items-start text-sm">
@@ -87,10 +101,7 @@ export default function AdminNavBar() {
           imageUrl={userData.profile.profilePicture}
           size={40}
           withDropdown={true}
-          dropdownOptions={[
-            { label: 'Perfil', route: '/profile' },
-            // "Cerrar sesión" se añade automáticamente desde el componente Avatar si hay token
-          ]}
+          dropdownOptions={[{ label: 'Perfil', route: '/profile' }]}
         />
       </div>
     </nav>

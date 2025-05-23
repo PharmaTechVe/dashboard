@@ -19,7 +19,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import '@/styles/globals.css';
 import theme from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/lib/sdkConfig';
 import { UserRole } from '@pharmatech/sdk';
 
 interface SubMenuItem {
@@ -49,15 +48,9 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    const fetchProfilePicture = async () => {
+    const fetchProfilePicture = () => {
       if (!token || !user?.sub) return;
-
-      try {
-        const profile = await api.user.getProfile(user.sub, token);
-        setUserRole(profile.role);
-      } catch (err) {
-        console.error('Error al obtener la imagen de perfil:', err);
-      }
+      setUserRole(user.role);
     };
 
     fetchProfilePicture();
@@ -77,6 +70,7 @@ const Sidebar = () => {
         { name: 'Productos', route: '/products' },
         { name: 'Presentaciones', route: '/presentations' },
         { name: 'Categorías', route: '/categories' },
+        { name: 'Inventarios', route: '/inventories' },
         { name: 'Carga de inventario', route: '/upload-files' },
       ],
     },
@@ -85,9 +79,8 @@ const Sidebar = () => {
       icon: <ChartBarIcon className="h-6 w-6" />,
       route: '/orders',
       subItems: [
+        { name: 'Solicitadas', route: '/orders/requests' },
         { name: 'Listado', route: '/orders' },
-        { name: 'Reembolsos', route: '/orders/refunds' },
-        { name: 'Asignación', route: '/orders/assign' },
       ],
     },
     {

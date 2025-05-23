@@ -152,7 +152,6 @@ export default function EditPresentationPage() {
             onChange={(e) => setName(e.target.value)}
             helperText={errors.name}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             borderSize="1px"
           />
         </div>
@@ -181,7 +180,6 @@ export default function EditPresentationPage() {
               onChange={(e) => setQuantity(e.target.value)}
               helperText={errors.quantity}
               helperTextColor={Colors.semanticDanger}
-              borderColor="#d1d5db"
               type="number"
               borderSize="1px"
             />
@@ -195,7 +193,6 @@ export default function EditPresentationPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={errors.description}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             type="text"
             borderSize="1px"
             isTextArea

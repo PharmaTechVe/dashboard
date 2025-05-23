@@ -24,8 +24,8 @@ export const editProfileSchema = z
       .string()
       .optional()
       .refine(
-        (value) => value === undefined || /^\+\d{8,15}$/.test(value),
-        'El teléfono debe iniciar con + y tener entre 8 y 15 dígitos',
+        (value) => value === undefined || /^\d{8,15}$/.test(value),
+        'El teléfono debe tener entre 8 y 15 dígitos numéricos',
       ),
     birthDate: z
       .string()
