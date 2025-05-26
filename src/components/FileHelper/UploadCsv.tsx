@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useCsvUploader } from '@/lib/utils/useCsvUploader';
 import InventoryTable from '@/components/InventoryTable';
 import FileUploader from '@/components/FileUploader';
+import Loader from '../Loader';
 
 export default function CsvUploader() {
   const { csvData, fileName, loading, parseCsv, clearCsv } = useCsvUploader();
@@ -26,15 +27,13 @@ export default function CsvUploader() {
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
-      <h2 className="text-lg font-semibold">Importar Inventario CSV</h2>
-
       <FileUploader
         onFileSelect={handleFileSelect}
         accept=".csv"
         label="Selecciona un archivo CSV para cargar"
       />
 
-      {loading && <p>Cargando archivo...</p>}
+      {loading && <Loader />}
 
       {fileName && (
         <div className="mt-4 flex flex-col items-center">

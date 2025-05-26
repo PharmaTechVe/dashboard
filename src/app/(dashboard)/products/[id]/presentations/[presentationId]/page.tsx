@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import Input from '@/components/Input/Input';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function ViewProductPresentationPage() {
   const params = useParams();
@@ -162,7 +163,7 @@ export default function ViewProductPresentationPage() {
         <div>
           <Input
             label="Precio"
-            value={presentation.price.toFixed(2)}
+            value={formatPrice(presentation.price)}
             readViewOnly
           />
         </div>

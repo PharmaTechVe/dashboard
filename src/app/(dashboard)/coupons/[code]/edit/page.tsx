@@ -10,6 +10,7 @@ import { api } from '@/lib/sdkConfig';
 import { toast } from 'react-toastify';
 import { couponSchema } from '@/lib/validations/couponsSchema';
 import { useAuth } from '@/context/AuthContext';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function EditCouponPage() {
   const params = useParams();
@@ -55,7 +56,7 @@ export default function EditCouponPage() {
 
         setTempCode(response.code);
         setTempDiscount(response.discount);
-        setTempMinPurchase(response.minPurchase);
+        setTempMinPurchase(Number(formatPrice(response.minPurchase)));
         setTempMaxUses(response.maxUses);
         setTempExpirationDate(expirationDate.toISOString());
       } catch (error) {
@@ -134,7 +135,8 @@ export default function EditCouponPage() {
         {
           code: tempCode.trim(),
           discount: Number(tempDiscount),
-          minPurchase: Number(tempMinPurchase),
+          // Convert to cents
+          minPurchase: Number((Number(tempMinPurchase) * 100).toFixed(0)),
           maxUses: Number(tempMaxUses),
           expirationDate: new Date(tempExpirationDate),
         },

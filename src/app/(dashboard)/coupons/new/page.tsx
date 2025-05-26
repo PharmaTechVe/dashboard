@@ -64,7 +64,8 @@ export default function NewCouponPage() {
       }
 
       const payload = validationResult.data;
-
+      // Converts minPurchase to cents
+      payload.minPurchase = Number((payload.minPurchase * 100).toFixed(0));
       await api.coupon.create(payload, token);
       toast.success('Cupón creado exitosamente');
       setTimeout(() => router.push('/coupons'), 1500);

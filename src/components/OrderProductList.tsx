@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import Image from 'next/image';
 import { OrderDetailResponse } from '@pharmatech/sdk';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 type Props = {
   details: OrderDetailResponse[];
@@ -44,7 +45,7 @@ const OrderProductList: FC<Props> = ({ details }) => {
           </div>
         ))}
         <p className="text-lg font-semibold text-gray-800">
-          Total: ${total.toFixed(2)}
+          Total: ${formatPrice(total)}
         </p>
       </div>
     </div>
