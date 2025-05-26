@@ -13,6 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
 import Input from '@/components/Input/Input';
 import { formatDateSafe } from '@/lib/utils/useFormatDate';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function CouponDetailsPage() {
   const params = useParams();
@@ -167,7 +168,7 @@ export default function CouponDetailsPage() {
               <div>
                 <Input
                   label="Compra mínima"
-                  value={`$${coupon.minPurchase.toFixed(2)}`}
+                  value={`$${formatPrice(coupon.minPurchase)}`}
                   readViewOnly
                 />
               </div>

@@ -13,6 +13,7 @@ import {
   StateResponse,
   CityResponse,
 } from '@pharmatech/sdk';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
@@ -112,9 +113,7 @@ export default function InventoryReportPreview() {
 
   const handleDownload = async () => {
     const printDate = new Date().toLocaleDateString('es-VE');
-    const totalValue = tableData
-      .reduce((acc, row) => acc + row.totalValue, 0)
-      .toFixed(2);
+    const totalValue = tableData.reduce((acc, row) => acc + row.totalValue, 0);
 
     const blob = await pdf(
       <PDFReportTemplate
@@ -124,7 +123,10 @@ export default function InventoryReportPreview() {
         columns={columns}
         data={tableData}
         totals={[
-          { label: 'Valor Total del Inventario', value: `${totalValue} $` },
+          {
+            label: 'Valor Total del Inventario',
+            value: `${formatPrice(totalValue)} $`,
+          },
         ]}
       />,
     ).toBlob();

@@ -10,6 +10,7 @@ import { Pagination, CouponResponse } from '@pharmatech/sdk';
 import { useAuth } from '@/context/AuthContext';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 // Presets de rango de expiración que el backend soporta via expirationBetween
 const expirationTranslations: Record<string, string> = {
@@ -124,7 +125,7 @@ export default function CouponsPage() {
     {
       key: 'minPurchase',
       label: 'Compra min.',
-      render: (c: CouponResponse) => `$${c.minPurchase.toFixed(2)}`,
+      render: (c: CouponResponse) => `$${formatPrice(c.minPurchase)}`,
     },
     {
       key: 'maxUses',

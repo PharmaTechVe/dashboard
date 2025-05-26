@@ -18,6 +18,7 @@ import TableContainer from '@/components/TableContainer';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '../../loading';
 import Input from '@/components/Input/Input';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 type ProductPresentationItem = ProductPresentationResponse;
 export default function GenericProductDetailPage() {
@@ -46,7 +47,7 @@ export default function GenericProductDetailPage() {
     {
       key: 'price',
       label: 'Precio',
-      render: (item) => `$${item.price.toFixed(2)}`,
+      render: (item) => `$${formatPrice(item.price)}`,
     },
     {
       key: 'promo',

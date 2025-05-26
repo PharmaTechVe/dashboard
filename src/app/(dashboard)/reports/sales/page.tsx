@@ -16,6 +16,7 @@ import {
   CityResponse,
   BranchResponse,
 } from '@pharmatech/sdk';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
@@ -110,8 +111,6 @@ export default function ReportPreviewPage() {
     { key: 'total', label: 'Total' },
   ];
 
-  const formatCurrency = (n: number) => `$${n.toFixed(2)}`;
-
   const handleDownload = async () => {
     if (!reportData || !startDate || !endDate) return;
 
@@ -120,13 +119,13 @@ export default function ReportPreviewPage() {
     const totals = [
       {
         label: 'Subtotal General',
-        value: formatCurrency(reportData.totals.subtotal),
+        value: formatPrice(reportData.totals.subtotal),
       },
       {
         label: 'Descuento Total',
-        value: formatCurrency(reportData.totals.discount),
+        value: formatPrice(reportData.totals.discount),
       },
-      { label: 'Total Final', value: formatCurrency(reportData.totals.total) },
+      { label: 'Total Final', value: formatPrice(reportData.totals.total) },
     ];
 
     const blob = await pdf(
