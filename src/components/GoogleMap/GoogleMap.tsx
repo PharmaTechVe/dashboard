@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   GoogleMap,
   useJsApiLoader,
@@ -39,6 +39,17 @@ const GoogleMaps = ({
   const { isLoaded } = useJsApiLoader(GOOGLE_MAPS_OPTIONS);
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState(center);
+
+  useEffect(() => {
+    const areCoordsDifferent =
+      center.lat !== selectedPosition.lat ||
+      center.lng !== selectedPosition.lng;
+
+    if (areCoordsDifferent) {
+      setSelectedPosition(center);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center]); // solo center, ignoramos selectedPosition
 
   const handleMapClick = async (e: google.maps.MapMouseEvent) => {
     if (!draggable || !e.latLng) return;
