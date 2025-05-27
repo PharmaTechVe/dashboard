@@ -13,6 +13,8 @@ import {
   StateResponse,
   CityResponse,
 } from '@pharmatech/sdk';
+import { formatPrice } from '@/lib/utils/priceFormatter';
+import Button from '@/components/Button';
 
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
@@ -104,17 +106,18 @@ export default function InventoryReportPreview() {
         genericName,
         presentationName,
         stockQuantity: stock,
-        price,
-        totalValue: stock * price,
+        price: formatPrice(price),
+        totalValue: formatPrice(stock * price),
       };
     });
   }, [productData, detailsMap]);
 
   const handleDownload = async () => {
     const printDate = new Date().toLocaleDateString('es-VE');
-    const totalValue = tableData
-      .reduce((acc, row) => acc + row.totalValue, 0)
-      .toFixed(2);
+    const totalValue = tableData.reduce(
+      (acc, row) => acc + Number(row.totalValue) * 100,
+      0,
+    );
 
     const blob = await pdf(
       <PDFReportTemplate
@@ -124,7 +127,10 @@ export default function InventoryReportPreview() {
         columns={columns}
         data={tableData}
         totals={[
-          { label: 'Valor Total del Inventario', value: `${totalValue} $` },
+          {
+            label: 'Valor Total del Inventario',
+            value: `${formatPrice(totalValue)} $`,
+          },
         ]}
       />,
     ).toBlob();
@@ -133,14 +139,16 @@ export default function InventoryReportPreview() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-primary mb-4 text-xl font-bold">
+    <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+      <h1 className="mb-6 text-center text-2xl font-bold">
         Reporte de Inventario
       </h1>
 
-      <div className="mb-4 flex flex-col gap-4 md:flex-row">
+      <div className="mb-6 flex flex-col items-center justify-center gap-4 md:flex-row">
         <div>
-          <label>Estado:</label>
+          <label className="block text-[16px] font-medium text-gray-600">
+            Estado:
+          </label>
           <select
             value={selectedState}
             onChange={(e) => setSelectedState(e.target.value)}
@@ -156,7 +164,9 @@ export default function InventoryReportPreview() {
         </div>
 
         <div>
-          <label>Ciudad:</label>
+          <label className="block text-[16px] font-medium text-gray-600">
+            Ciudad:
+          </label>
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
@@ -170,24 +180,23 @@ export default function InventoryReportPreview() {
             ))}
           </select>
         </div>
+      </div>
 
-        <div className="self-end">
-          <button
-            onClick={fetchData}
-            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-          >
-            Consultar
-          </button>
-        </div>
+      <div className="flex justify-center">
+        <Button onClick={fetchData} className="max-w-[300px] rounded px-4 py-2">
+          Consultar
+        </Button>
       </div>
 
       {tableData.length > 0 && (
-        <button
-          onClick={handleDownload}
-          className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          Descargar Reporte PDF
-        </button>
+        <div className="flex justify-center">
+          <Button
+            onClick={handleDownload}
+            className="max-w-[300px] rounded px-4 py-2"
+          >
+            Descargar Reporte PDF
+          </Button>
+        </div>
       )}
     </div>
   );

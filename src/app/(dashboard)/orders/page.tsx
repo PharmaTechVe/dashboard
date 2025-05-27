@@ -17,6 +17,7 @@ import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
 import { formatDateSafe } from '@/lib/utils/useFormatDate';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function OrdersPage() {
   const { token } = useAuth();
@@ -150,7 +151,7 @@ export default function OrdersPage() {
     {
       key: 'totalPrice',
       label: 'Precio total',
-      render: (o) => `$${o.totalPrice.toFixed(2)}`,
+      render: (o) => `$${formatPrice(o.totalPrice)}`,
     },
   ];
 

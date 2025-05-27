@@ -14,6 +14,7 @@ import {
 import { toast } from 'react-toastify';
 import { formatDateSafe } from '@/lib/utils/useFormatDate';
 import InventoryStock from '@/components/Input/InventoryStock';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function InventoryListPage() {
   const { token, user } = useAuth();
@@ -103,7 +104,7 @@ export default function InventoryListPage() {
       },
       {
         key: 'updatedAt',
-        label: 'Actualizado el',
+        label: 'Actualizado',
         render: (i: InventoryResponse) => formatDateSafe(i.updatedAt),
       },
       {
@@ -112,6 +113,18 @@ export default function InventoryListPage() {
         render: (i: InventoryResponse) => (
           <InventoryStock inventoryId={i.id} stock={i.stockQuantity} />
         ),
+      },
+      {
+        key: 'price',
+        label: 'Precio',
+        render: (i: InventoryResponse) =>
+          `$${formatPrice(i.productPresentation.price)}`,
+      },
+      {
+        key: 'total',
+        label: 'Total',
+        render: (i: InventoryResponse) =>
+          `$${formatPrice(i.stockQuantity * i.productPresentation.price)}`,
       },
     ];
     if (user?.role == UserRole.ADMIN) {
