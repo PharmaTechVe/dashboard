@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import Avatar from '@/components/Avatar';
-import SearchBar from '@/components/SearchBar';
-import { Colors } from '@/styles/styles';
 import { useAuth } from '@/context/AuthContext';
 import Loader from './Loader';
 
@@ -19,10 +17,6 @@ interface AdminProfile {
 export default function AdminNavBar() {
   const { token, user } = useAuth();
   const [userData, setUserData] = useState<AdminProfile | null>(null);
-
-  const handleSearch = (query: string) => {
-    console.log('Buscando:', query);
-  };
 
   useEffect(() => {
     if (!token || !user?.sub) {
@@ -44,20 +38,7 @@ export default function AdminNavBar() {
 
   if (!token || !userData)
     return (
-      <div className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">
-        <div className="max-w-xl flex-1">
-          <SearchBar
-            onSearch={handleSearch}
-            width="100%"
-            height="40px"
-            borderRadius="8px"
-            backgroundColor="#FFFFFF"
-            textColorDrop={Colors.textMain}
-            textplaceholderColor={Colors.placeholder}
-            inputPlaceholder="Buscar en el panel"
-            disableDropdown
-          />
-        </div>
+      <div className="h-18 flex items-end justify-end bg-white px-4 py-2 shadow-md">
         <div className="ml-4 flex items-center gap-6">
           <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
           <div className="flex flex-col items-start text-sm">
@@ -69,22 +50,7 @@ export default function AdminNavBar() {
     );
 
   return (
-    <nav className="flex h-20 items-center justify-between bg-white px-4 py-2 shadow-md">
-      {/* Barra de búsqueda */}
-      <div className="max-w-xl flex-1">
-        <SearchBar
-          onSearch={handleSearch}
-          width="100%"
-          height="40px"
-          borderRadius="8px"
-          backgroundColor="#FFFFFF"
-          textColorDrop={Colors.textMain}
-          textplaceholderColor={Colors.placeholder}
-          inputPlaceholder="Buscar en el panel"
-          disableDropdown
-        />
-      </div>
-
+    <nav className="h-18 flex items-end justify-end bg-white px-4 py-2 shadow-md">
       {/* Íconos + Usuario */}
       <div className="ml-4 flex items-center gap-6">
         <BellIcon className="h-6 w-6 cursor-pointer text-gray-700" />
