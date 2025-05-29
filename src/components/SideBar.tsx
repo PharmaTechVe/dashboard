@@ -71,6 +71,7 @@ const Sidebar = () => {
         { name: 'Presentaciones', route: '/presentations' },
         { name: 'Categorías', route: '/categories' },
         { name: 'Inventarios', route: '/inventories' },
+        { name: 'Lotes', route: '/lots' },
         { name: 'Carga de inventario', route: '/upload-files' },
       ],
     },
