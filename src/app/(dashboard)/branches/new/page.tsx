@@ -10,6 +10,8 @@ import Dropdown from '@/components/Dropdown';
 import { toast } from 'react-toastify';
 import { StateResponse, CityResponse } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
+import GoogleMaps from '@/components/GoogleMap/GoogleMap';
+//import { BranchMarker } from '@/components/GoogleMap/GoogleMap';
 
 /// This is a constant that represents the ID of Venezuela.
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
@@ -29,6 +31,12 @@ export default function NewBranchPage() {
   const [cityId, setCityId] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // No branches data available, so markers will be empty
+
+  const mapCenter = {
+    lat: parseFloat(latitude || '10.0653'),
+    lng: parseFloat(longitude || '-69.3235'),
+  };
 
   const fetchStates = async () => {
     try {
@@ -257,6 +265,18 @@ export default function NewBranchPage() {
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
               onChange={(e) => setLongitude(e.target.value)}
+            />
+          </div>
+          <div>
+            <GoogleMaps
+              center={mapCenter}
+              draggable
+              onCoordinateChange={(lat, lng) => {
+                setLatitude(lat.toFixed(6).toString());
+                setLongitude(lng.toFixed(6).toString());
+              }}
+              mapWidth="200%"
+              mapHeight="220px"
             />
           </div>
         </div>
