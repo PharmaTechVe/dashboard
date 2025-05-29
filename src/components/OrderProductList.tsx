@@ -7,13 +7,15 @@ import { formatPrice } from '@/lib/utils/priceFormatter';
 
 type Props = {
   details: OrderDetailResponse[];
+  total: number;
 };
 
-const OrderProductList: FC<Props> = ({ details }) => {
-  const total = details.reduce((acc, detail) => {
-    const price = detail.productPresentation.price || 0;
-    return acc + price * detail.quantity;
-  }, 0);
+const OrderProductList: FC<Props> = ({ details, total }) => {
+  const subtotal = details.reduce(
+    (acc, detail) => acc + detail.quantity * detail.price,
+    0,
+  );
+  const discount = subtotal - total;
 
   return (
     <div className="w-full space-y-4 rounded-xl bg-white p-6 shadow-md lg:w-1/3">
@@ -44,7 +46,13 @@ const OrderProductList: FC<Props> = ({ details }) => {
             </span>
           </div>
         ))}
-        <p className="text-lg font-semibold text-gray-800">
+        <p className="text-md text-gray-800">
+          Subtotal: ${formatPrice(subtotal)}
+        </p>
+        <p className="text-md text-[#2ECC71]">
+          Descuento: ${formatPrice(discount)}
+        </p>
+        <p className="text-md font-semibold text-gray-800">
           Total: ${formatPrice(total)}
         </p>
       </div>
