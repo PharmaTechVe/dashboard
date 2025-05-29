@@ -32,7 +32,7 @@ export default function EditOrderStatusPage() {
   const params = useParams();
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
   const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
@@ -170,6 +170,16 @@ export default function EditOrderStatusPage() {
     return <Loading />;
   }
   const isDelivery = order.type === OrderType.DELIVERY;
+
+  if (user?.branch?.id !== order.branch?.id && user?.role !== UserRole.ADMIN) {
+    return (
+      <div className="mx-auto max-w-[904px] p-6">
+        <h1 className="text-2xl font-semibold text-red-600">
+          No tienes permiso para ver esta orden.
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <>
