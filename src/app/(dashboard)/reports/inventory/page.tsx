@@ -8,10 +8,9 @@ import { api } from '@/lib/sdkConfig';
 import PDFReportTemplate from '@/components/FileHelper/PDFReportTemplate';
 
 import {
-  ProductPresentationResponse,
-  ProductPresentationDetailResponse,
   StateResponse,
   CityResponse,
+  ProductPresentation,
 } from '@pharmatech/sdk';
 import { formatPrice } from '@/lib/utils/priceFormatter';
 import Button from '@/components/Button';
@@ -26,13 +25,7 @@ export default function InventoryReportPreview() {
   const [cities, setCities] = useState<CityResponse[]>([]);
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-
-  const [productData, setProductData] = useState<ProductPresentationResponse[]>(
-    [],
-  );
-  const [detailsMap, setDetailsMap] = useState<
-    Record<string, ProductPresentationDetailResponse>
-  >({});
+  const [productData, setProductData] = useState<ProductPresentation[]>([]);
 
   useEffect(() => {
     if (!token || !user?.sub) return;
@@ -65,17 +58,6 @@ export default function InventoryReportPreview() {
   const fetchData = async () => {
     const res = await api.product.getProducts({ page: 1, limit: 100 });
     setProductData(res.results);
-
-    const detailMap: Record<string, ProductPresentationDetailResponse> = {};
-    for (const prod of res.results) {
-      const detail = await api.productPresentation.getByPresentationId(
-        prod.product.id,
-        prod.presentation.id,
-      );
-      detailMap[prod.presentation.id] = detail;
-    }
-
-    setDetailsMap(detailMap);
   };
 
   const columns: {
@@ -96,9 +78,8 @@ export default function InventoryReportPreview() {
 
   const tableData = useMemo(() => {
     return productData.map((p) => {
-      const detail = detailsMap[p.presentation.id];
-      const genericName = detail?.product?.genericName || '-';
-      const presentationName = detail?.presentation?.name || '-';
+      const genericName = p.product.genericName;
+      const presentationName = p.product.name;
       const stock = p.stock ?? 0;
       const price = p.price;
 
@@ -110,7 +91,7 @@ export default function InventoryReportPreview() {
         totalValue: formatPrice(stock * price),
       };
     });
-  }, [productData, detailsMap]);
+  }, [productData]);
 
   const handleDownload = async () => {
     const printDate = new Date().toLocaleDateString('es-VE');
