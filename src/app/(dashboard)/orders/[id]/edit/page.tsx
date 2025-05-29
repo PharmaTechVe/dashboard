@@ -26,6 +26,7 @@ import {
 } from '@/lib/utils/orderTranslations';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function EditOrderStatusPage() {
   const params = useParams();
@@ -257,6 +258,46 @@ export default function EditOrderStatusPage() {
               </>
             )}
           </div>
+
+          {order.paymentConfirmation && (
+            <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+              <h3 className="mb-2 font-semibold">Datos del Pago</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Referencia Bancaria
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.reference}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Banco
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.bank}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Teléfono
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.phoneNumber}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Monto Transferido
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm font-semibold text-gray-900">
+                    ${formatPrice(order.totalPrice)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <OrderProductList details={order.details} total={order.totalPrice} />
       </div>
