@@ -24,12 +24,13 @@ import {
   orderStatusTranslationMap,
   orderDeliveryStatusTranslationMap,
 } from '@/lib/utils/orderTranslations';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function ViewOrderStatusPage() {
   const params = useParams();
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>();
@@ -89,6 +90,16 @@ export default function ViewOrderStatusPage() {
 
   if (loading || !order) return <Loading />;
   const isDelivery = order.type === OrderType.DELIVERY;
+
+  if (user?.branch?.id !== order.branch?.id && user?.role !== UserRole.ADMIN) {
+    return (
+      <div className="mx-auto max-w-[904px] p-6">
+        <h1 className="text-2xl font-semibold text-red-600">
+          No tienes permiso para ver esta orden.
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -170,6 +181,45 @@ export default function ViewOrderStatusPage() {
               </>
             )}
           </div>
+          {order.paymentConfirmation && (
+            <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+              <h3 className="mb-2 font-semibold">Datos del Pago</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Referencia Bancaria
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.reference}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Banco
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.bank}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Teléfono
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.phoneNumber}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Monto Transferido
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm font-semibold text-gray-900">
+                    ${formatPrice(order.totalPrice)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <OrderProductList details={order.details} total={order.totalPrice} />
       </div>

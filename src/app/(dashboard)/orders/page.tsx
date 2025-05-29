@@ -12,6 +12,7 @@ import {
   OrderResponse,
   OrderStatus,
   OrderType,
+  UserRole,
 } from '@pharmatech/sdk';
 import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
 import Badge from '@/components/Badge';
@@ -20,7 +21,7 @@ import { formatDateSafe } from '@/lib/utils/useFormatDate';
 import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function OrdersPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
 
   const [orders, setOrders] = useState<OrderResponse[]>([]);
@@ -85,7 +86,7 @@ export default function OrdersPage() {
   };
 
   const fetchOrders = useCallback(async () => {
-    if (!token) return;
+    if (!token || !user?.sub) return;
     setIsLoading(true);
     setError(null);
 
@@ -97,6 +98,9 @@ export default function OrdersPage() {
         ...(selectedStatus ? { status: selectedStatus } : {}),
         ...(selectedType ? { type: selectedType } : {}),
       };
+      if (user.role == UserRole.BRANCH_ADMIN) {
+        params.branchId = user.branch?.id;
+      }
 
       const resp: Pagination<OrderResponse> = await api.order.findAll(
         params,
