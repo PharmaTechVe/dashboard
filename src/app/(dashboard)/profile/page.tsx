@@ -6,7 +6,6 @@ import Input from '@/components/Input/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/sdkConfig';
-import Loader from '@/components/Loader';
 import { toast } from 'react-toastify';
 import { UserList } from '@pharmatech/sdk';
 
@@ -14,17 +13,14 @@ export default function ProfilePage() {
   const { user, token } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserList | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.sub || !token) {
       setError('Usuario no autenticado');
-      setLoading(false);
       return;
     }
     try {
-      setLoading(true);
       const res = await api.user.getProfile(user.sub, token);
       setProfile(res);
       setError(null);
@@ -33,7 +29,6 @@ export default function ProfilePage() {
       toast.error('Error cargando perfil');
       setError('No se pudo cargar tu perfil');
     } finally {
-      setLoading(false);
     }
   }, [user, token]);
 
@@ -41,7 +36,6 @@ export default function ProfilePage() {
     fetchProfile();
   }, [fetchProfile]);
 
-  if (loading) return <Loader />;
   if (error) return <p className="p-8 text-center text-red-500">{error}</p>;
   if (!profile) return null;
 
