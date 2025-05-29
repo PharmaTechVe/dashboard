@@ -171,7 +171,7 @@ export default function ViewOrderStatusPage() {
             )}
           </div>
         </div>
-        <OrderProductList details={order.details} />
+        <OrderProductList details={order.details} total={order.totalPrice} />
       </div>
     </>
   );
