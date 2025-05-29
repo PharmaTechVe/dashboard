@@ -55,6 +55,8 @@ export default function EditProductPresentationPage() {
           ),
           api.promo.findAll({ page: 1, limit: 50 }, token),
         ]);
+        // Convert price from cents to dollars
+        presData.price = presData.price / 100;
         setPresentationData(presData);
         setPromos(promoResp.results);
         setPrice(presData.price.toString());
@@ -95,9 +97,9 @@ export default function EditProductPresentationPage() {
     }
 
     const payload = result.data;
-
+    // Convert to cents
+    payload.price = Number((payload.price * 100).toFixed(0));
     try {
-      console.log('Payload:', payload);
       await api.productPresentation.update(productId, presentationId, payload);
       toast.success('Presentación actualizada exitosamente');
       setTimeout(() => {
@@ -184,7 +186,6 @@ export default function EditProductPresentationPage() {
             onChange={(e) => setPrice(e.target.value)}
             helperText={errors.price}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             borderSize="1px"
             type="number"
           />

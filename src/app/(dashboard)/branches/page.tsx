@@ -163,11 +163,8 @@ export default function BranchesPage() {
           },
           itemsPerPageOptions: [5, 10, 15, 20],
         }}
+        isLoading={isLoading}
       />
-
-      {isLoading && (
-        <div className="mt-4 text-center">Cargando sucursales...</div>
-      )}
     </div>
   );
 }

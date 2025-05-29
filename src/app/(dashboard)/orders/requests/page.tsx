@@ -14,8 +14,6 @@ import {
   OrderType,
   UserRole,
 } from '@pharmatech/sdk';
-import { orderStatusTranslationMap } from '@/lib/utils/orderTranslations';
-import Badge from '@/components/Badge';
 import { toast } from 'react-toastify';
 import { formatDateSafe } from '@/lib/utils/useFormatDate';
 import { formatPrice } from '@/lib/utils/priceFormatter';
@@ -26,7 +24,6 @@ export default function OrdersPage() {
 
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [query, setQuery] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('');
   const [selectedType, setSelectedType] = useState<OrderType | ''>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -45,39 +42,11 @@ export default function OrdersPage() {
     }, DEBOUNCE_MS);
   };
 
-  const statusOptions = [
-    { value: '', label: 'Todos' },
-    { value: OrderStatus.REQUESTED, label: 'Solicitado' },
-    { value: OrderStatus.IN_PROGRESS, label: 'En proceso' },
-    { value: OrderStatus.APPROVED, label: 'Aprobada' },
-    { value: OrderStatus.CANCELED, label: 'Cancelada' },
-    { value: OrderStatus.READY_FOR_PICKUP, label: 'Lista para Retiro' },
-    { value: OrderStatus.COMPLETED, label: 'Completado' },
-  ] as const;
-
   const typeOptions = [
     { value: '', label: 'Todos' },
     { value: OrderType.PICKUP, label: 'Pickup' },
     { value: OrderType.DELIVERY, label: 'Delivery' },
   ] as const;
-
-  const statusColorMap: Record<
-    OrderStatus,
-    'primary' | 'warning' | 'danger' | 'success' | 'info'
-  > = {
-    [OrderStatus.REQUESTED]: 'warning',
-    [OrderStatus.IN_PROGRESS]: 'info',
-    [OrderStatus.APPROVED]: 'primary',
-    [OrderStatus.CANCELED]: 'danger',
-    [OrderStatus.READY_FOR_PICKUP]: 'primary',
-    [OrderStatus.COMPLETED]: 'success',
-  };
-
-  const handleStatusChange = (label: string) => {
-    const opt = statusOptions.find((o) => o.label === label);
-    setSelectedStatus(opt?.value ?? '');
-    setPage(1);
-  };
 
   const handleTypeChange = (label: string) => {
     const opt = typeOptions.find((o) => o.label === label);
@@ -94,10 +63,11 @@ export default function OrdersPage() {
       const params: Parameters<typeof api.order.findAll>[0] = {
         page,
         limit,
+        status: OrderStatus.REQUESTED,
         ...(query ? { q: query } : {}),
-        ...(selectedStatus ? { status: selectedStatus } : {}),
         ...(selectedType ? { type: selectedType } : {}),
       };
+
       if (user.role == UserRole.BRANCH_ADMIN) {
         params.branchId = user.branch?.id;
       }
@@ -116,7 +86,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, query, selectedStatus, selectedType, token]);
+  }, [page, limit, query, selectedType, token]);
 
   useEffect(() => {
     fetchOrders();
@@ -136,21 +106,6 @@ export default function OrdersPage() {
       label: 'Actualización',
       render: (o) => formatDateSafe(o.updatedAt),
     },
-    {
-      key: 'status',
-      label: 'Estado',
-      render: (o) => (
-        <Badge
-          variant="filled"
-          color={statusColorMap[o.status]}
-          size="small"
-          borderRadius="rounded"
-        >
-          {orderStatusTranslationMap[o.status]}
-        </Badge>
-      ),
-    },
-
     { key: 'type', label: 'Tipo', render: (o) => o.type },
     {
       key: 'totalPrice',
@@ -234,30 +189,19 @@ export default function OrdersPage() {
       )}
 
       <TableContainer<OrderResponse>
-        title="Órdenes"
+        title="Órdenes Solicitadas"
         onSearch={onSearch}
         actions={actions}
         dropdownComponent={
-          <div className="flex space-x-2">
-            <Dropdown
-              title="Estado"
-              items={statusOptions.map((o) => o.label)}
-              onChange={handleStatusChange}
-              selected={
-                statusOptions.find((o) => o.value === selectedStatus)?.label ||
-                'Todos'
-              }
-            />
-            <Dropdown
-              title="Tipo"
-              items={typeOptions.map((o) => o.label)}
-              onChange={handleTypeChange}
-              selected={
-                typeOptions.find((o) => o.value === selectedType)?.label ||
-                'Todos'
-              }
-            />
-          </div>
+          <Dropdown
+            title="Tipo"
+            items={typeOptions.map((o) => o.label)}
+            onChange={handleTypeChange}
+            selected={
+              typeOptions.find((o) => o.value === selectedType)?.label ||
+              'Todos'
+            }
+          />
         }
         tableData={orders}
         tableColumns={columns}

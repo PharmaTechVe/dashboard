@@ -12,6 +12,7 @@ import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { useAuth } from '@/context/AuthContext';
 import { BranchResponse } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
+import Loader from '@/components/Loader';
 
 export default function BranchDetailsPage() {
   const params = useParams();
@@ -165,7 +166,7 @@ export default function BranchDetailsPage() {
           </div>
         </div>
       ) : (
-        <p className="text-[16px]">Cargando datos de la sucursal...</p>
+        <Loader />
       )}
     </>
   );

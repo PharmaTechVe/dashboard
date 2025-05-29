@@ -26,12 +26,23 @@ import {
 } from '@/lib/utils/orderTranslations';
 import { useAuth } from '@/context/AuthContext';
 import Loading from '@/app/(dashboard)/loading';
+import { formatPrice } from '@/lib/utils/priceFormatter';
 
 export default function EditOrderStatusPage() {
   const params = useParams();
   const id = typeof params?.id === 'string' ? params.id : '';
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>();
+  const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
+  const [deliveryId, setDeliveryId] = useState<string | null>(null);
+  const [deliveryUsers, setDeliveryUsers] = useState<UserList[]>([]);
+  const [selectedDeliveryUserId, setSelectedDeliveryUserId] = useState<
+    string | null
+  >(null);
+  const [loading, setLoading] = useState(true);
+
   const socket = io(SOCKET_URL, {
     transportOptions: {
       polling: {
@@ -42,42 +53,39 @@ export default function EditOrderStatusPage() {
     },
   });
 
-  const [order, setOrder] = useState<OrderDetailedResponse | null>(null);
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>();
-  const [deliveryStatus, setDeliveryStatus] = useState<OrderDeliveryStatus>();
-  const [deliveryId, setDeliveryId] = useState<string | null>(null);
-  const [deliveryUsers, setDeliveryUsers] = useState<UserList[]>([]);
-  const [selectedDeliveryUserId, setSelectedDeliveryUserId] = useState<
-    string | null
-  >(null);
-  const [loading, setLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
-
-  type SocketError = {
-    message: string;
-    data: { id: string };
-  };
-
   useEffect(() => {
-    socket.on('connect', () => {
-      setIsConnected(true);
-      console.log('Socket connected: ', isConnected);
-    });
+    function onConnect() {
+      console.log('Connected to socket server');
+    }
 
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-      console.log('Socket connected: ', isConnected);
-    });
+    function onDisconnect() {
+      console.log('Disconnected from socket server');
+    }
 
-    socket.on('error', (error: SocketError) => {
-      console.error('Socket error: ', error);
-      toast.error('Error de conexión con el servidor');
-    });
+    async function onDeliveryUpdated(delivery: {
+      orderDeliveryId: string;
+      status: OrderDeliveryStatus;
+      employeeId: string;
+    }) {
+      const response = await api.deliveryService.getById(
+        delivery.orderDeliveryId,
+        token!,
+      );
+      setDeliveryStatus(response.deliveryStatus);
+      setDeliveryId(response.id);
+      setSelectedDeliveryUserId(response.employeeId);
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('deliveryUpdated', onDeliveryUpdated);
 
     return () => {
-      socket.disconnect();
+      socket.off('connect', onConnect);
+      socket.off('deliveryUpdated', onDeliveryUpdated);
+      socket.off('disconnect', onDisconnect);
     };
-  }, [isConnected, socket]);
+  }, []);
 
   const fetchOrderData = useCallback(async () => {
     if (!token || !id) return;
@@ -122,8 +130,16 @@ export default function EditOrderStatusPage() {
     if (!token || !id) return;
 
     try {
-      socket.emit('updateOrder', { id, status: orderStatus });
-      console.log('DeliveryId', selectedDeliveryUserId);
+      const orderUpdated = await api.order.update(
+        id,
+        { status: orderStatus },
+        token,
+      );
+      socket.emit('updateOrder', {
+        id: orderUpdated.id,
+        status: orderUpdated.status,
+      });
+
       if (deliveryId && deliveryStatus) {
         await api.deliveryService.update(
           deliveryId,
@@ -136,6 +152,7 @@ export default function EditOrderStatusPage() {
       }
 
       toast.success('Orden actualizada correctamente');
+      socket.disconnect();
       setTimeout(() => router.push('/orders'), 2000);
     } catch (error) {
       console.error('Error actualizando la orden:', error);
@@ -153,6 +170,16 @@ export default function EditOrderStatusPage() {
     return <Loading />;
   }
   const isDelivery = order.type === OrderType.DELIVERY;
+
+  if (user?.branch?.id !== order.branch?.id && user?.role !== UserRole.ADMIN) {
+    return (
+      <div className="mx-auto max-w-[904px] p-6">
+        <h1 className="text-2xl font-semibold text-red-600">
+          No tienes permiso para ver esta orden.
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -241,8 +268,48 @@ export default function EditOrderStatusPage() {
               </>
             )}
           </div>
+
+          {order.paymentConfirmation && (
+            <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+              <h3 className="mb-2 font-semibold">Datos del Pago</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Referencia Bancaria
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.reference}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Banco
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.bank}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Teléfono
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm text-gray-900">
+                    {order.paymentConfirmation.phoneNumber}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Monto Transferido
+                  </label>
+                  <p className="rounded bg-gray-50 p-2 text-sm font-semibold text-gray-900">
+                    ${formatPrice(order.totalPrice)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <OrderProductList details={order.details} />
+        <OrderProductList details={order.details} total={order.totalPrice} />
       </div>
     </>
   );

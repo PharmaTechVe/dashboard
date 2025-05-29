@@ -14,6 +14,7 @@ import { registerSchema } from '@/lib/validations/registerSchema';
 import { REDIRECTION_TIMEOUT } from '@/lib/utils/contants';
 import { UserGender, UserRole } from '@pharmatech/sdk';
 import Input from '@/components/Input/Input';
+import { convertSlashDateToIso } from '@/lib/utils/useFormatDate';
 
 // Mapeo para mostrar etiquetas en el dropdown y obtener el valor que espera la API
 const roleMapping: Record<string, UserRole> = {
@@ -21,14 +22,6 @@ const roleMapping: Record<string, UserRole> = {
   'Administrador de Sucursal': UserRole.BRANCH_ADMIN,
   Cliente: UserRole.CUSTOMER,
   Delivery: UserRole.DELIVERY,
-};
-
-// Función para convertir fecha de "DD/MM/YYYY" a "YYYY-MM-DD"
-const formatDate = (dateStr: string): string => {
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return dateStr;
-  const [day, month, year] = parts;
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -88,25 +81,25 @@ export default function NewUserPage() {
 
     // Prepara los datos para la validación usando el schema
     const result = registerSchema.safeParse({
-      nombre: firstName,
-      apellido: lastName,
+      firstName: firstName,
+      lastName: lastName,
       email,
-      cedula: documentId,
-      telefono: phoneNumber,
-      fechaNacimiento: formatDate(birthDate), // Se espera formato yyyy-mm-dd
-      genero,
+      documentId: documentId,
+      phoneNumber: phoneNumber,
+      birthDate: convertSlashDateToIso(birthDate), // Se espera formato yyyy-mm-dd
+      gender: genero,
     });
 
     if (!result.success) {
       const { fieldErrors } = result.error.flatten();
       setErrors({
-        firstName: fieldErrors.nombre?.[0] || '',
-        lastName: fieldErrors.apellido?.[0] || '',
+        firstName: fieldErrors.firstName?.[0] || '',
+        lastName: fieldErrors.lastName?.[0] || '',
         email: fieldErrors.email?.[0] || '',
-        documentId: fieldErrors.cedula?.[0] || '',
-        phoneNumber: fieldErrors.telefono?.[0] || '',
-        birthDate: fieldErrors.fechaNacimiento?.[0] || '',
-        gender: fieldErrors.genero?.[0] || '',
+        documentId: fieldErrors.documentId?.[0] || '',
+        phoneNumber: fieldErrors.phoneNumber?.[0] || '',
+        birthDate: fieldErrors.birthDate?.[0] || '',
+        gender: fieldErrors.gender?.[0] || '',
       });
       toast.error('Por favor, revisa los errores en el formulario');
       return;
@@ -127,7 +120,7 @@ export default function NewUserPage() {
       }
 
       const mappedRole = roleMapping[role] || UserRole.CUSTOMER;
-      const formattedBirthDate = formatDate(birthDate);
+      const formattedBirthDate = convertSlashDateToIso(birthDate);
 
       const payload = {
         firstName,
@@ -209,7 +202,6 @@ export default function NewUserPage() {
               helperText={errors.firstName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -222,7 +214,6 @@ export default function NewUserPage() {
               helperText={errors.lastName}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
         </div>
@@ -237,7 +228,6 @@ export default function NewUserPage() {
               helperText={errors.documentId}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -302,7 +292,6 @@ export default function NewUserPage() {
               helperText={errors.phoneNumber}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
           <div>
@@ -315,7 +304,6 @@ export default function NewUserPage() {
               helperText={errors.email}
               helperTextColor={Colors.semanticDanger}
               borderSize="1px"
-              borderColor="#E7E7E6"
             />
           </div>
         </div>

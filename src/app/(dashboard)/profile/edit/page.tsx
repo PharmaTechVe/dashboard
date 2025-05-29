@@ -103,7 +103,6 @@ export default function EditProfilePage() {
             label="Nombre"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            borderColor="#E7E7E6"
           />
           {errors.firstName && (
             <p className="text-sm text-red-500">{errors.firstName}</p>
@@ -114,7 +113,6 @@ export default function EditProfilePage() {
             label="Apellido"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            borderColor="#E7E7E6"
           />
           {errors.lastName && (
             <p className="text-sm text-red-500">{errors.lastName}</p>
@@ -126,7 +124,6 @@ export default function EditProfilePage() {
             type="text"
             helperText={errors.documentId}
             value={profile.documentId}
-            borderColor="#E7E7E6"
             readViewOnly
           />
         </div>
@@ -136,7 +133,6 @@ export default function EditProfilePage() {
             type="text"
             helperText={errors.documentId}
             value={profile.email}
-            borderColor="#E7E7E6"
             readViewOnly
           />
         </div>
@@ -155,7 +151,6 @@ export default function EditProfilePage() {
             label="Número de Teléfono"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            borderColor="#E7E7E6"
           />
           {errors.phone && (
             <p className="text-sm text-red-500">{errors.phone}</p>

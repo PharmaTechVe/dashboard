@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const newPresentationSchema = z.object({
   name: z.string().min(1, 'El nombre de la presentación es requerido'),
-  description: z.string().optional(), // o .min(1, 'Descripción requerida') si es obligatoria
+  description: z.string().min(1, 'Descripción requerida'),
   quantity: z
     .string()
     .min(1, 'La cantidad es requerida')

@@ -72,9 +72,9 @@ export default function AddProductPresentationPage() {
     }
 
     const payload = result.data;
-
+    // Convert to cents
+    payload.price = Number((payload.price * 100).toFixed(0));
     try {
-      console.log('Payload:', payload);
       await api.productPresentation.create(productId, payload);
       toast.success('Presentación añadida al producto');
       setTimeout(() => {
@@ -177,7 +177,6 @@ export default function AddProductPresentationPage() {
             onChange={(e) => setPrice(e.target.value)}
             helperText={errors.price}
             helperTextColor={Colors.semanticDanger}
-            borderColor="#d1d5db"
             type="number"
             borderSize="1px"
           />

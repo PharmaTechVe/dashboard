@@ -16,6 +16,8 @@ import {
   CityResponse,
   BranchResponse,
 } from '@pharmatech/sdk';
+import { formatPrice } from '@/lib/utils/priceFormatter';
+import Button from '@/components/Button';
 
 const COUNTRY_ID = '1238bc2a-45a5-47e4-9cc1-68d573089ca1';
 
@@ -38,8 +40,7 @@ export default function ReportPreviewPage() {
 
     (async () => {
       try {
-        const profile = await api.user.getProfile(user.sub, token);
-        setUserName(`${profile.firstName} ${profile.lastName}`);
+        setUserName(user.name);
 
         const stateResponse = await api.state.findAll({
           page: 1,
@@ -110,8 +111,18 @@ export default function ReportPreviewPage() {
     { key: 'discount', label: 'Descuento' },
     { key: 'total', label: 'Total' },
   ];
-
-  const formatCurrency = (n: number) => `$${n.toFixed(2)}`;
+  const tableData = useMemo(() => {
+    return reportData?.items.map((item) => {
+      return {
+        ...item,
+        orderId: `#${String(item.orderId).slice(0, 4)}`,
+        subtotal: Number(formatPrice(item.subtotal)),
+        discount: Number(formatPrice(item.discount)),
+        date: new Date(item.date).toLocaleDateString('es-VE'),
+        total: Number(formatPrice(item.total)),
+      };
+    });
+  }, [reportData]);
 
   const handleDownload = async () => {
     if (!reportData || !startDate || !endDate) return;
@@ -121,13 +132,13 @@ export default function ReportPreviewPage() {
     const totals = [
       {
         label: 'Subtotal General',
-        value: formatCurrency(reportData.totals.subtotal),
+        value: formatPrice(reportData.totals.subtotal),
       },
       {
         label: 'Descuento Total',
-        value: formatCurrency(reportData.totals.discount),
+        value: formatPrice(reportData.totals.discount),
       },
-      { label: 'Total Final', value: formatCurrency(reportData.totals.total) },
+      { label: 'Total Final', value: formatPrice(reportData.totals.total) },
     ];
 
     const blob = await pdf(
@@ -137,15 +148,7 @@ export default function ReportPreviewPage() {
         userName={userName}
         printDate={printDate}
         columns={columns}
-        data={reportData.items.map((item) => {
-          const dateObj = new Date(item.date);
-          const formattedDate = dateObj.toLocaleDateString('es-VE');
-          return {
-            ...item,
-            orderId: `#${String(item.orderId).slice(0, 4)}`,
-            date: formattedDate,
-          };
-        })}
+        data={tableData!}
         totals={totals}
       />,
     ).toBlob();
@@ -154,25 +157,31 @@ export default function ReportPreviewPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
       <h1 className="mb-6 text-center text-2xl font-bold">Reporte de Ventas</h1>
 
       {/* Filtros de fecha */}
       <div className="mb-6 flex flex-col items-center justify-center gap-4 md:flex-row">
         <div className="relative">
-          <label className="text-sm font-medium">Fecha inicio:</label>
+          <label className="block text-[16px] font-medium text-gray-600">
+            Fecha inicio:
+          </label>
           <DatePicker1 onDateSelect={setStartDate} />
         </div>
         <div className="relative">
-          <label className="text-sm font-medium">Fecha fin:</label>
+          <label className="block text-[16px] font-medium text-gray-600">
+            Fecha fin:
+          </label>
           <DatePicker1 onDateSelect={setEndDate} />
         </div>
       </div>
 
       {/* Filtros de ubicación */}
-      <div className="mb-6 flex flex-col items-center justify-center gap-4 md:flex-row">
-        <div>
-          <label className="text-sm font-medium">Estado:</label>
+      <div className="mb-6 flex flex-col items-center justify-center gap-6 md:flex-row">
+        <div className="relative">
+          <label className="block text-[16px] font-medium text-gray-600">
+            Estado:
+          </label>
           <select
             value={selectedState}
             onChange={(e) => setSelectedState(e.target.value)}
@@ -186,8 +195,10 @@ export default function ReportPreviewPage() {
             ))}
           </select>
         </div>
-        <div>
-          <label className="text-sm font-medium">Ciudad:</label>
+        <div className="relative">
+          <label className="block text-[16px] font-medium text-gray-600">
+            Ciudad:
+          </label>
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
@@ -202,8 +213,10 @@ export default function ReportPreviewPage() {
             ))}
           </select>
         </div>
-        <div>
-          <label className="text-sm font-medium">Sucursal:</label>
+        <div className="relative">
+          <label className="block text-[16px] font-medium text-gray-600">
+            Sucursal:
+          </label>
           <select
             value={branchId ?? ''}
             onChange={(e) => setBranchId(e.target.value || undefined)}
@@ -221,12 +234,12 @@ export default function ReportPreviewPage() {
       </div>
 
       <div className="flex justify-center">
-        <button
+        <Button
           onClick={handleDownload}
-          className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:opacity-50"
+          className="max-w-[300px] rounded px-4 py-2"
         >
           {loading ? 'Cargando reporte...' : 'Descargar Reporte PDF'}
-        </button>
+        </Button>
       </div>
     </div>
   );
