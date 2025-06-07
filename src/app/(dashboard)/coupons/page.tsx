@@ -146,8 +146,9 @@ export default function CouponsPage() {
         return (
           <Badge
             variant="filled"
-            color={isActive ? 'success' : 'info'}
+            color={isActive ? 'success' : 'danger'}
             size="small"
+            borderRadius="square"
           >
             {isActive ? 'Activa' : 'Finalizada'}
           </Badge>
