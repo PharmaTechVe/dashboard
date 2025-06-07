@@ -68,7 +68,7 @@ export default function ViewProductPresentationPage() {
     }
 
     try {
-      await api.productPresentation.delete(productId, presentationId);
+      await api.productPresentation.delete(productId, presentationId, token);
       toast.success('Presentación eliminada exitosamente');
       setTimeout(() => {
         router.push(`/products/${productId}`);

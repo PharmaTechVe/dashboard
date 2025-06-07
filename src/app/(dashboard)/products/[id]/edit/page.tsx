@@ -31,7 +31,6 @@ export default function EditProductPage() {
     [],
   );
   const { token } = useAuth();
-  const [manufacturerId, setManufacturerId] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState('');
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [categoryId, setCategoryId] = useState('');
@@ -100,11 +99,6 @@ export default function EditProductPage() {
   }, [fetchProduct]);
 
   useEffect(() => {
-    const selected = manufacturers.find((m) => m.name === selectedManufacturer);
-    setManufacturerId(selected ? selected.id : '');
-  }, [selectedManufacturer, manufacturers]);
-
-  useEffect(() => {
     const selected = categories.find((c) => c.name === selectedCategory);
     setCategoryId(selected ? selected.id : '');
   }, [selectedCategory, categories]);
@@ -115,7 +109,7 @@ export default function EditProductPage() {
       genericName,
       description,
       priority,
-      manufacturerId,
+      manufacturerId: selectedManufacturer,
     });
 
     if (!result.success) {
@@ -139,19 +133,19 @@ export default function EditProductPage() {
       name,
       description,
       priority: parseInt(priority),
-      manufacturerId,
+      manufacturerId: selectedManufacturer,
     };
 
     try {
       await api.genericProduct.update(id, payload, token);
       for (const url of imageUrls) {
-        await api.productImage.create(id, { url });
+        await api.productImage.create(id, { url }, token);
       }
       console.log('Category ID:', categoryId, categoryId);
       if (currentCategory) {
-        await api.productCategory.delete(id, currentCategory.id);
+        await api.productCategory.delete(id, currentCategory.id, token);
       }
-      await api.productCategory.create(id, categoryId);
+      await api.productCategory.create(id, categoryId, token);
       toast.success('Producto actualizado con exito');
       setTimeout(() => {
         router.push('/products');

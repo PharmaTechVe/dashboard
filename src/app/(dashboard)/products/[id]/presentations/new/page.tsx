@@ -75,7 +75,7 @@ export default function AddProductPresentationPage() {
     // Convert to cents
     payload.price = Number((payload.price * 100).toFixed(0));
     try {
-      await api.productPresentation.create(productId, payload);
+      await api.productPresentation.create(productId, payload, token);
       toast.success('Presentación añadida al producto');
       setTimeout(() => {
         router.push(`/products/${productId}`);
