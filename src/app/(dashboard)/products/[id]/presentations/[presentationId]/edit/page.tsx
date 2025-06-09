@@ -100,7 +100,12 @@ export default function EditProductPresentationPage() {
     // Convert to cents
     payload.price = Number((payload.price * 100).toFixed(0));
     try {
-      await api.productPresentation.update(productId, presentationId, payload);
+      await api.productPresentation.update(
+        productId,
+        presentationId,
+        payload,
+        token,
+      );
       toast.success('Presentación actualizada exitosamente');
       setTimeout(() => {
         router.push(`/products/${productId}`);

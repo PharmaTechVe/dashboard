@@ -16,11 +16,10 @@ export default function NewGenericProductPage() {
   const [genericName, setGenericName] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
-  const [manufacturerId, setManufacturerId] = useState('');
   const [manufacturers, setManufacturers] = useState<ManufacturerResponse[]>(
     [],
   );
-  const [selectedManufacturer, setSelectedManufacturer] = useState('');
+  const [selectedManufacturer, setSelectedManufacturer] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -39,20 +38,15 @@ export default function NewGenericProductPage() {
     fetchManufacturers();
   }, []);
 
-  useEffect(() => {
-    const selected = manufacturers.find((m) => m.name === selectedManufacturer);
-    setManufacturerId(selected ? selected.id : '');
-  }, [selectedManufacturer, manufacturers]);
-
   const handleSubmit = async () => {
     const result = newGenericProductSchema.safeParse({
       name,
       genericName,
       description,
       priority,
-      manufacturerId,
+      manufacturerId: selectedManufacturer,
     });
-
+    console.log('Validation result:', result);
     if (!result.success) {
       const { fieldErrors } = result.error.flatten();
       setErrors({
@@ -79,7 +73,7 @@ export default function NewGenericProductPage() {
         genericName,
         description,
         priority: parseInt(priority),
-        manufacturerId,
+        manufacturerId: selectedManufacturer,
       };
 
       await api.genericProduct.create(payload, token);
@@ -89,7 +83,6 @@ export default function NewGenericProductPage() {
       setGenericName('');
       setDescription('');
       setPriority('');
-      setManufacturerId('');
       setSelectedManufacturer('');
       setErrors({});
     } catch (error) {

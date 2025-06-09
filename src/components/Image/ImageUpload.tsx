@@ -146,7 +146,7 @@ export default function ImageUpload({
   const handleRemoveFile = async (file: FileWithProgress) => {
     try {
       if (file.fromBackend) {
-        await api.productImage.delete(productId, file.id);
+        await api.productImage.delete(productId, file.id, token!);
         toast.success('Imagen eliminada del backend');
       } else {
         if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);

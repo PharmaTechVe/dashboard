@@ -131,7 +131,7 @@ export default function PromosPage() {
           <Badge
             variant="filled"
             color={status === 'Activa' ? 'success' : 'danger'}
-            size="medium"
+            size="small"
             borderRadius="square"
           >
             {status}
